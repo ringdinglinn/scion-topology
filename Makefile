@@ -47,8 +47,13 @@ build-monitor:
 build: build-base build-monitor \
        $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),build-scion$(i)$(a)))
 
+OS := $(shell uname)
 up: build
-	docker compose up -d
+ifeq ($(OS), Linux)
+	docker-compose up -d
+else
+	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
+endif
 
 # Maybe include a pattern to start all existing containers
 
