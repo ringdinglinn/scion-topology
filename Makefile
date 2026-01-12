@@ -50,7 +50,7 @@ build: build-base build-monitor \
 OS := $(shell uname)
 up: build
 ifeq ($(OS), Linux)
-	docker-compose up -d
+	docker compose up -d
 else
 	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
 endif
