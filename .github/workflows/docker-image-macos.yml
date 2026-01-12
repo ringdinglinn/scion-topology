@@ -1,18 +1,34 @@
 name: Docker Image CI
 
 on:
-  push:
+  push: 
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
-jobs:
+jobs: 
 
   build:
 
     runs-on: macos-latest
 
-    steps:
+    steps: 
     - uses: actions/checkout@v4
+    
+    - name: Install Docker
+      run: |
+        brew install docker colima
+        colima start
+        
+        # Wait for Docker to be ready
+        for i in {1..30}; do
+          docker info &>/dev/null && break
+          echo "Waiting for Docker to start..."
+          sleep 2
+        done
+        
+        # Verify Docker is running
+        docker info
+    
     - name: Build the Docker image
       run: make up
