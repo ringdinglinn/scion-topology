@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Running Docker Image on Ubuntu
 
 on:
   push:
