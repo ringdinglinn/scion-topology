@@ -1,42 +1,59 @@
-**DOCKER SCION**
+# SCION Testbed
 
-The Makefile defines all the make commands used to build, run the images/containers. Docker-compose defines all the services and networks required. 
+## Project Overview
 
-**base-isd**
+This project provides a Docker-based SCION (Secure Internet Architecture) testbed for experimenting with inter-domain routing and network topology. It includes multiple Internet Service Domains (ISDs) with preconfigured SCION nodes, a monitoring interface for network control and packet capture, and APIs for managing routing policies and conducting network measurements. The testbed supports packet capture, ping diagnostics, SCION-specific ping operations, and dynamic path policy configuration.
 
-Contains base Dockerfile and configuration files (br.toml, cs.toml) which are used as the basis for all other Docker images (e.g. scion01, scion02, ...).
+## Directory Structure
 
-Systemd folder contains the scion services (see https://systemd.io/). 
+**base/** - Contains base Docker configuration and supporting tools:
+- `Dockerfile` - Base image for all SCION nodes
+- `br.toml`, `cs.toml` - SCION configuration templates
+- `pki/` - PKI generation scripts for each ISD
+- `scion-node-manager/` - REST API for node management (capture, ping, diagnostics)
+- `shttp/` - SCION HTTP webserver implementation
+- `systemd/` - Systemd service files for SCION daemons
 
-The pki-generation-isd0%i.bash files runs the certificate generation and signing ceremony for each respective isd. 
+**ISD[1-4]/** - Four Internet Service Domains with 5 SCION nodes each:
+- `scion1[1-5]`, `scion2[1-5]`, etc. - Individual SCION nodes with topology definitions
 
-**scion0%i**
+**monitor/** - Network monitoring and control interface:
+- `web-ui/` - Web dashboard for network visualization
+- `scionctl/` - CLI tool for controlling SCION nodes and performing diagnostics
 
-Contains topology files and an additional Dockerfile. 
+**captures/** - Packet capture files from network diagnostics
 
-**Monitor**
+## Setup
 
+### Prerequisites
+- Docker Engine and Docker Compose
+- Linux environment (WSL 2 on Windows 11 is supported)
+- `make` utility
 
+### Running the Testbed
 
-**SETUP**
-
-I used WSL 2 Ubuntu with Docker Engine installed on Windows 11.
-Unix should work too I think, just try. To start, simply run
-
+To start all containers:
 ```bash
 make up
 ```
 
-in the terminal and to stop
+To stop all containers:
 ```bash
 make down
 ```
 
+The Makefile defines all commands for building and managing Docker images and containers. Docker Compose orchestrates the services and networking.
 
-**MISC:**\
-To build the gofiles for the docker containers use:
+## Building Go Files
 
+To build Go binaries for Linux containers, use:
 ```bash
 env GOOS=linux GOARCH=amd64 go build -o <outputFileName> <goFile>
 ```
 
+Example:
+```bash
+env GOOS=linux GOARCH=amd64 go build -o scion-node-manager ./base/scion-node-manager/main.go
+```
+
+This ensures binaries are compatible with the Linux-based Docker containers regardless of your host OS.
