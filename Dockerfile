@@ -8,7 +8,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 
 RUN apt-get update && apt-get install --assume-yes systemd libcap2-bin
 
-ENV container docker
+ENV container=docker
 
 # Only "boot" a minimal system with journald and nothing else
 CMD ["/bin/systemd", "--unit", "systemd-journald.socket"]
