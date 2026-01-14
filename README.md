@@ -27,7 +27,7 @@ This project provides a Docker-based SCION (Secure Internet Architecture) testbe
 
 ### Prerequisites
 - Docker Engine and Docker Compose
-- Linux environment (WSL 2 on Windows 11 is supported)
+- Linux or MacOS environment (WSL 2 on Windows 11 is supported)
 - `make` utility
 
 ### Running the Testbed
@@ -43,6 +43,9 @@ make down
 ```
 
 The Makefile defines all commands for building and managing Docker images and containers. Docker Compose orchestrates the services and networking.
+On the first build bats (bash automated testing system) will be installed. It will ask for your password to get permission.
+For more details on bats visit the following:  
+- https://github.com/bats-core/bats-core
 
 ## Building Go Files
 
