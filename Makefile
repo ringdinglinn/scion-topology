@@ -48,7 +48,7 @@ build: build-base build-monitor \
        $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),build-scion$(i)$(a)))
 
 OS := $(shell uname)
-up: build
+up: install-bats build
 ifeq ($(OS), Linux)
 	docker compose up -d
 else
@@ -56,6 +56,24 @@ else
 endif
 
 # Maybe include a pattern to start all existing containers
+
+#install bats shell testing framework
+install-bats:
+	echo "Cloning bats-core repository..."
+	git clone https://github.com/bats-core/bats-core.git
+	echo "Installing bats..."
+	cd bats-core && sudo ./install.sh /usr/local
+	rm -rf bats-core
+	echo "Checking bats installation..."
+	if command -v bats >/dev/null 2>&1; then \
+		echo "Bats installed successfully at $$(command -v bats)"; \
+		bats --version; \
+	else \
+		echo "Bats installation failed or bats is not on your PATH."; \
+		exit 1; \
+	fi
+
+#run test scripts
 
 down:
 	docker compose down
