@@ -54,6 +54,7 @@ ifeq ($(OS), Linux)
 else
 	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
 endif
+	bats test/
 
 # Maybe include a pattern to start all existing containers
 
@@ -74,6 +75,7 @@ install-bats:
 	fi
 
 #run test scripts
+
 
 down:
 	docker compose down
