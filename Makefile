@@ -54,24 +54,30 @@ ifeq ($(OS), Linux)
 else
 	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
 endif
+	sleep 6
 	bats test/
 
 # Maybe include a pattern to start all existing containers
 
 #install bats shell testing framework
 install-bats:
-	echo "Cloning bats-core repository..."
-	git clone https://github.com/bats-core/bats-core.git
-	echo "Installing bats..."
-	cd bats-core && sudo ./install.sh /usr/local
-	rm -rf bats-core
-	echo "Checking bats installation..."
-	if command -v bats >/dev/null 2>&1; then \
-		echo "Bats installed successfully at $$(command -v bats)"; \
+	@if command -v bats >/dev/null 2>&1; then \
+		echo "Bats is already installed at $$(command -v bats)"; \
 		bats --version; \
 	else \
-		echo "Bats installation failed or bats is not on your PATH."; \
-		exit 1; \
+		echo "Cloning bats-core repository..."; \
+		git clone https://github.com/bats-core/bats-core.git; \
+		echo "Installing bats..."; \
+		cd bats-core && sudo ./install.sh /usr/local; \
+		rm -rf bats-core; \
+		echo "Checking bats installation..."; \
+		if command -v bats >/dev/null 2>&1; then \
+			echo "Bats installed successfully at $$(command -v bats)"; \
+			bats --version; \
+		else \
+			echo "Bats installation failed or bats is not on your PATH."; \
+			exit 1; \
+		fi; \
 	fi
 
 #run test scripts
