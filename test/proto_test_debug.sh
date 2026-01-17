@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Uncomment to generate a new ping log
-# docker exec monitor scionctl scionping start scion11 scion12 --count 1
-# sleep 1
+docker exec monitor scionctl scionping start scion11 scion12 --count 1
+sleep 1
 
 # Get the latest ping log filename
 output=$(docker exec monitor scionctl scionping list scion11)
