@@ -12,9 +12,7 @@ DEBIAN_DOCKER_DIR = $(CURDIR)
 all: up
 
 build-debian-base:
-	docker build -t debian-systemd:$(VERSION) \
-		-f $(DEBIAN_DOCKER_DIR)/Dockerfile \
-		$(DEBIAN_DOCKER_DIR)
+	cd "$(DEBIAN_DOCKER_DIR)" && docker build -t debian-systemd:$(VERSION) .
 
 build-base: build-debian-base
 	docker build -t scion-base:$(VERSION) \
