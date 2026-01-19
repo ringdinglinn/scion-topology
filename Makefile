@@ -54,8 +54,6 @@ ifeq ($(OS), Linux)
 else
 	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
 endif
-	sleep 6
-	bats test/
 
 # Maybe include a pattern to start all existing containers
 
@@ -89,3 +87,9 @@ down:
 purge: down
 	docker ps -aq --filter "name=scion" | xargs -r docker rm -f
 	docker network ls -q --filter "name=^as_net_" --filter "name=^transit_net" | xargs -r docker network rm
+
+
+.PHONY: test
+
+test:
+	bats test/
