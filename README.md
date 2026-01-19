@@ -48,7 +48,7 @@ The Makefile defines all commands for building and managing Docker images and co
 
 Test run automatically on start with **make up**. On the first build it will prompt the system password to install **bats** (bash automated testing system). To run the tests separatly while the testbed is up, use:
 ```bash
-bats test/
+make test
 ```
 For more details on bats visit the following:  
 - https://github.com/bats-core/bats-core

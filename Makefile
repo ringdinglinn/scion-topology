@@ -54,6 +54,10 @@ ifeq ($(OS), Linux)
 else
 	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
 endif
+	@echo "Waiting for containers to start..."
+	sleep 6
+	@echo "Running tests..."
+	bats test/
 
 # Maybe include a pattern to start all existing containers
 
