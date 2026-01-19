@@ -1,4 +1,4 @@
-name: Makefile CI
+name: Run integration tests
 
 on:
   push:
@@ -13,9 +13,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: configure
-      run: ./configure
 
     - name: Start containers & Install dependencies
       run: make up
