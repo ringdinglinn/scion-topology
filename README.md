@@ -46,10 +46,11 @@ The Makefile defines all commands for building and managing Docker images and co
 
 ### Running Tests
 
-Test run automatically on start with **make up**. On the first build it will prompt the system password to install **bats** (bash automated testing system). To run the tests separatly while the testbed is up, use:
+The integration tests do not run automatically. To run the tests use:
 ```bash
 make test
 ```
+If not already installed on the host machine, **bats** (bash automated testing system) will be installed and you will be prompted for permission to do so. Without bats, the tests can't run.
 For more details on bats visit the following:  
 - https://github.com/bats-core/bats-core
 
@@ -65,4 +66,4 @@ Example:
 env GOOS=linux GOARCH=amd64 go build -o scion-node-manager ./base/scion-node-manager/main.go
 ```
 
-This ensures binaries are compatible with the Linux-based Docker containers regardless of your host OS. If scion is not running for correctly for some reason, a rebuild of the binaries can help in some cases.
+This ensures binaries are compatible with the Linux-based Docker containers regardless of your host OS. If the scion-services are not running for correctly for some reason, rebuilding the binaries can help in some cases.

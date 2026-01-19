@@ -48,16 +48,12 @@ build: build-base build-monitor \
        $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),build-scion$(i)$(a)))
 
 OS := $(shell uname)
-up: install-bats build
+up: build
 ifeq ($(OS), Linux)
 	docker compose up -d
 else
 	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
 endif
-	@echo "Waiting for containers to start..."
-	sleep 6
-	@echo "Running tests..."
-	bats test/
 
 # Maybe include a pattern to start all existing containers
 
@@ -95,5 +91,5 @@ purge: down
 
 .PHONY: test
 
-test:
+test: install-bats
 	bats test/
