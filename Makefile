@@ -5,7 +5,9 @@ VERSION := 1.0
 
 DEBIAN_DOCKER_DIR = $(CURDIR)
 
-.PHONY: all build build-debian-base build-base build-scion up down purge
+.PHONY: all build rebuild build-debian-base build-base \
+        build-scion rebuild-scion rebuild-base rebuild-monitor \
+        up down purge
 
 # ==== PATTERN RULES ====
 
@@ -44,6 +46,29 @@ build-monitor:
 # First build base, then build monitor, then each scion-as
 build: build-base build-monitor \
        $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),build-scion$(i)$(a)))
+
+# Rebuild targets (force no-cache)
+rebuild: rebuild-base rebuild-monitor \
+         $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),rebuild-scion$(i)$(a)))
+
+rebuild-base:
+	docker build --no-cache -t debian-systemd:$(VERSION) .
+	docker build --no-cache -t scion-base:$(VERSION) \
+		-f ./base/Dockerfile \
+		./base
+
+rebuild-scion%:
+	@isd=$(shell echo $* | cut -c1); \
+	 as=$(shell echo $* | cut -c2); \
+	 docker build --no-cache -t scion$$isd$$as:$(VERSION) \
+		-f ./ISD$$isd/scion$$isd$$as/Dockerfile \
+		./ISD$$isd/scion$$isd$$as
+
+rebuild-monitor:
+	docker build --no-cache -t monitor:$(VERSION) \
+		-f ./monitor/Dockerfile \
+		./monitor
+
 
 OS := $(shell uname)
 up: install-bats build
