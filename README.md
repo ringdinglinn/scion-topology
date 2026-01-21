@@ -51,7 +51,8 @@ The integration tests do not run automatically. To run the tests use:
 make test
 ```
 If not already installed on the host machine, **bats** (bash automated testing system) will be installed and you will be prompted for permission to do so. Without bats, the tests can't run.
-For more details on bats visit the following:  
+For more details on bats visit the following:
+- https://bats-core.readthedocs.io/en/stable/
 - https://github.com/bats-core/bats-core
 
 ## Building Go Files
