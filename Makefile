@@ -29,6 +29,16 @@ build-scion%:
 		-f ./ISD$$isd/scion$$isd$$as/Dockerfile \
 		./ISD$$isd/scion$$isd$$as
 
+# Pattern for endhost
+build-endhost%:
+	@as=$*; \
+	docker build -t endhost-as$$as:$(VERSION) \
+		-f ./endhosts/endhost-as$$as/Dockerfile \
+		./endhosts/endhost-as$$as
+
+# Build the specific endhost
+build-all-endhost: build-endhost15 build-endhost35
+
 # Pattern for building a whole AS group - ISD (e.g. build-isd1)
 # Would need rework if AS # > 9
 build-isd%:
@@ -45,7 +55,8 @@ build-monitor:
 # Main build target
 # First build base, then build monitor, then each scion-as
 build: build-base build-monitor \
-       $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),build-scion$(i)$(a)))
+       $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),build-scion$(i)$(a))) \
+	   build-all-endhost
 
 OS := $(shell uname)
 up: build

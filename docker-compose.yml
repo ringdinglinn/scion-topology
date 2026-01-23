@@ -19,7 +19,39 @@ services:
     tmpfs:
       - /run
       - /run/lock
-
+  # Endhost container
+  endhost-as15:
+    container_name: endhost-as15
+    image: endhost-as15:1.0
+    hostname: endhost-as15
+    volumes: 
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    tmpfs:
+      - /run
+      - /run/lock
+    networks:
+      as_net_15:
+        ipv4_address: 10.10.5.200 # Does not allow for communication outside as_net_15
+      transit_net: 
+        ipv4_address: 10.100.0.115 # Connect endhost to transit net
+    depends_on:
+      - scion15
+  endhost-as35:
+    container_name: endhost-as35
+    image: endhost-as35:1.0
+    hostname: endhost-as35
+    volumes: 
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    tmpfs:
+      - /run
+      - /run/lock
+    networks:
+      as_net_35:
+        ipv4_address: 10.30.5.200 # Does not allow for communication outside as_net_15
+      transit_net: 
+        ipv4_address: 10.100.0.135 # Connect endhost to transit net
+    depends_on:
+      - scion35
   scion11:
     image: scion11:1.0
     container_name: scion11
@@ -81,7 +113,8 @@ services:
     container_name: scion15
     hostname: scion15
     networks:
-      as_net_15: {}
+      as_net_15: 
+        ipv4_address: 10.10.5.100 # Currently does not allow for scion as outside as_net_15
       transit_net:
         ipv4_address: 10.100.0.15
     volumes:

@@ -19,7 +19,7 @@ RUN echo "PS1='\e[92m\u\e[0m@\e[94m\h\e[0m:\e[35m\w\e[0m# '" >> ~/.bashrc
 
 # Install dependencies and additional network utilities.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    systemd libcap2-bin tcpdump iputils-ping \
+    systemd libcap2-bin tcpdump iputils-ping iproute2 \
     curl wget tar ca-certificates \
     # For development, can delete later
     nano procps \

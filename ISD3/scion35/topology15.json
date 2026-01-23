@@ -5,17 +5,17 @@
   "mtu": 1472,
   "control_service": {
     "cs": {
-      "addr": "127.0.0.1:31000"
+      "addr": "10.100.0.35:31000"
     }
   },
   "discovery_service": {
     "cs": {
-      "addr": "127.0.0.1:31000"
+      "addr": "10.100.0.35:31000"
     }
   },
   "border_routers": {
     "br": {
-      "internal_addr": "127.0.0.1:31002",
+      "internal_addr": "10.100.0.35:31002",
       "interfaces": {
         "1": {
           "underlay": {
