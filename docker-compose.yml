@@ -25,7 +25,7 @@ services:
     container_name: scion11
     hostname: scion11
     networks:
-      as_net_31: {}
+      as_net_11: {}
       transit_net:
         ipv4_address: 10.100.0.11
     volumes:
@@ -39,7 +39,7 @@ services:
     container_name: scion12
     hostname: scion12
     networks:
-      as_net_32: {}
+      as_net_12: {}
       transit_net:
         ipv4_address: 10.100.0.12
     volumes:
@@ -53,7 +53,7 @@ services:
     container_name: scion13
     hostname: scion13
     networks:
-      as_net_33: {}
+      as_net_13: {}
       transit_net:
         ipv4_address: 10.100.0.13
     volumes:
@@ -67,7 +67,7 @@ services:
     container_name: scion14
     hostname: scion14
     networks:
-      as_net_34: {}
+      as_net_14: {}
       transit_net:
         ipv4_address: 10.100.0.14
     volumes:
@@ -81,7 +81,7 @@ services:
     container_name: scion15
     hostname: scion15
     networks:
-      as_net_35: {}
+      as_net_15: {}
       transit_net:
         ipv4_address: 10.100.0.15
     volumes:
