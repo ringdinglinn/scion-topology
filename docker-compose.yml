@@ -257,76 +257,6 @@ services:
     tmpfs:
     - /run
     - /run/lock
-  scion41:
-    image: scion41:1.0
-    container_name: scion41
-    hostname: scion41
-    networks:
-      as_net_41: {}
-      transit_net:
-        ipv4_address: 10.100.0.41
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion42:
-    image: scion42:1.0
-    container_name: scion42
-    hostname: scion42
-    networks:
-      as_net_42: {}
-      transit_net:
-        ipv4_address: 10.100.0.42
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion43:
-    image: scion43:1.0
-    container_name: scion43
-    hostname: scion43
-    networks:
-      as_net_43: {}
-      transit_net:
-        ipv4_address: 10.100.0.43
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion44:
-    image: scion44:1.0
-    container_name: scion44
-    hostname: scion44
-    networks:
-      as_net_44: {}
-      transit_net:
-        ipv4_address: 10.100.0.44
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion45:
-    image: scion45:1.0
-    container_name: scion45
-    hostname: scion45
-    networks:
-      as_net_45: {}
-      transit_net:
-        ipv4_address: 10.100.0.45
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
 networks:
   as_net_11:
     ipam:
@@ -388,26 +318,6 @@ networks:
     ipam:
       config:
       - subnet: 10.30.5.0/24
-  as_net_41:
-    ipam:
-      config:
-      - subnet: 10.40.1.0/24
-  as_net_42:
-    ipam:
-      config:
-      - subnet: 10.40.2.0/24
-  as_net_43:
-    ipam:
-      config:
-      - subnet: 10.40.3.0/24
-  as_net_44:
-    ipam:
-      config:
-      - subnet: 10.40.4.0/24
-  as_net_45:
-    ipam:
-      config:
-      - subnet: 10.40.5.0/24
   transit_net:
     driver: bridge
     ipam:
