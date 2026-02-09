@@ -18,6 +18,8 @@ build-debian-base:
 
 build-base: build-debian-base
 	docker build -t scion-base:$(VERSION) \
+		--build-arg ISDS="$(ISDS)" \
+		--build-arg AS_COUNT=$(words $(AS_RANGE)) \
 		-f ./base/Dockerfile \
 		./base
 
@@ -65,6 +67,8 @@ rebuild: generate-compose rebuild-base rebuild-monitor \
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
 	docker build --no-cache -t scion-base:$(VERSION) \
+		--build-arg ISDS="$(ISDS)" \
+		--build-arg ASES="$(AS_RANGE)" \
 		-f ./base/Dockerfile \
 		./base
 

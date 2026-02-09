@@ -1,6 +1,8 @@
 # syntax = docker/dockerfile:1.3
 FROM --platform=$BUILDPLATFORM debian:12-slim
 
+ARG ISDS="1 2 3 4"
+ARG AS_COUNT=5
 ARG TARGETARCH
 ARG SCION_VER=0.14.0
 ARG RELEASE="https://github.com/scionproto/scion/releases/download/v${SCION_VER}/scion_${SCION_VER}_deb_${TARGETARCH}.tar.gz"
@@ -98,26 +100,26 @@ COPY cs.toml /etc/scion/cs.toml
 WORKDIR /pki
 
 # Setup PKI.
-COPY /pki/pki-generation-isd01.bash /pki/
-COPY /pki/pki-generation-isd02.bash /pki/
-COPY /pki/pki-generation-isd03.bash /pki/
-COPY /pki/pki-generation-isd04.bash /pki/
-RUN chmod +x pki-generation-isd01.bash && ./pki-generation-isd01.bash
-RUN chmod +x pki-generation-isd02.bash && ./pki-generation-isd02.bash
-RUN chmod +x pki-generation-isd03.bash && ./pki-generation-isd03.bash
-RUN chmod +x pki-generation-isd04.bash && ./pki-generation-isd04.bash
+COPY /pki/pki-generation.bash /pki/
+RUN chmod +x pki-generation.bash 
 
-# Persist the generated ISD TRC file.
-RUN ls -l /tmp/tutorial-scion-certs-isd01 && mv /tmp/tutorial-scion-certs-isd01/ISD16-B1-S1.trc /etc/scion/certs/
-RUN ls -l /tmp/tutorial-scion-certs-isd02 && mv /tmp/tutorial-scion-certs-isd02/ISD17-B1-S1.trc /etc/scion/certs/
-RUN ls -l /tmp/tutorial-scion-certs-isd03 && mv /tmp/tutorial-scion-certs-isd03/ISD18-B1-S1.trc /etc/scion/certs/
-RUN ls -l /tmp/tutorial-scion-certs-isd04 && mv /tmp/tutorial-scion-certs-isd04/ISD19-B1-S1.trc /etc/scion/certs/
+RUN for i in $ISDS; do \
+        echo "Generating pki for ISD $i"; \
+        as_start=$(( ($i - 1) * $AS_COUNT + 1 )); \
+        ./pki-generation.bash $i $as_start $AS_COUNT ; \
+    done
 
-# Persist the generated files.
+# Persist the generated ISD TRC files
+RUN for i in $ISDS; do \
+        isd_num=$((15 + i)); \
+        ls -l /tmp/tutorial-scion-certs-isd0${i} && \
+        mv /tmp/tutorial-scion-certs-isd0${i}/ISD${isd_num}-B1-S1.trc /etc/scion/certs/; \
+    done
+
+# Persist the generated files
 RUN mkdir -p /opt/tutorial-pki && \
-    cp -r /tmp/tutorial-scion-certs-isd01/* /opt/tutorial-pki/ && \
-    cp -r /tmp/tutorial-scion-certs-isd02/* /opt/tutorial-pki/ && \
-    cp -r /tmp/tutorial-scion-certs-isd03/* /opt/tutorial-pki/ && \
-    cp -r /tmp/tutorial-scion-certs-isd04/* /opt/tutorial-pki/
+    for i in $ISDS; do \
+        cp -r /tmp/tutorial-scion-certs-isd0${i}/* /opt/tutorial-pki/; \
+    done
 
 WORKDIR /etc/scion/
