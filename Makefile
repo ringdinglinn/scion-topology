@@ -26,8 +26,10 @@ build-scion%:
 	@isd=$(shell echo $* | cut -c1); \
 	 as=$(shell echo $* | cut -c2); \
 	 docker build -t scion$$isd$$as:$(VERSION) \
-		-f ./ISD$$isd/scion$$isd$$as/Dockerfile \
-		./ISD$$isd/scion$$isd$$as
+		--build-arg ISD=$$isd \
+		--build-arg AS=$$as \
+		-f ./template/Dockerfile \
+		./topologies  # folder containing topology1.json, topology2.json, etc.
 
 # Pattern for endhost
 build-endhost%:
@@ -54,12 +56,12 @@ build-monitor:
 
 # Main build target
 # First build base, then build monitor, then each scion-as
-build: build-base build-monitor \
+build: generate-compose build-base build-monitor \
        $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),build-scion$(i)$(a))) \
 	   build-all-endhost
 
 # Rebuild targets (force no-cache)
-rebuild: rebuild-base rebuild-monitor \
+rebuild: generate-compose rebuild-base rebuild-monitor \
          $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),rebuild-scion$(i)$(a)))
 
 rebuild-base:
@@ -71,15 +73,22 @@ rebuild-base:
 rebuild-scion%:
 	@isd=$(shell echo $* | cut -c1); \
 	 as=$(shell echo $* | cut -c2); \
-	 docker build --no-cache -t scion$$isd$$as:$(VERSION) \
-		-f ./ISD$$isd/scion$$isd$$as/Dockerfile \
-		./ISD$$isd/scion$$isd$$as
+	 docker build -t scion$$isd$$as:$(VERSION) \
+		--build-arg ISD=$$isd \
+		--build-arg AS=$$as \
+		-f ./template/Dockerfile \
+		./topologies  # folder containing topology1.json, topology2.json, etc.
 
 rebuild-monitor:
 	docker build --no-cache -t monitor:$(VERSION) \
 		-f ./monitor/Dockerfile \
 		./monitor
 
+generate-compose:
+	python3 scripts/generate-compose.py \
+		--isds "$(ISDS)" \
+		--as-range "$(AS_RANGE)" \
+		--version $(VERSION) 
 
 OS := $(shell uname)
 up: build

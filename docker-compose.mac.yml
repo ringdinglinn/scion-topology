@@ -1,81 +1,81 @@
 services:
   scion11:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion12:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion13:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion14:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion15:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion21:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion22:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion23:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion24:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion25:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion31:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion32:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion33:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion34:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion35:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion41:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion42:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion43:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion44:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion45:
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-      - /Users/Shared:/shared
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
