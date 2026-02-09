@@ -1,5 +1,5 @@
 # ==== CONFIG ====
-ISDS := 1 2 3
+ISDS := 1 2 3 4
 AS_RANGE := 1 2 3 4 5
 VERSION := 1.0
 
@@ -18,6 +18,8 @@ build-debian-base:
 
 build-base: build-debian-base
 	docker build -t scion-base:$(VERSION) \
+		--build-arg ISDS="$(ISDS)" \
+		--build-arg AS_COUNT=$(words $(AS_RANGE)) \
 		-f ./base/Dockerfile \
 		./base
 
@@ -67,6 +69,8 @@ rebuild: generate-compose rebuild-base rebuild-monitor \
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
 	docker build --no-cache -t scion-base:$(VERSION) \
+		--build-arg ISDS="$(ISDS)" \
+		--build-arg ASES="$(AS_RANGE)" \
 		-f ./base/Dockerfile \
 		./base
 
