@@ -1,5 +1,7 @@
 # ==== CONFIG ====
 CONFIG_PATH := base/isds.yaml
+EDGELIST_PATH := topology.txt
+TOPOLOGIES_PATH := topologies
 CONFIG_VARS := $(shell python3 scripts/parse-isd-config.py $(CONFIG_PATH))
 $(eval $(CONFIG_VARS))
 
@@ -30,13 +32,19 @@ build-base: build-debian-base
 
 # Pattern rule for scion nodes
 build-scion%:
-	@isd=$(shell echo $* | cut -c1); \
-	 as=$(shell echo $* | cut -c2); \
-	 docker build -t scion$$isd$$as:$(VERSION) \
-		--build-arg ISD=$$isd \
-		--build-arg AS=$$as \
-		-f ./template/Dockerfile \
-		./topologies
+	build-scion:
+	@set -e; \
+	for isd in $(ISDS); do \
+	  as_range="$(ISD$${isd}_AS_RANGE)"; \
+	  for as in $$as_range; do \
+	    echo ">>> Building SCION node ISD=$$isd AS=$$as"; \
+	    docker build -t scion$${isd}$${as}:$(VERSION) \
+	      --build-arg ISD=$$isd \
+	      --build-arg AS=$$as \
+	      -f ./template/Dockerfile \
+	      ./topologies; \
+	  done; \
+	done
 
 build-endhost%:
 	@as=$*; \
@@ -52,12 +60,9 @@ build-monitor:
 		./monitor
 
 # Main build target - dynamically generate targets per ISD
-build: generate-compose build-base build-monitor \
-       $(foreach i,$(ISDS),$(foreach a,$(ISD$(i)_AS_RANGE),build-scion$(i)$(a))) \
-	   build-all-endhost
+build: generate-compose generate-topologies build-base build-monitor build-scion build-all-endhost
 
-rebuild: generate-compose rebuild-base rebuild-monitor \
-         $(foreach i,$(ISDS),$(foreach a,$(ISD$(i)_AS_RANGE),rebuild-scion$(i)$(a)))
+rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebuild-scion
 
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
@@ -66,13 +71,19 @@ rebuild-base:
 		./base
 
 rebuild-scion%:
-	@isd=$(shell echo $* | cut -c1); \
-	 as=$(shell echo $* | cut -c2); \
-	 docker build --no-cache -t scion$$isd$$as:$(VERSION) \
-		--build-arg ISD=$$isd \
-		--build-arg AS=$$as \
-		-f ./template/Dockerfile \
-		./topologies
+	build-scion:
+	@set -e; \
+	for isd in $(ISDS); do \
+	  as_range="$(ISD$${isd}_AS_RANGE)"; \
+	  for as in $$as_range; do \
+	    echo ">>> Building SCION node ISD=$$isd AS=$$as"; \
+	    docker build --no-chache -t scion$${isd}$${as}:$(VERSION) \
+	      --build-arg ISD=$$isd \
+	      --build-arg AS=$$as \
+	      -f ./template/Dockerfile \
+	      ./topologies; \
+	  done; \
+	done
 
 rebuild-monitor:
 	docker build --no-cache -t monitor:$(VERSION) \
@@ -83,6 +94,35 @@ generate-compose:
 	python3 scripts/generate-compose.py \
 		--config $(CONFIG_PATH) \
 		--version $(VERSION)
+
+generate-topologies:
+	python3 scripts/generate-topologies.py \
+		--edges $(EDGELIST_PATH) \
+		--isds $(CONFIG_PATH) \
+		--output-dir $(TOPOLOGIES_PATH)
+
+#install bats shell testing framework
+install-bats:
+	@if command -v bats >/dev/null 2>&1; then \
+		echo "Bats is already installed at $$(command -v bats)"; \
+		bats --version; \
+	else \
+		echo "Cloning bats-core repository..."; \
+		git clone https://github.com/bats-core/bats-core.git; \
+		echo "Installing bats..."; \
+		cd bats-core && sudo ./install.sh /usr/local; \
+		rm -rf bats-core; \
+		echo "Checking bats installation..."; \
+		if command -v bats >/dev/null 2>&1; then \
+			echo "Bats installed successfully at $$(command -v bats)"; \
+			bats --version; \
+		else \
+			echo "Bats installation failed or bats is not on your PATH."; \
+			exit 1; \
+		fi; \
+	fi
+
+#run test scripts
 
 OS := $(shell uname)
 up: build
@@ -100,5 +140,6 @@ purge: down
 	docker network ls -q --filter "name=^as_net_" --filter "name=^transit_net" | xargs -r docker network rm
 
 .PHONY: test
+
 test: install-bats
 	bats test/
