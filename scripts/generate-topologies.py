@@ -3,72 +3,71 @@
 import json
 import argparse
 from collections import defaultdict
+import yaml
+import os
 
 def parse_edge(edge_str):
-    """Parse edge string like '1-1:1-4:child' into components"""
-    parts = edge_str.split(':')
+    """Parse edge string like '1-1 1-4' into components"""
+    parts = edge_str.split(' ')
     src_isd, src_as = parts[0].split('-')
     dst_isd, dst_as = parts[1].split('-')
-    link_type = parts[2]
-    return (int(src_isd), int(src_as)), (int(dst_isd), int(dst_as)), link_type
+    return (int(src_isd), int(src_as)), (int(dst_isd), int(dst_as)),
 
-def get_link_type_reverse(link_type):
-    """Get the reverse link type"""
-    reverse_map = {
-        'core': 'core',
-        'parent': 'child',
-        'child': 'parent',
-        'peer': 'peer'
-    }
-    return reverse_map[link_type]
+def addr(isd, asn):
+    return f"10.100.{isd}.{asn}"
 
-def generate_topology_file(isd, as_num, edges, output_dir):
+def port(isd, asn):
+    return 50000 + isd * 100 + asn
+
+def get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as):
+    src_core = src_as in core_ases.get(src_isd, set())
+    dst_core = dst_as in core_ases.get(dst_isd, set())
+
+    if (src_core == dst_core): return "peer"
+    elif src_core == True: return "child"
+    else: return "parent"
+
+def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
     """Generate topology JSON for a specific AS"""
     node = (isd, as_num)
     
     # Calculate ISD number (16, 17, 18, ...)
     isd_num = 15 + isd
-    
-    # Determine if this is a core AS (has any core links)
-    is_core = any(
-        link_type == 'core' 
-        for (src, dst, link_type) in edges 
-        if src == node or dst == node
-    )
-    
+
     # Build interfaces
     interfaces = {}
     interface_id = 1
+
+    is_core = as_num in core_ases.get(isd, set())
     
-    for src, dst, link_type in edges:
+    for src, dst in edges:
+        dst_isd, dst_as = dst
+        dst_isd_num = 15 + dst_isd
+        src_isd, src_as = src
+        src_isd_num = 15 + src_isd
+
         if src == node:
             # Outgoing edge
-            dst_isd, dst_as = dst
-            dst_isd_num = 15 + dst_isd
-            
             interfaces[str(interface_id)] = {
                 "underlay": {
-                    "local": f"10.100.0.{isd}{as_num}:500{isd}{as_num}",
-                    "remote": f"10.100.0.{dst_isd}{dst_as}:500{dst_isd}{dst_as}"
+                    "local": f"{addr(src_isd, src_as)}:{port(src_isd_num, src_as)}",
+                    "remote": f"{addr(dst_isd, dst_as)}:{port(dst_isd_num, dst_as)}"
                 },
                 "isd_as": f"{dst_isd_num}-ffaa:1:{dst_isd}{dst_as}",
-                "link_to": link_type,
+                "link_to": get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as),
                 "mtu": 1472
             }
             interface_id += 1
         elif dst == node:
             # Incoming edge (add reverse)
-            src_isd, src_as = src
-            src_isd_num = 15 + src_isd
-            reverse_link_type = get_link_type_reverse(link_type)
             
             interfaces[str(interface_id)] = {
                 "underlay": {
-                    "local": f"10.100.0.{isd}{as_num}:500{src_isd}{src_as}",
-                    "remote": f"10.100.0.{src_isd}{src_as}:500{isd}{as_num}"
+                    "local": f"{addr(dst_isd, dst_as)}:{port(dst_isd_num, dst_as)}",
+                    "remote": f"{addr(src_isd, src_as)}:{port(src_isd_num, src_as)}"
                 },
                 "isd_as": f"{src_isd_num}-ffaa:1:{src_isd}{src_as}",
-                "link_to": reverse_link_type,
+                "link_to": get_link_type(core_ases, dst_isd, dst_as, src_isd, src_as),
                 "mtu": 1472
             }
             interface_id += 1
@@ -98,7 +97,9 @@ def generate_topology_file(isd, as_num, edges, output_dir):
     }
     
     # Write to file
-    filename = f"{output_dir}/topology{as_num}.json"
+    as_dir = os.path.join(output_dir, f"isd{isd}", f"as{as_num}")
+    os.makedirs(as_dir, exist_ok=True)
+    filename = os.path.join(as_dir, "topology.json")    
     with open(filename, 'w') as f:
         json.dump(topology, f, indent=4)
     
@@ -108,23 +109,35 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--edges', required=True, help='Space-separated edge list')
     parser.add_argument('--isds', required=True, help='Space-separated ISD list')
+    parser.add_argument('--output-dir', required=True, help='Topologies directory')
     args = parser.parse_args()
     
-    # Parse edges
     edges = []
-    for edge_str in args.edges.split():
-        src, dst, link_type = parse_edge(edge_str)
-        edges.append((src, dst, link_type))
+    with open(args.edges, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line:  # Skip empty lines
+                src, dst = parse_edge(line)
+                edges.append((src, dst))
     
     # Create output directory
     import os
     os.makedirs(args.output_dir, exist_ok=True)
+
+        
+    with open(args.isds, 'r') as f:
+        config = yaml.safe_load(f)
     
-    # Generate topology for each AS
-    ISDS = [int(x) for x in args.isds.split()]
-    for isd in ISDS:
-        for as_num in range(1, args.as_count + 1):
-            generate_topology_file(isd, as_num, edges, args.output_dir)
+    isds = config['ISDs']
+
+    core_ases = {
+        int(isd): set(isds[isd].get("core", []))
+        for isd in isds
+    }
+    
+    for isd in isds:
+        for as_num in range(1, isds[isd]["n"] + 1):
+            generate_topology_file(isd, as_num, edges, core_ases, args.output_dir)
     
     print(f"\n✅ Generated all topology files in {args.output_dir}")
 

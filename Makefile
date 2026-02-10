@@ -1,5 +1,7 @@
 # ==== CONFIG ====
 CONFIG_PATH := base/isds.yaml
+EDGELIST_PATH := topology.txt
+TOPOLOGIES_PATH := topologies
 CONFIG_VARS := $(shell python3 scripts/parse-isd-config.py $(CONFIG_PATH))
 $(eval $(CONFIG_VARS))
 
@@ -36,6 +38,7 @@ build-scion:
 			echo ">>> Building SCION node ISD=$$isd AS=$$as INDEX=$$counter"; \
 			docker build --progress=plain \
 				-t scion$$isd$$as:$(VERSION) \
+				--build-arg ISD=$$isd \
 				--build-arg INDEX=$$counter \
 				-f ./template/Dockerfile \
 				./topologies || exit 1; \
@@ -58,12 +61,9 @@ build-monitor:
 		./monitor
 
 # Main build target - dynamically generate targets per ISD
-build: generate-compose build-base build-monitor \
-       build-scion \
-	   build-all-endhost
+build: generate-compose generate-topologies build-base build-monitor build-scion build-all-endhost
 
-rebuild: generate-compose rebuild-base rebuild-monitor \
-         rebuild-scion
+rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebuild-scion
 
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
@@ -79,6 +79,7 @@ rebuild-scion:
 			docker build --no-cache --progress=plain \
 				-t scion$$isd$$as:$(VERSION) \
 				--build-arg INDEX=$$counter \
+				--build-arg ISD=$$isd \
 				-f ./template/Dockerfile \
 				./topologies || exit 1; \
 			counter=$$((counter+1)); \
@@ -94,6 +95,35 @@ generate-compose:
 	python3 scripts/generate-compose.py \
 		--config $(CONFIG_PATH) \
 		--version $(VERSION)
+
+generate-topologies:
+	python3 scripts/generate-topologies.py \
+		--edges $(EDGELIST_PATH) \
+		--isds $(CONFIG_PATH) \
+		--output-dir $(TOPOLOGIES_PATH)
+
+#install bats shell testing framework
+install-bats:
+	@if command -v bats >/dev/null 2>&1; then \
+		echo "Bats is already installed at $$(command -v bats)"; \
+		bats --version; \
+	else \
+		echo "Cloning bats-core repository..."; \
+		git clone https://github.com/bats-core/bats-core.git; \
+		echo "Installing bats..."; \
+		cd bats-core && sudo ./install.sh /usr/local; \
+		rm -rf bats-core; \
+		echo "Checking bats installation..."; \
+		if command -v bats >/dev/null 2>&1; then \
+			echo "Bats installed successfully at $$(command -v bats)"; \
+			bats --version; \
+		else \
+			echo "Bats installation failed or bats is not on your PATH."; \
+			exit 1; \
+		fi; \
+	fi
+
+#run test scripts
 
 OS := $(shell uname)
 up: build
@@ -131,5 +161,6 @@ purge: down
 	docker network ls -q --filter "name=^as_net_" --filter "name=^transit_net" | xargs -r docker network rm
 
 .PHONY: test
+
 test: install-bats
 	bats test/
