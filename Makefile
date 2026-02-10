@@ -1,15 +1,22 @@
 # ==== CONFIG ====
-ISDS := 1 2 3 4
-AS_RANGE := 1 2 3 4 5
-VERSION := 1.0
+CONFIG_PATH := base/isds.yaml
+CONFIG_VARS := $(shell python3 scripts/parse-isd-config.py $(CONFIG_PATH))
+$(eval $(CONFIG_VARS))
 
+VERSION := 1.0
 DEBIAN_DOCKER_DIR = $(CURDIR)
 
 .PHONY: all build rebuild build-debian-base build-base \
         build-scion rebuild-scion rebuild-base rebuild-monitor \
-        up down purge
+        up down purge show-config
 
-# ==== PATTERN RULES ====
+# Debug target to see loaded config
+show-config:
+	@echo "ISDs: $(ISDS)"
+	@echo "ISD1 AS Range: $(ISD1_AS_RANGE)"
+	@echo "ISD1 AS Count: $(ISD1_AS_COUNT)"
+	@echo "ISD2 AS Range: $(ISD2_AS_RANGE)"
+	@echo "Total ASes: $(TOTAL_AS_COUNT)"
 
 all: up
 
@@ -18,12 +25,10 @@ build-debian-base:
 
 build-base: build-debian-base
 	docker build -t scion-base:$(VERSION) \
-		--build-arg ISDS="$(ISDS)" \
-		--build-arg AS_COUNT=$(words $(AS_RANGE)) \
 		-f ./base/Dockerfile \
 		./base
 
-# Pattern rule for scion nodes, e.g. scion32 -> isd3, as2
+# Pattern rule for scion nodes
 build-scion%:
 	@isd=$(shell echo $* | cut -c1); \
 	 as=$(shell echo $* | cut -c2); \
@@ -31,57 +36,43 @@ build-scion%:
 		--build-arg ISD=$$isd \
 		--build-arg AS=$$as \
 		-f ./template/Dockerfile \
-		./topologies  # folder containing topology1.json, topology2.json, etc.
+		./topologies
 
-# Pattern for endhost
 build-endhost%:
 	@as=$*; \
 	docker build -t endhost-as$$as:$(VERSION) \
 		-f ./endhosts/endhost-as$$as/Dockerfile \
 		./endhosts/endhost-as$$as
 
-# Build the specific endhost
 build-all-endhost: build-endhost15 build-endhost35
-
-# Pattern for building a whole AS group - ISD (e.g. build-isd1)
-# Would need rework if AS # > 9
-build-isd%:
-	@isd=$*; \
-	for as in $(AS_RANGE); do \
-		$(MAKE) build-scion$$isd$$as; \
-	done
 
 build-monitor:
 	docker build -t monitor:$(VERSION) \
 		-f ./monitor/Dockerfile \
 		./monitor
 
-# Main build target
-# First build base, then build monitor, then each scion-as
+# Main build target - dynamically generate targets per ISD
 build: generate-compose build-base build-monitor \
-       $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),build-scion$(i)$(a))) \
+       $(foreach i,$(ISDS),$(foreach a,$(ISD$(i)_AS_RANGE),build-scion$(i)$(a))) \
 	   build-all-endhost
 
-# Rebuild targets (force no-cache)
 rebuild: generate-compose rebuild-base rebuild-monitor \
-         $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),rebuild-scion$(i)$(a)))
+         $(foreach i,$(ISDS),$(foreach a,$(ISD$(i)_AS_RANGE),rebuild-scion$(i)$(a)))
 
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
 	docker build --no-cache -t scion-base:$(VERSION) \
-		--build-arg ISDS="$(ISDS)" \
-		--build-arg ASES="$(AS_RANGE)" \
 		-f ./base/Dockerfile \
 		./base
 
 rebuild-scion%:
 	@isd=$(shell echo $* | cut -c1); \
 	 as=$(shell echo $* | cut -c2); \
-	 docker build -t scion$$isd$$as:$(VERSION) \
+	 docker build --no-cache -t scion$$isd$$as:$(VERSION) \
 		--build-arg ISD=$$isd \
 		--build-arg AS=$$as \
 		-f ./template/Dockerfile \
-		./topologies  # folder containing topology1.json, topology2.json, etc.
+		./topologies
 
 rebuild-monitor:
 	docker build --no-cache -t monitor:$(VERSION) \
@@ -90,9 +81,8 @@ rebuild-monitor:
 
 generate-compose:
 	python3 scripts/generate-compose.py \
-		--isds "$(ISDS)" \
-		--as-range "$(AS_RANGE)" \
-		--version $(VERSION) 
+		--config $(CONFIG_PATH) \
+		--version $(VERSION)
 
 OS := $(shell uname)
 up: build
@@ -102,32 +92,6 @@ else
 	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
 endif
 
-# Maybe include a pattern to start all existing containers
-
-#install bats shell testing framework
-install-bats:
-	@if command -v bats >/dev/null 2>&1; then \
-		echo "Bats is already installed at $$(command -v bats)"; \
-		bats --version; \
-	else \
-		echo "Cloning bats-core repository..."; \
-		git clone https://github.com/bats-core/bats-core.git; \
-		echo "Installing bats..."; \
-		cd bats-core && sudo ./install.sh /usr/local; \
-		rm -rf bats-core; \
-		echo "Checking bats installation..."; \
-		if command -v bats >/dev/null 2>&1; then \
-			echo "Bats installed successfully at $$(command -v bats)"; \
-			bats --version; \
-		else \
-			echo "Bats installation failed or bats is not on your PATH."; \
-			exit 1; \
-		fi; \
-	fi
-
-#run test scripts
-
-
 down:
 	docker compose down
 
@@ -135,8 +99,6 @@ purge: down
 	docker ps -aq --filter "name=scion" | xargs -r docker rm -f
 	docker network ls -q --filter "name=^as_net_" --filter "name=^transit_net" | xargs -r docker network rm
 
-
 .PHONY: test
-
 test: install-bats
 	bats test/

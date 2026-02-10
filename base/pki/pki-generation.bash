@@ -5,6 +5,8 @@ ISD=$1
 AS_START=$2
 AS_COUNT=$3
 
+echo "ISD: $ISD, AS_START: $AS_START, AS_COUNT: $AS_COUNT"
+
 # Calculate ISD number (16, 17, 18, 19...)
 ISD_NUM=$((15 + ISD))
 

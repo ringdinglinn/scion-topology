@@ -97,34 +97,36 @@ def generate_network(isd, as_num):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--isds', required=True, help='Space-separated ISD numbers')
-    parser.add_argument('--as-range', required=True, help='Space-separated AS numbers')
+    parser.add_argument('--config', required=True, help='ISD config')
     parser.add_argument('--version', required=True, help='Docker image version')
     args = parser.parse_args()
+    
+    with open(args.config, 'r') as f:
+        config = yaml.safe_load(f)
+    
+    isds = config['ISDs']
 
-    print(args.isds)
-
-    ISDS = [int(x) for x in args.isds.split()]
-    AS_RANGE = [int(x) for x in args.as_range.split()]
     VERSION = args.version
 
     # Generate scion services dynamically
     scion_services = {}
     mac_overrides = {}
-    for isd in ISDS:
-        for as_num in AS_RANGE:
-            name = f"scion{isd}{as_num}"
-            scion_services[name] = generate_scion_service(isd, as_num, VERSION)
-            mac_overrides.update(generate_mac_volume_override(isd, as_num))
+    for isd in isds:
+        n = isds[isd]["n"]
+        for as_num in range(n):
+            name = f"scion{isd}{as_num+1}"
+            scion_services[name] = generate_scion_service(isd, as_num+1, VERSION)
+            mac_overrides.update(generate_mac_volume_override(isd, as_num+1))
     
     # Combine static + dynamic services
     all_services = {**STATIC_SERVICES, **scion_services}
 
     # Generate as_net networks dynamically
     dynamic_networks = {}
-    for isd in ISDS:
-        for as_num in AS_RANGE:
-            dynamic_networks.update(generate_network(isd, as_num))
+    for isd in isds:
+        n = isds[isd]["n"]
+        for as_num in range(n):
+            dynamic_networks.update(generate_network(isd, as_num+1))
     
     # Combine static + dynamic networks
     all_networks = {**dynamic_networks, **STATIC_NETWORKS}
