@@ -327,20 +327,6 @@ services:
     tmpfs:
     - /run
     - /run/lock
-  scion46:
-    image: scion46:1.0
-    container_name: scion46
-    hostname: scion46
-    networks:
-      as_net_46: {}
-      transit_net:
-        ipv4_address: 10.100.0.46
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
 networks:
   as_net_11:
     ipam:
@@ -422,10 +408,6 @@ networks:
     ipam:
       config:
       - subnet: 10.40.5.0/24
-  as_net_46:
-    ipam:
-      config:
-      - subnet: 10.40.6.0/24
   transit_net:
     driver: bridge
     ipam:

@@ -14,10 +14,10 @@ def parse_edge(edge_str):
     return (int(src_isd), int(src_as)), (int(dst_isd), int(dst_as)),
 
 def addr(isd, asn):
-    return f"10.100.{isd}.{asn}"
+    return f"10.100.0.{isd}{asn}"
 
-def port(isd, asn):
-    return 50000 + isd * 100 + asn
+def port(dst_isd, dst_as):
+    return 50000 + dst_isd * 10 + dst_as
 
 def get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as):
     src_core = src_as in core_ases.get(src_isd, set())
@@ -50,8 +50,8 @@ def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
             # Outgoing edge
             interfaces[str(interface_id)] = {
                 "underlay": {
-                    "local": f"{addr(src_isd, src_as)}:{port(src_isd, src_as)}",
-                    "remote": f"{addr(dst_isd, dst_as)}:{port(dst_isd, dst_as)}"
+                    "local": f"{addr(src_isd, src_as)}:{port(dst_isd, dst_as)}",
+                    "remote": f"{addr(dst_isd, dst_as)}:{port(src_isd, src_as)}"
                 },
                 "isd_as": f"{dst_isd_num}-ffaa:1:{dst_isd}{dst_as}",
                 "link_to": get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as),
@@ -63,8 +63,8 @@ def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
             
             interfaces[str(interface_id)] = {
                 "underlay": {
-                    "local": f"{addr(dst_isd, dst_as)}:{port(dst_isd, dst_as)}",
-                    "remote": f"{addr(src_isd, src_as)}:{port(src_isd, src_as)}"
+                    "local": f"{addr(dst_isd, dst_as)}:{port(src_isd, src_as)}",
+                    "remote": f"{addr(src_isd, src_as)}:{port(dst_isd, dst_as)}"
                 },
                 "isd_as": f"{src_isd_num}-ffaa:1:{src_isd}{src_as}",
                 "link_to": get_link_type(core_ases, dst_isd, dst_as, src_isd, src_as),
