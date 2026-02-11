@@ -2,8 +2,13 @@
 CONFIG_PATH := base/isds.yaml
 EDGELIST_PATH := topology.txt
 TOPOLOGIES_PATH := topologies
-CONFIG_VARS := $(shell python3 scripts/parse-isd-config.py $(CONFIG_PATH))
-$(eval $(CONFIG_VARS))
+
+CONFIG_MK := .isd-vars.mk
+
+$(CONFIG_MK): $(CONFIG_PATH) scripts/parse-isd-config.py
+	@python3 scripts/parse-isd-config.py $(CONFIG_PATH) > $(CONFIG_MK)
+
+-include $(CONFIG_MK)
 
 VERSION := 1.0
 DEBIAN_DOCKER_DIR = $(CURDIR)
@@ -12,7 +17,6 @@ DEBIAN_DOCKER_DIR = $(CURDIR)
         build-scion rebuild-scion rebuild-base rebuild-monitor \
         up down purge show-config
 
-# Debug target to see loaded config
 show-config:
 	@echo "ISDs: $(ISDS)"
 	@echo "ISD1 AS Range: $(ISD1_AS_RANGE)"
@@ -60,7 +64,6 @@ build-monitor:
 		-f ./monitor/Dockerfile \
 		./monitor
 
-# Main build target - dynamically generate targets per ISD
 build: generate-compose generate-topologies build-base build-monitor build-scion build-all-endhost
 
 rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebuild-scion

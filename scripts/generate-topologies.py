@@ -50,8 +50,8 @@ def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
             # Outgoing edge
             interfaces[str(interface_id)] = {
                 "underlay": {
-                    "local": f"{addr(src_isd, src_as)}:{port(src_isd_num, src_as)}",
-                    "remote": f"{addr(dst_isd, dst_as)}:{port(dst_isd_num, dst_as)}"
+                    "local": f"{addr(src_isd, src_as)}:{port(src_isd, src_as)}",
+                    "remote": f"{addr(dst_isd, dst_as)}:{port(dst_isd, dst_as)}"
                 },
                 "isd_as": f"{dst_isd_num}-ffaa:1:{dst_isd}{dst_as}",
                 "link_to": get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as),
@@ -63,8 +63,8 @@ def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
             
             interfaces[str(interface_id)] = {
                 "underlay": {
-                    "local": f"{addr(dst_isd, dst_as)}:{port(dst_isd_num, dst_as)}",
-                    "remote": f"{addr(src_isd, src_as)}:{port(src_isd_num, src_as)}"
+                    "local": f"{addr(dst_isd, dst_as)}:{port(dst_isd, dst_as)}",
+                    "remote": f"{addr(src_isd, src_as)}:{port(src_isd, src_as)}"
                 },
                 "isd_as": f"{src_isd_num}-ffaa:1:{src_isd}{src_as}",
                 "link_to": get_link_type(core_ases, dst_isd, dst_as, src_isd, src_as),
