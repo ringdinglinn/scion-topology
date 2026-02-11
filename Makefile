@@ -2,8 +2,13 @@
 CONFIG_PATH := base/isds.yaml
 EDGELIST_PATH := topology.txt
 TOPOLOGIES_PATH := topologies
-CONFIG_VARS := $(shell python3 scripts/parse-isd-config.py $(CONFIG_PATH))
-$(eval $(CONFIG_VARS))
+
+CONFIG_MK := .isd-vars.mk
+
+$(CONFIG_MK): $(CONFIG_PATH) scripts/parse-isd-config.py
+	@python3 scripts/parse-isd-config.py $(CONFIG_PATH) > $(CONFIG_MK)
+
+-include $(CONFIG_MK)
 
 VERSION := 1.0
 DEBIAN_DOCKER_DIR = $(CURDIR)
@@ -12,7 +17,6 @@ DEBIAN_DOCKER_DIR = $(CURDIR)
         build-scion rebuild-scion rebuild-base rebuild-monitor \
         up down purge show-config
 
-# Debug target to see loaded config
 show-config:
 	@echo "ISDs: $(ISDS)"
 	@echo "ISD1 AS Range: $(ISD1_AS_RANGE)"
@@ -30,22 +34,18 @@ build-base: build-debian-base
 		-f ./base/Dockerfile \
 		./base
 
-# Pattern rule for scion nodes
-build-scion%:
-	build-scion:
-	@set -e; \
-	for isd in $(ISDS); do \
-	  as_range="$(ISD$${isd}_AS_RANGE)"; \
-	  for as in $$as_range; do \
-	    echo ">>> Building SCION node ISD=$$isd AS=$$as"; \
-	    docker build -t scion$${isd}$${as}:$(VERSION) \
-	      --build-arg ISD=$$isd \
-	      --build-arg AS=$$as \
-	      -f ./template/Dockerfile \
-	      ./topologies; \
-	  done; \
-	done
-
+build-scion:
+	@$(foreach isd,$(ISDS), \
+		$(foreach as,$(ISD$(isd)_AS_RANGE), \
+			echo ">>> Building SCION node ISD=$(isd) AS=$(as)"; \
+			docker build -t scion$(isd)$(as):$(VERSION) \
+				--build-arg ISD=$(isd) \
+				--build-arg AS=$(as) \
+				-f ./template/Dockerfile \
+				./topologies; \
+		) \
+	)
+			
 build-endhost%:
 	@as=$*; \
 	docker build -t endhost-as$$as:$(VERSION) \
@@ -59,7 +59,6 @@ build-monitor:
 		-f ./monitor/Dockerfile \
 		./monitor
 
-# Main build target - dynamically generate targets per ISD
 build: generate-compose generate-topologies build-base build-monitor build-scion build-all-endhost
 
 rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebuild-scion
@@ -70,20 +69,23 @@ rebuild-base:
 		-f ./base/Dockerfile \
 		./base
 
-rebuild-scion%:
-	build-scion:
-	@set -e; \
-	for isd in $(ISDS); do \
-	  as_range="$(ISD$${isd}_AS_RANGE)"; \
-	  for as in $$as_range; do \
-	    echo ">>> Building SCION node ISD=$$isd AS=$$as"; \
-	    docker build --no-chache -t scion$${isd}$${as}:$(VERSION) \
-	      --build-arg ISD=$$isd \
-	      --build-arg AS=$$as \
-	      -f ./template/Dockerfile \
-	      ./topologies; \
-	  done; \
-	done
+debug:
+	@echo "ISDS = '$(ISDS)'"
+	@$(foreach isd,$(ISDS), \
+		echo "ISD $(isd) range = '$(ISD$(isd)_AS_RANGE)'"; \
+	)
+
+rebuild-scion:
+	@$(foreach isd,$(ISDS), \
+		$(foreach as,$(ISD$(isd)_AS_RANGE), \
+			echo ">>> Building SCION node ISD=$(isd) AS=$(as)"; \
+			docker build --no-cache -t scion$(isd)$(as):$(VERSION) \
+				--build-arg ISD=$(isd) \
+				--build-arg AS=$(as) \
+				-f ./template/Dockerfile \
+				./topologies; \
+		) \
+	)
 
 rebuild-monitor:
 	docker build --no-cache -t monitor:$(VERSION) \
