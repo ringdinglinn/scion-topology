@@ -1,17 +1,16 @@
 # template/Dockerfile
 FROM scion-base:1.0
 
-ARG ISD
-ARG AS
+ARG INDEX
 
 # Copy generated PKI
-RUN cp /opt/tutorial-pki/AS${AS}/*.key /etc/scion/crypto/as/ && \
-    cp /opt/tutorial-pki/AS${AS}/*.pem /etc/scion/crypto/as/ && \
+RUN cp /opt/tutorial-pki/AS${INDEX}/*.key /etc/scion/crypto/as/ && \
+    cp /opt/tutorial-pki/AS${INDEX}/*.pem /etc/scion/crypto/as/ && \
     chown scion:scion /etc/scion/crypto/as/*.key && \
     chmod 600 /etc/scion/crypto/as/*.key
 
 # Copy topology - you'll need to COPY from host
-COPY topology${AS}.json /etc/scion/topology.json
+COPY topology${INDEX}.json /etc/scion/topology.json
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 

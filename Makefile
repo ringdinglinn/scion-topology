@@ -22,14 +22,19 @@ build-base: build-debian-base
 		./base
 
 # Pattern rule for scion nodes, e.g. scion32 -> isd3, as2
-build-scion%:
-	@isd=$(shell echo $* | cut -c1); \
-	 as=$(shell echo $* | cut -c2); \
-	 docker build -t scion$$isd$$as:$(VERSION) \
-		--build-arg ISD=$$isd \
-		--build-arg AS=$$as \
-		-f ./template/Dockerfile \
-		./topologies  # folder containing topology1.json, topology2.json, etc.
+build-scion:
+	@counter=1; \
+	for isd in $(ISDS); do \
+		for as in $(AS_RANGE); do \
+			echo ">>> Building SCION node ISD=$$isd AS=$$as INDEX=$$counter"; \
+			docker build --progress=plain \
+				-t scion$$isd$$as:$(VERSION) \
+				--build-arg INDEX=$$counter \
+				-f ./template/Dockerfile \
+				./topologies || exit 1; \
+			counter=$$((counter+1)); \
+		done; \
+	done
 
 # Pattern for endhost
 build-endhost%:
@@ -41,13 +46,6 @@ build-endhost%:
 # Build the specific endhost
 build-all-endhost: build-endhost15 build-endhost35
 
-# Pattern for building a whole AS group - ISD (e.g. build-isd1)
-# Would need rework if AS # > 9
-build-isd%:
-	@isd=$*; \
-	for as in $(AS_RANGE); do \
-		$(MAKE) build-scion$$isd$$as; \
-	done
 
 build-monitor:
 	docker build -t monitor:$(VERSION) \
@@ -57,12 +55,12 @@ build-monitor:
 # Main build target
 # First build base, then build monitor, then each scion-as
 build: generate-compose build-base build-monitor \
-       $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),build-scion$(i)$(a))) \
+       build-scion \
 	   build-all-endhost
 
 # Rebuild targets (force no-cache)
 rebuild: generate-compose rebuild-base rebuild-monitor \
-         $(foreach i,$(ISDS),$(foreach a,$(AS_RANGE),rebuild-scion$(i)$(a)))
+         rebuild-scion
 
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
@@ -70,14 +68,19 @@ rebuild-base:
 		-f ./base/Dockerfile \
 		./base
 
-rebuild-scion%:
-	@isd=$(shell echo $* | cut -c1); \
-	 as=$(shell echo $* | cut -c2); \
-	 docker build -t scion$$isd$$as:$(VERSION) \
-		--build-arg ISD=$$isd \
-		--build-arg AS=$$as \
-		-f ./template/Dockerfile \
-		./topologies  # folder containing topology1.json, topology2.json, etc.
+rebuild-scion:
+	@counter=1; \
+	for isd in $(ISDS); do \
+		for as in $(AS_RANGE); do \
+			echo ">>> Building SCION node ISD=$$isd AS=$$as INDEX=$$counter"; \
+			docker build --no-cache --progress=plain \
+				-t scion$$isd$$as:$(VERSION) \
+				--build-arg INDEX=$$counter \
+				-f ./template/Dockerfile \
+				./topologies || exit 1; \
+			counter=$$((counter+1)); \
+		done; \
+	done
 
 rebuild-monitor:
 	docker build --no-cache -t monitor:$(VERSION) \
