@@ -1,11 +1,12 @@
 # ==== CONFIG ====
-CONFIG_PATH := base/isds.yaml
+CONFIG_PATH := isds.yaml
 EDGELIST_PATH := topology.txt
 TOPOLOGIES_PATH := topologies
 
 CONFIG_MK := .isd-vars.mk
 
-$(CONFIG_MK): $(CONFIG_PATH) scripts/parse-isd-config.py
+.PHONY: $(CONFIG_MK)
+$(CONFIG_MK):
 	@python3 scripts/parse-isd-config.py $(CONFIG_PATH) > $(CONFIG_MK)
 
 -include $(CONFIG_MK)
@@ -32,17 +33,20 @@ build-debian-base:
 build-base: build-debian-base
 	docker build -t scion-base:$(VERSION) \
 		-f ./base/Dockerfile \
-		./base
+		.
 
 build-scion:
+	$(eval INDEX := 1)
 	@$(foreach isd,$(ISDS), \
 		$(foreach as,$(ISD$(isd)_AS_RANGE), \
-			echo ">>> Building SCION node ISD=$(isd) AS=$(as)"; \
-			docker build -t scion$(isd)$(as):$(VERSION) \
+			echo ">>> Building SCION node ISD=$(isd) AS=$(as) INDEX=$(INDEX)"; \
+			docker build --progress=plain -t scion$(isd)$(as):$(VERSION) \
 				--build-arg ISD=$(isd) \
 				--build-arg AS=$(as) \
+				--build-arg INDEX=$(INDEX) \
 				-f ./template/Dockerfile \
 				./topologies; \
+			$(eval INDEX := $(shell echo $$(($(INDEX)+1)))) \
 		) \
 	)
 			
@@ -67,7 +71,7 @@ rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
 	docker build --no-cache -t scion-base:$(VERSION) \
 		-f ./base/Dockerfile \
-		./base
+		.
 
 debug:
 	@echo "ISDS = '$(ISDS)'"
@@ -76,14 +80,17 @@ debug:
 	)
 
 rebuild-scion:
+	$(eval INDEX := 1)
 	@$(foreach isd,$(ISDS), \
 		$(foreach as,$(ISD$(isd)_AS_RANGE), \
-			echo ">>> Building SCION node ISD=$(isd) AS=$(as)"; \
-			docker build --no-cache -t scion$(isd)$(as):$(VERSION) \
+			echo ">>> Building SCION node ISD=$(isd) AS=$(as) INDEX=$(INDEX)"; \
+			docker build --no-cache --progress=plain -t scion$(isd)$(as):$(VERSION) \
 				--build-arg ISD=$(isd) \
 				--build-arg AS=$(as) \
+				--build-arg INDEX=$(INDEX) \
 				-f ./template/Dockerfile \
 				./topologies; \
+			$(eval INDEX := $(shell echo $$(($(INDEX)+1)))) \
 		) \
 	)
 

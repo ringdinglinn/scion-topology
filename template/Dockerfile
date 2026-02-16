@@ -3,9 +3,14 @@ FROM scion-base:1.0
 
 ARG ISD
 ARG AS
+ARG INDEX
 
-RUN cp /opt/tutorial-pki/AS${AS}/*.key /etc/scion/crypto/as/ && \
-    cp /opt/tutorial-pki/AS${AS}/*.pem /etc/scion/crypto/as/ && \
+RUN echo "ISD=${ISD} AS=${AS} INDEX=${INDEX}" && \
+    echo "Contents of /opt/tutorial-pki/AS${INDEX}:" && \
+    ls -l /opt/tutorial-pki/AS${INDEX}
+
+RUN cp /opt/tutorial-pki/AS${INDEX}/*.key /etc/scion/crypto/as/ && \
+    cp /opt/tutorial-pki/AS${INDEX}/*.pem /etc/scion/crypto/as/ && \
     chown scion:scion /etc/scion/crypto/as/*.key && \
     chmod 600 /etc/scion/crypto/as/*.key
 

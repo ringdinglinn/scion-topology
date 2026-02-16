@@ -59,7 +59,7 @@ def generate_scion_service(isd, as_num, version):
         'container_name': name,
         'hostname': name,
         'networks': {
-            f'as_net_{isd}{as_num}': {},
+            f'as_net_{isd}{as_num}': {} if name != "scion15" else {"ipv4_address": "10.10.5.100"},
             'transit_net': {
                 'ipv4_address': f'10.100.0.{isd}{as_num}'
             }

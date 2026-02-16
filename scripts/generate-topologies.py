@@ -23,8 +23,9 @@ def get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as):
     src_core = src_as in core_ases.get(src_isd, set())
     dst_core = dst_as in core_ases.get(dst_isd, set())
 
-    if (src_core == dst_core): return "peer"
-    elif src_core == True: return "child"
+    if (src_core and dst_core): return "core"
+    elif (src_core == dst_core): return "peer"
+    elif src_core: return "child"
     else: return "parent"
 
 def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
