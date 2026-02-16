@@ -35,21 +35,22 @@ build-base: build-debian-base
 		-f ./base/Dockerfile \
 		.
 
+# Pattern rule for scion nodes, e.g. scion32 -> isd3, as2
 build-scion:
-	$(eval INDEX := 1)
-	@$(foreach isd,$(ISDS), \
-		$(foreach as,$(ISD$(isd)_AS_RANGE), \
-			echo ">>> Building SCION node ISD=$(isd) AS=$(as) INDEX=$(INDEX)"; \
-			docker build --progress=plain -t scion$(isd)$(as):$(VERSION) \
-				--build-arg ISD=$(isd) \
-				--build-arg AS=$(as) \
-				--build-arg INDEX=$(INDEX) \
+	@counter=1; \
+	for isd in $(ISDS); do \
+		for as in $(AS_RANGE); do \
+			echo ">>> Building SCION node ISD=$$isd AS=$$as INDEX=$$counter"; \
+			docker build --progress=plain \
+				-t scion$$isd$$as:$(VERSION) \
+				--build-arg ISD=$$isd \
+				--build-arg INDEX=$$counter \
 				-f ./template/Dockerfile \
-				./topologies; \
-			$(eval INDEX := $(shell echo $$(($(INDEX)+1)))) \
-		) \
-	)
-			
+				.; \
+			counter=$$((counter+1)); \
+		done; \
+	done
+
 build-endhost%:
 	@as=$*; \
 	docker build -t endhost-as$$as:$(VERSION) \
@@ -57,6 +58,7 @@ build-endhost%:
 		./endhosts/endhost-as$$as
 
 build-all-endhost: build-endhost15 build-endhost35
+
 
 build-monitor:
 	docker build -t monitor:$(VERSION) \
@@ -73,26 +75,20 @@ rebuild-base:
 		-f ./base/Dockerfile \
 		.
 
-debug:
-	@echo "ISDS = '$(ISDS)'"
-	@$(foreach isd,$(ISDS), \
-		echo "ISD $(isd) range = '$(ISD$(isd)_AS_RANGE)'"; \
-	)
-
 rebuild-scion:
-	$(eval INDEX := 1)
-	@$(foreach isd,$(ISDS), \
-		$(foreach as,$(ISD$(isd)_AS_RANGE), \
-			echo ">>> Building SCION node ISD=$(isd) AS=$(as) INDEX=$(INDEX)"; \
-			docker build --no-cache --progress=plain -t scion$(isd)$(as):$(VERSION) \
-				--build-arg ISD=$(isd) \
-				--build-arg AS=$(as) \
-				--build-arg INDEX=$(INDEX) \
+	@counter=1; \
+	for isd in $(ISDS); do \
+		for as in $(AS_RANGE); do \
+			echo ">>> Building SCION node ISD=$$isd AS=$$as INDEX=$$counter"; \
+			docker build --no-cache --progress=plain \
+				-t scion$$isd$$as:$(VERSION) \
+				--build-arg INDEX=$$counter \
+				--build-arg ISD=$$isd \
 				-f ./template/Dockerfile \
-				./topologies; \
-			$(eval INDEX := $(shell echo $$(($(INDEX)+1)))) \
-		) \
-	)
+				.; \
+			counter=$$((counter+1)); \
+		done; \
+	done
 
 rebuild-monitor:
 	docker build --no-cache -t monitor:$(VERSION) \
