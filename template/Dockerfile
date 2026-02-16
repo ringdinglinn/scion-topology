@@ -4,8 +4,8 @@ FROM scion-base:1.0
 ARG INDEX
 ARG ISD
 
-RUN cp /opt/tutorial-pki/AS${AS}/*.key /etc/scion/crypto/as/ && \
-    cp /opt/tutorial-pki/AS${AS}/*.pem /etc/scion/crypto/as/ && \
+RUN cp /opt/tutorial-pki/AS${INDEX}/*.key /etc/scion/crypto/as/ && \
+    cp /opt/tutorial-pki/AS${INDEX}/*.pem /etc/scion/crypto/as/ && \
     chown scion:scion /etc/scion/crypto/as/*.key && \
     chmod 600 /etc/scion/crypto/as/*.key
 

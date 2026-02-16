@@ -44,13 +44,13 @@ RUN mkdir -p /tmp/scion/ && \
     rm -rf /tmp/scion /var/lib/apt/lists/*
 
 # Copy go application files
-COPY /scion-node-manager/scion-node-manager        /usr/local/bin/
+COPY base/scion-node-manager/scion-node-manager        /usr/local/bin/
 
 # Change permissions
 RUN chmod +x /usr/local/bin/scion-node-manager
 
 # Copy systemd unit files for node-capture and server
-COPY /scion-node-manager/systemd /etc/systemd/system
+COPY base/scion-node-manager/systemd /etc/systemd/system
 
 RUN mkdir -p /data/capture
 
@@ -62,19 +62,19 @@ RUN mkdir -p /var/lib/scion-node-manager/ping-results \
     /var/lib/scion-node-manager/packet-captures
 
 #copy path-policy file and config files
-COPY /pathpolicy.yaml /etc/scion/path-policy.yaml
+COPY base/pathpolicy.yaml /etc/scion/path-policy.yaml
     
 
 # We also install the shttp server example
 # https://github.com/netsec-ethz/scion-apps/tree/master/_examples/shttp
 # Add shttp-webserver and systemd files
-COPY /shttp/webserver/shttp-webserver /usr/local/bin/
+COPY base/shttp/webserver/shttp-webserver /usr/local/bin/
 RUN chmod +x /usr/local/bin/shttp-webserver
-COPY /shttp/webserver/systemd/ /etc/systemd/system
+COPY base/shttp/webserver/systemd/ /etc/systemd/system
 RUN systemctl enable shttp-webserver.service
 
 # Copy systemd unit files
-COPY systemd/ /etc/systemd/system/
+COPY base/systemd/ /etc/systemd/system/
 
 # Enable required SCION services
 RUN systemctl enable scion-daemon.service \
@@ -92,30 +92,13 @@ RUN mkdir -p \
 # Create shared folder
 RUN mkdir -p /shared /pki
 
-COPY br.toml /etc/scion/br.toml
-COPY cs.toml /etc/scion/cs.toml
+COPY base/br.toml /etc/scion/br.toml
+COPY base/cs.toml /etc/scion/cs.toml
 
 WORKDIR /pki
-COPY /pki/pki-generation.bash /pki/
-RUN chmod +x pki-generation.bash
+COPY base/pki/pki-generation.py /pki/pki-generation.py
+RUN chmod +x /pki/pki-generation.py
 
-# Generate PKI for each ISD based on config
-RUN python3 -c "import yaml; \
-    config = yaml.safe_load(open('/tmp/isds.yaml')); \
-    import subprocess; \
-    [subprocess.run(['./pki-generation.bash', str(isd_id), '1', str(cfg['n'])]) \
-     for isd_id, cfg in config['ISDs'].items()]"
-
-# Persist TRC files
-RUN python3 -c "import yaml, os, shutil; \
-    config = yaml.safe_load(open('/tmp/isds.yaml')); \
-    [shutil.move(f'/tmp/tutorial-scion-certs-isd0{isd_id}/ISD{15+isd_id}-B1-S1.trc', '/etc/scion/certs/') \
-     for isd_id in config['ISDs'].keys()]"
-
-# Persist PKI files
-RUN mkdir -p /opt/tutorial-pki && python3 -c "import yaml, shutil, os; \
-    config = yaml.safe_load(open('/tmp/isds.yaml')); \
-    [os.system(f'cp -r /tmp/tutorial-scion-certs-isd0{isd_id}/* /opt/tutorial-pki/') \
-     for isd_id in config['ISDs'].keys()]"
+RUN python3 /pki/pki-generation.py
 
 WORKDIR /etc/scion/

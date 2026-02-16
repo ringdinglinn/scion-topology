@@ -25,7 +25,7 @@
                         "remote": "10.100.0.11:50031"
                     },
                     "isd_as": "16-ffaa:1:11",
-                    "link_to": "peer",
+                    "link_to": "core",
                     "mtu": 1472
                 },
                 "2": {
@@ -43,7 +43,7 @@
                         "remote": "10.100.0.32:50031"
                     },
                     "isd_as": "18-ffaa:1:32",
-                    "link_to": "peer",
+                    "link_to": "core",
                     "mtu": 1472
                 },
                 "4": {
@@ -52,7 +52,7 @@
                         "remote": "10.100.0.33:50031"
                     },
                     "isd_as": "18-ffaa:1:33",
-                    "link_to": "peer",
+                    "link_to": "core",
                     "mtu": 1472
                 },
                 "5": {
@@ -61,7 +61,7 @@
                         "remote": "10.100.0.41:50031"
                     },
                     "isd_as": "19-ffaa:1:41",
-                    "link_to": "peer",
+                    "link_to": "core",
                     "mtu": 1472
                 }
             }

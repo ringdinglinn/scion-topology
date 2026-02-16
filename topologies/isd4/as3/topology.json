@@ -25,7 +25,7 @@
                         "remote": "10.100.0.41:50043"
                     },
                     "isd_as": "19-ffaa:1:41",
-                    "link_to": "peer",
+                    "link_to": "core",
                     "mtu": 1472
                 },
                 "2": {
@@ -34,7 +34,7 @@
                         "remote": "10.100.0.42:50043"
                     },
                     "isd_as": "19-ffaa:1:42",
-                    "link_to": "peer",
+                    "link_to": "core",
                     "mtu": 1472
                 },
                 "3": {

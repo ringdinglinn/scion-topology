@@ -1,11 +1,12 @@
 # ==== CONFIG ====
-CONFIG_PATH := base/isds.yaml
+CONFIG_PATH := isds.yaml
 EDGELIST_PATH := topology.txt
 TOPOLOGIES_PATH := topologies
 
 CONFIG_MK := .isd-vars.mk
 
-$(CONFIG_MK): $(CONFIG_PATH) scripts/parse-isd-config.py
+.PHONY: $(CONFIG_MK)
+$(CONFIG_MK):
 	@python3 scripts/parse-isd-config.py $(CONFIG_PATH) > $(CONFIG_MK)
 
 -include $(CONFIG_MK)
@@ -32,7 +33,7 @@ build-debian-base:
 build-base: build-debian-base
 	docker build -t scion-base:$(VERSION) \
 		-f ./base/Dockerfile \
-		./base
+		.
 
 # Pattern rule for scion nodes, e.g. scion32 -> isd3, as2
 build-scion:
@@ -45,7 +46,7 @@ build-scion:
 				--build-arg ISD=$$isd \
 				--build-arg INDEX=$$counter \
 				-f ./template/Dockerfile \
-				./topologies || exit 1; \
+				.; \
 			counter=$$((counter+1)); \
 		done; \
 	done
@@ -72,7 +73,7 @@ rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
 	docker build --no-cache -t scion-base:$(VERSION) \
 		-f ./base/Dockerfile \
-		./base
+		.
 
 rebuild-scion:
 	@counter=1; \
@@ -84,7 +85,7 @@ rebuild-scion:
 				--build-arg INDEX=$$counter \
 				--build-arg ISD=$$isd \
 				-f ./template/Dockerfile \
-				./topologies || exit 1; \
+				.; \
 			counter=$$((counter+1)); \
 		done; \
 	done
@@ -135,26 +136,6 @@ ifeq ($(OS), Linux)
 else
 	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
 endif
-
-install-bats:
-	@if command -v bats >/dev/null 2>&1; then \
-		echo "Bats is already installed at $$(command -v bats)"; \
-		bats --version; \
-	else \
-		echo "Cloning bats-core repository..."; \
-		git clone https://github.com/bats-core/bats-core.git; \
-		echo "Installing bats..."; \
-		cd bats-core && sudo ./install.sh /usr/local; \
-		rm -rf bats-core; \
-		echo "Checking bats installation..."; \
-		if command -v bats >/dev/null 2>&1; then \
-			echo "Bats installed successfully at $$(command -v bats)"; \
-			bats --version; \
-		else \
-			echo "Bats installation failed or bats is not on your PATH."; \
-			exit 1; \
-		fi; \
-	fi
 
 down:
 	docker compose down
