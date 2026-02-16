@@ -75,3 +75,7 @@ services:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
+  scion45:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared

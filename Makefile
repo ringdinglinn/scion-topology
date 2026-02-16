@@ -103,6 +103,26 @@ else
 	docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
 endif
 
+install-bats:
+	@if command -v bats >/dev/null 2>&1; then \
+		echo "Bats is already installed at $$(command -v bats)"; \
+		bats --version; \
+	else \
+		echo "Cloning bats-core repository..."; \
+		git clone https://github.com/bats-core/bats-core.git; \
+		echo "Installing bats..."; \
+		cd bats-core && sudo ./install.sh /usr/local; \
+		rm -rf bats-core; \
+		echo "Checking bats installation..."; \
+		if command -v bats >/dev/null 2>&1; then \
+			echo "Bats installed successfully at $$(command -v bats)"; \
+			bats --version; \
+		else \
+			echo "Bats installation failed or bats is not on your PATH."; \
+			exit 1; \
+		fi; \
+	fi
+
 down:
 	docker compose down
 
