@@ -7,7 +7,7 @@ import yaml
 import os
 
 def parse_edge(edge_str):
-    """Parse edge string like '1-1 1-4' into components"""
+    """Parse edge string '1-1 1-4' into components"""
     parts = edge_str.split(' ')
     src_isd, src_as = parts[0].split('-')
     dst_isd, dst_as = parts[1].split('-')
