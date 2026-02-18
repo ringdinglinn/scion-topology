@@ -23,8 +23,8 @@ STATIC_SERVICES = {
         'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup'],
         'tmpfs': ['/run', '/run/lock'],
         'networks': {
-            'as_net_15': {'ipv4_address': '10.10.5.200'},
-            'transit_net': {'ipv4_address': '10.100.0.115'}
+            'as_net_15': {'ipv4_address': '10.1.5.200'},
+            'transit_net': {'ipv4_address': '10.100.1.150'}
         },
         'depends_on': ['scion15']
     },
@@ -35,8 +35,8 @@ STATIC_SERVICES = {
         'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup'],
         'tmpfs': ['/run', '/run/lock'],
         'networks': {
-            'as_net_35': {'ipv4_address': '10.30.5.200'},
-            'transit_net': {'ipv4_address': '10.100.0.135'}
+            'as_net_35': {'ipv4_address': '10.3.5.200'},
+            'transit_net': {'ipv4_address': '10.100.3.200'}
         },
         'depends_on': ['scion35']
     }
@@ -46,7 +46,7 @@ STATIC_NETWORKS = {
     'transit_net': {
         'driver': 'bridge',
         'ipam': {
-            'config': [{'subnet': '10.100.0.0/24'}]
+            'config': [{'subnet': '10.100.0.0/16'}]
         }
     }
 }
@@ -59,9 +59,9 @@ def generate_scion_service(isd, as_num, version):
         'container_name': name,
         'hostname': name,
         'networks': {
-            f'as_net_{isd}{as_num}': {} if name != "scion15" else {"ipv4_address": "10.10.5.100"},
+            f'as_net_{isd}{as_num}': {} if name != "scion15" else {"ipv4_address": "10.1.5.100"},
             'transit_net': {
-                'ipv4_address': f'10.100.0.{isd}{as_num}'
+                'ipv4_address': f'10.100.{isd}.{as_num}'
             }
         },
         'volumes': [
@@ -89,7 +89,7 @@ def generate_network(isd, as_num):
         f'as_net_{isd}{as_num}': {
             'ipam': {
                 'config': [
-                    {'subnet': f'10.{isd}0.{as_num}.0/24'}
+                    {'subnet': f'10.{isd}.{as_num}.0/24'}
                 ]
             }
         }

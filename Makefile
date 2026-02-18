@@ -45,6 +45,7 @@ build-scion:
 				-t scion$$isd$$as:$(VERSION) \
 				--build-arg ISD=$$isd \
 				--build-arg INDEX=$$counter \
+				--build-arg AS=$$as \
 				-f ./template/Dockerfile \
 				.; \
 			counter=$$((counter+1)); \
@@ -84,6 +85,7 @@ rebuild-scion:
 				-t scion$$isd$$as:$(VERSION) \
 				--build-arg INDEX=$$counter \
 				--build-arg ISD=$$isd \
+				--build-arg AS=$$as \
 				-f ./template/Dockerfile \
 				.; \
 			counter=$$((counter+1)); \

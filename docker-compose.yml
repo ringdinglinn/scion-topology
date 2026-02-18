@@ -26,9 +26,9 @@ services:
     - /run/lock
     networks:
       as_net_15:
-        ipv4_address: 10.10.5.200
+        ipv4_address: 10.1.5.200
       transit_net:
-        ipv4_address: 10.100.0.115
+        ipv4_address: 10.100.1.150
     depends_on:
     - scion15
   endhost-as35:
@@ -42,9 +42,9 @@ services:
     - /run/lock
     networks:
       as_net_35:
-        ipv4_address: 10.30.5.200
+        ipv4_address: 10.3.5.200
       transit_net:
-        ipv4_address: 10.100.0.135
+        ipv4_address: 10.100.3.200
     depends_on:
     - scion35
   scion11:
@@ -54,7 +54,7 @@ services:
     networks:
       as_net_11: {}
       transit_net:
-        ipv4_address: 10.100.0.11
+        ipv4_address: 10.100.1.1
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -68,7 +68,7 @@ services:
     networks:
       as_net_12: {}
       transit_net:
-        ipv4_address: 10.100.0.12
+        ipv4_address: 10.100.1.2
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -82,7 +82,7 @@ services:
     networks:
       as_net_13: {}
       transit_net:
-        ipv4_address: 10.100.0.13
+        ipv4_address: 10.100.1.3
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -96,7 +96,7 @@ services:
     networks:
       as_net_14: {}
       transit_net:
-        ipv4_address: 10.100.0.14
+        ipv4_address: 10.100.1.4
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -109,9 +109,9 @@ services:
     hostname: scion15
     networks:
       as_net_15:
-        ipv4_address: 10.10.5.100
+        ipv4_address: 10.1.5.100
       transit_net:
-        ipv4_address: 10.100.0.15
+        ipv4_address: 10.100.1.5
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -125,7 +125,7 @@ services:
     networks:
       as_net_21: {}
       transit_net:
-        ipv4_address: 10.100.0.21
+        ipv4_address: 10.100.2.1
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -139,7 +139,7 @@ services:
     networks:
       as_net_22: {}
       transit_net:
-        ipv4_address: 10.100.0.22
+        ipv4_address: 10.100.2.2
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -153,7 +153,7 @@ services:
     networks:
       as_net_23: {}
       transit_net:
-        ipv4_address: 10.100.0.23
+        ipv4_address: 10.100.2.3
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -167,7 +167,7 @@ services:
     networks:
       as_net_24: {}
       transit_net:
-        ipv4_address: 10.100.0.24
+        ipv4_address: 10.100.2.4
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -181,7 +181,7 @@ services:
     networks:
       as_net_25: {}
       transit_net:
-        ipv4_address: 10.100.0.25
+        ipv4_address: 10.100.2.5
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -195,7 +195,7 @@ services:
     networks:
       as_net_31: {}
       transit_net:
-        ipv4_address: 10.100.0.31
+        ipv4_address: 10.100.3.1
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -209,7 +209,7 @@ services:
     networks:
       as_net_32: {}
       transit_net:
-        ipv4_address: 10.100.0.32
+        ipv4_address: 10.100.3.2
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -223,7 +223,7 @@ services:
     networks:
       as_net_33: {}
       transit_net:
-        ipv4_address: 10.100.0.33
+        ipv4_address: 10.100.3.3
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -237,7 +237,7 @@ services:
     networks:
       as_net_34: {}
       transit_net:
-        ipv4_address: 10.100.0.34
+        ipv4_address: 10.100.3.4
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -251,7 +251,7 @@ services:
     networks:
       as_net_35: {}
       transit_net:
-        ipv4_address: 10.100.0.35
+        ipv4_address: 10.100.3.5
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -265,7 +265,7 @@ services:
     networks:
       as_net_41: {}
       transit_net:
-        ipv4_address: 10.100.0.41
+        ipv4_address: 10.100.4.1
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -279,7 +279,7 @@ services:
     networks:
       as_net_42: {}
       transit_net:
-        ipv4_address: 10.100.0.42
+        ipv4_address: 10.100.4.2
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -293,7 +293,7 @@ services:
     networks:
       as_net_43: {}
       transit_net:
-        ipv4_address: 10.100.0.43
+        ipv4_address: 10.100.4.3
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -307,7 +307,7 @@ services:
     networks:
       as_net_44: {}
       transit_net:
-        ipv4_address: 10.100.0.44
+        ipv4_address: 10.100.4.4
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -321,7 +321,7 @@ services:
     networks:
       as_net_45: {}
       transit_net:
-        ipv4_address: 10.100.0.45
+        ipv4_address: 10.100.4.5
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -332,85 +332,85 @@ networks:
   as_net_11:
     ipam:
       config:
-      - subnet: 10.10.1.0/24
+      - subnet: 10.1.1.0/24
   as_net_12:
     ipam:
       config:
-      - subnet: 10.10.2.0/24
+      - subnet: 10.1.2.0/24
   as_net_13:
     ipam:
       config:
-      - subnet: 10.10.3.0/24
+      - subnet: 10.1.3.0/24
   as_net_14:
     ipam:
       config:
-      - subnet: 10.10.4.0/24
+      - subnet: 10.1.4.0/24
   as_net_15:
     ipam:
       config:
-      - subnet: 10.10.5.0/24
+      - subnet: 10.1.5.0/24
   as_net_21:
     ipam:
       config:
-      - subnet: 10.20.1.0/24
+      - subnet: 10.2.1.0/24
   as_net_22:
     ipam:
       config:
-      - subnet: 10.20.2.0/24
+      - subnet: 10.2.2.0/24
   as_net_23:
     ipam:
       config:
-      - subnet: 10.20.3.0/24
+      - subnet: 10.2.3.0/24
   as_net_24:
     ipam:
       config:
-      - subnet: 10.20.4.0/24
+      - subnet: 10.2.4.0/24
   as_net_25:
     ipam:
       config:
-      - subnet: 10.20.5.0/24
+      - subnet: 10.2.5.0/24
   as_net_31:
     ipam:
       config:
-      - subnet: 10.30.1.0/24
+      - subnet: 10.3.1.0/24
   as_net_32:
     ipam:
       config:
-      - subnet: 10.30.2.0/24
+      - subnet: 10.3.2.0/24
   as_net_33:
     ipam:
       config:
-      - subnet: 10.30.3.0/24
+      - subnet: 10.3.3.0/24
   as_net_34:
     ipam:
       config:
-      - subnet: 10.30.4.0/24
+      - subnet: 10.3.4.0/24
   as_net_35:
     ipam:
       config:
-      - subnet: 10.30.5.0/24
+      - subnet: 10.3.5.0/24
   as_net_41:
     ipam:
       config:
-      - subnet: 10.40.1.0/24
+      - subnet: 10.4.1.0/24
   as_net_42:
     ipam:
       config:
-      - subnet: 10.40.2.0/24
+      - subnet: 10.4.2.0/24
   as_net_43:
     ipam:
       config:
-      - subnet: 10.40.3.0/24
+      - subnet: 10.4.3.0/24
   as_net_44:
     ipam:
       config:
-      - subnet: 10.40.4.0/24
+      - subnet: 10.4.4.0/24
   as_net_45:
     ipam:
       config:
-      - subnet: 10.40.5.0/24
+      - subnet: 10.4.5.0/24
   transit_net:
     driver: bridge
     ipam:
       config:
-      - subnet: 10.100.0.0/24
+      - subnet: 10.100.0.0/16

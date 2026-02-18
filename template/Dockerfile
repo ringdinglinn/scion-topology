@@ -3,13 +3,14 @@ FROM scion-base:1.0
 
 ARG INDEX
 ARG ISD
+ARG AS
 
 RUN cp /opt/tutorial-pki/AS${INDEX}/*.key /etc/scion/crypto/as/ && \
     cp /opt/tutorial-pki/AS${INDEX}/*.pem /etc/scion/crypto/as/ && \
     chown scion:scion /etc/scion/crypto/as/*.key && \
     chmod 600 /etc/scion/crypto/as/*.key
 
-COPY isd${ISD}/as${AS}/topology.json /etc/scion/topology.json
+COPY topologies/isd${ISD}/as${AS}/topology.json /etc/scion/topology.json
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
