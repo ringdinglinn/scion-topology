@@ -25,23 +25,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 python3
     nano procps \
     apt-transport-https 
 
-COPY isds.yaml /tmp/isds.yaml
-
 # Required for scion-apps-bat
 RUN echo "deb [trusted=yes] https://packages.netsec.inf.ethz.ch/debian all main" | tee /etc/apt/sources.list.d/scionlab.list
 
-# Install SCION packages. Eventually, also remove the apt cache files
-# stored under /var/lib/apt/lists/ to reduce the image size.
+# Install dependencies and additional network utilities.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     scion-apps-bat scion-apps-netcat \
     && rm -rf /var/lib/apt/lists/* 
 
+# Install SCION packages. Eventually, also remove the apt cache files
+# stored under /var/lib/apt/lists/ to reduce the image size.
 RUN mkdir -p /tmp/scion/ && \
     wget --progress=dot:giga "$RELEASE" -O /tmp/scion/pkgs.tar.gz && \
     tar -xzf /tmp/scion/pkgs.tar.gz -C /tmp/scion/ && \
     ls -l /tmp/scion/ && \
     apt-get install -y --allow-downgrades --no-install-recommends $(find /tmp/scion -name '*.deb') && \
     rm -rf /tmp/scion /var/lib/apt/lists/*
+
 
 # Copy go application files
 COPY base/scion-node-manager/scion-node-manager        /usr/local/bin/
@@ -96,9 +96,15 @@ COPY base/br.toml /etc/scion/br.toml
 COPY base/cs.toml /etc/scion/cs.toml
 
 WORKDIR /pki
+
+COPY isds.yaml /tmp/isds.yaml
+
 COPY base/pki/pki-generation.py /pki/pki-generation.py
 RUN chmod +x /pki/pki-generation.py
 
 RUN python3 /pki/pki-generation.py
+
+RUN mkdir -p /etc/scion/certs && \
+    cp /opt/tutorial-pki/*.trc /etc/scion/certs/
 
 WORKDIR /etc/scion/
