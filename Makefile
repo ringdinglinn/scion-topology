@@ -59,7 +59,7 @@ build-endhost%:
 build-all-endhost: build-endhost15 build-endhost35
 
 
-build-monitor:
+build-monitor: generate-nodeconfig 
 	docker build -t monitor:$(VERSION) \
 		-f ./monitor/Dockerfile \
 		./monitor
@@ -90,7 +90,7 @@ rebuild-scion:
 	)
 
 
-rebuild-monitor:
+rebuild-monitor: generate-nodeconfig
 	docker build --no-cache -t monitor:$(VERSION) \
 		-f ./monitor/Dockerfile \
 		./monitor
@@ -105,6 +105,9 @@ generate-topologies:
 		--edges $(EDGELIST_PATH) \
 		--isds $(CONFIG_PATH) \
 		--output-dir $(TOPOLOGIES_PATH)
+
+generate-nodeconfig:
+	python3 scripts/generate-nodeconfig.py --config $(CONFIG_PATH)
 
 #install bats shell testing framework
 install-bats:
