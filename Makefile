@@ -35,22 +35,20 @@ build-base: build-debian-base
 		-f ./base/Dockerfile \
 		.
 
-# Pattern rule for scion nodes, e.g. scion32 -> isd3, as2
 build-scion:
-	@counter=1; \
-	for isd in $(ISDS); do \
-		for as in $(AS_RANGE); do \
-			echo ">>> Building SCION node ISD=$$isd AS=$$as INDEX=$$counter"; \
-			docker build --progress=plain \
-				-t scion$$isd$$as:$(VERSION) \
-				--build-arg ISD=$$isd \
-				--build-arg INDEX=$$counter \
-				--build-arg AS=$$as \
-				-f ./template/Dockerfile \
-				.; \
-			counter=$$((counter+1)); \
-		done; \
-	done
+	@i=1; \
+	$(foreach isd,$(ISDS), \
+		$(foreach as,$(ISD$(isd)_AS_RANGE), \
+			echo ">>> Building SCION node ISD=$(isd) AS=$(as) INDEX=$$i"; \
+			docker build \
+				-t scion$(isd)$(as):$(VERSION) \
+				--build-arg INDEX=$$i \
+				--build-arg ISD=$(isd) \
+				--build-arg AS=$(as) \
+				-f ./template/Dockerfile .; \
+			i=$$((i+1)); \
+		) \
+	)
 
 build-endhost%:
 	@as=$*; \
@@ -77,20 +75,20 @@ rebuild-base:
 		.
 
 rebuild-scion:
-	@counter=1; \
-	for isd in $(ISDS); do \
-		for as in $(AS_RANGE); do \
-			echo ">>> Building SCION node ISD=$$isd AS=$$as INDEX=$$counter"; \
+	@i=1; \
+	$(foreach isd,$(ISDS), \
+		$(foreach as,$(ISD$(isd)_AS_RANGE), \
+			echo ">>> Building SCION node ISD=$(isd) AS=$(as) INDEX=$$i"; \
 			docker build --no-cache --progress=plain \
-				-t scion$$isd$$as:$(VERSION) \
-				--build-arg INDEX=$$counter \
-				--build-arg ISD=$$isd \
-				--build-arg AS=$$as \
-				-f ./template/Dockerfile \
-				.; \
-			counter=$$((counter+1)); \
-		done; \
-	done
+				-t scion$(isd)$(as):$(VERSION) \
+				--build-arg INDEX=$$i \
+				--build-arg ISD=$(isd) \
+				--build-arg AS=$(as) \
+				-f ./template/Dockerfile .; \
+			i=$$((i+1)); \
+		) \
+	)
+
 
 rebuild-monitor:
 	docker build --no-cache -t monitor:$(VERSION) \
