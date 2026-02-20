@@ -32,7 +32,7 @@ func HandleConfigASList(args []string) {
 	if len(args) == 2 && args[1] == "delete" {
 		asList = []string{} // Empty list
 	} else {
-		// Format each AS number to ffaa:1:<number>
+		// Format each AS number to ffaa:<isd>:<as>
 		for i := 1; i < len(args); i++ {
 			asNum := args[i]
 
@@ -49,8 +49,8 @@ func HandleConfigASList(args []string) {
 				return
 			}
 
-			// Format to ffaa:1:<number>
-			formattedAS := fmt.Sprintf("ffaa:1:%d", num)
+			// Format to ffaa:<isd>:<as>
+			formattedAS := fmt.Sprintf("ffaa:%d:%d", num / 10, num % 10)
 			asList = append(asList, formattedAS)
 		}
 	}

@@ -72,8 +72,9 @@ func NodeToIP(node ScionNode) net.IPAddr {
 
 func NodeToScionAddress(node *ScionNode) string {
 	// Scion address from node including validation
-	var scionaddr = fmt.Sprintf("%d-ffaa:1:%d,%s", node.ISD, node.AS, node.ScionDAddr)
+	var scionaddr = fmt.Sprintf("%d-ffaa:%d:%d,%s", node.ISD, node.ISD - 15, node.AS, node.ScionDAddr)
 	_, err := addr.ParseAddr(scionaddr)
+	fmt.Fprintf(os.Stderr, "[DEBUG] Generated SCION address: %s\n", scionaddr)
 	if err != nil {
 		fmt.Printf("error: {%v}", err)
 		os.Exit(1)

@@ -54,18 +54,18 @@ def generate_isd_pki(isd_id: int, as_start: int, as_count: int, core: list[int])
 
     def create_core_certs(as_num, isd_num, isd_id):
         create_cert(f"AS{as_start + as_num - 1}", "sensitive-voting",
-            f"{isd_num}-ffaa:1:{isd_id}{as_num}",
-            f"{isd_num}-ffaa:1:{isd_id}{as_num} sensitive voting cert",
+            f"{isd_num}-ffaa:{isd_id}:{as_num}",
+            f"{isd_num}-ffaa:{isd_id}:{as_num} sensitive voting cert",
             "sensitive-voting.pem", "sensitive-voting.key")
         
         create_cert(f"AS{as_start + as_num - 1}", "regular-voting",
-                f"{isd_num}-ffaa:1:{isd_id}{as_num}",
-                f"{isd_num}-ffaa:1:{isd_id}{as_num} regular voting cert",
+                f"{isd_num}-ffaa:{isd_id}:{as_num}",
+                f"{isd_num}-ffaa:{isd_id}:{as_num} regular voting cert",
                 "regular-voting.pem", "regular-voting.key")
 
         create_cert(f"AS{as_start + as_num - 1}", "cp-root",
-                f"{isd_num}-ffaa:1:{isd_id}{as_num}",
-                f"{isd_num}-ffaa:1:{isd_id}{as_num} cp root cert",
+                f"{isd_num}-ffaa:{isd_id}:{as_num}",
+                f"{isd_num}-ffaa:{isd_id}:{as_num} cp root cert",
                 "cp-root.pem", "cp-root.key")
         
     for core_as in core:
@@ -76,7 +76,7 @@ def generate_isd_pki(isd_id: int, as_start: int, as_count: int, core: list[int])
     tmp_dir.mkdir(exist_ok=True)
 
     trc_payload = pathlib.Path("trc-B1-S1-pld.tmpl")
-    core_ases = [f"ffaa:1:{isd_id}{as_num}" for as_num in core]
+    core_ases = [f"ffaa:{isd_id}:{as_num}" for as_num in core]
     cert_files = [
         path
         for as_num in core
@@ -145,7 +145,7 @@ def generate_isd_pki(isd_id: int, as_start: int, as_count: int, core: list[int])
 
     # Create CA certs
     for as_num in core:
-        create_cert(f"AS{as_start + as_num - 1}", "cp-ca", f"{ISD_NUM}-ffaa:1:{isd_id}{as_num}", f"{ISD_NUM}-ffaa:1:{isd_id}{as_num} CA cert", "cp-ca.pem", "cp-ca.key", ca="cp-root.pem", ca_key="cp-root.key")
+        create_cert(f"AS{as_start + as_num - 1}", "cp-ca", f"{ISD_NUM}-ffaa:{isd_id}:{as_num}", f"{ISD_NUM}-ffaa:{isd_id}:{as_num} CA cert", "cp-ca.pem", "cp-ca.key", ca="cp-root.pem", ca_key="cp-root.key")
 
     # Generate AS certificates
     for as_num in range(as_start, as_start + as_count):
@@ -154,8 +154,8 @@ def generate_isd_pki(isd_id: int, as_start: int, as_count: int, core: list[int])
         create_cert(
             f"AS{as_num}",
             "cp-as",
-            f"{ISD_NUM}-ffaa:1:{isd_id}{as_idx}",
-            f"{ISD_NUM}-ffaa:1:{isd_id}{as_idx} AS cert",
+            f"{ISD_NUM}-ffaa:{isd_id}:{as_idx}",
+            f"{ISD_NUM}-ffaa:{isd_id}:{as_idx} AS cert",
             f"AS{as_num}/cp-as.pem",
             f"AS{as_num}/cp-as.key",
             ca=f"AS{ca_as}/cp-ca.pem",

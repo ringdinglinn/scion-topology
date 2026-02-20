@@ -285,7 +285,7 @@
                 const requestServerSelect = document.getElementById('requestServerSelect');
                 for (let i = 1; i <= 4; i++) {
                     for (let j = 1; j <= 5; j++) {
-                        const addr = `${14 + i}-ffaa:1:${j}`;
+                        const addr = `${14 + i}-ffaa:${i}:${j}`;
                         const option = document.createElement('option');
                         option.value = addr;
                         option.textContent = `scion${(i - 1) * 5 + j} : ${addr}`;

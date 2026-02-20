@@ -54,7 +54,7 @@ def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
                     "local": f"{addr(src_isd, src_as)}:{port(dst_isd, dst_as)}",
                     "remote": f"{addr(dst_isd, dst_as)}:{port(src_isd, src_as)}"
                 },
-                "isd_as": f"{dst_isd_num}-ffaa:1:{dst_isd}{dst_as}",
+                "isd_as": f"{dst_isd_num}-ffaa:{dst_isd}:{dst_as}",
                 "link_to": get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as),
                 "mtu": 1472
             }
@@ -67,7 +67,7 @@ def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
                     "local": f"{addr(dst_isd, dst_as)}:{port(src_isd, src_as)}",
                     "remote": f"{addr(src_isd, src_as)}:{port(dst_isd, dst_as)}"
                 },
-                "isd_as": f"{src_isd_num}-ffaa:1:{src_isd}{src_as}",
+                "isd_as": f"{src_isd_num}-ffaa:{src_isd}:{src_as}",
                 "link_to": get_link_type(core_ases, dst_isd, dst_as, src_isd, src_as),
                 "mtu": 1472
             }
@@ -76,7 +76,7 @@ def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
     # Build topology JSON
     topology = {
         "attributes": ["core"] if is_core else [],
-        "isd_as": f"{isd_num}-ffaa:1:{isd}{as_num}",
+        "isd_as": f"{isd_num}-ffaa:{isd}:{as_num}",
         "dispatched_ports": "31000-32767",
         "mtu": 1472,
         "control_service": {

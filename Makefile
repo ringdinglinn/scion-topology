@@ -91,6 +91,7 @@ rebuild-scion:
 
 
 rebuild-monitor: generate-nodeconfig
+	cd ./monitor/scionctl && GOOS=linux GOARCH=amd64 go build -o scionctl .
 	docker build --no-cache -t monitor:$(VERSION) \
 		-f ./monitor/Dockerfile \
 		./monitor

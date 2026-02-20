@@ -8,7 +8,7 @@ def node(asn, isd, isd_n):
         "name": f"scion{isd}{asn}",
         "address": f"10.100.{isd}.{asn}",
         "isd": isd_n,
-        "as": isd * 10 + asn
+        "as": asn
     }
 
 def main():
