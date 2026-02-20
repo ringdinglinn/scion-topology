@@ -104,7 +104,4 @@ RUN chmod +x /pki/pki-generation.py
 
 RUN python3 /pki/pki-generation.py
 
-RUN mkdir -p /etc/scion/certs && \
-    cp /opt/tutorial-pki/*.trc /etc/scion/certs/
-
 WORKDIR /etc/scion/

@@ -3,12 +3,12 @@
 import yaml
 import argparse
 
-def node(asn, as_idx, isd, isd_n):
+def node(asn, isd, isd_n):
     return {
         "name": f"scion{isd}{asn}",
         "address": f"10.100.{isd}.{asn}",
         "isd": isd_n,
-        "as": as_idx
+        "as": isd * 10 + asn
     }
 
 def main():
@@ -25,7 +25,7 @@ def main():
     
     for isd in isds:
         for asn in range(1, isds[isd]['n'] + 1):
-            hosts.append(node(asn, index, isd, isd+15))
+            hosts.append(node(asn, isd, isd+15))
             index += 1
     
     node_config = {
