@@ -1,81 +1,81 @@
 services:
-  scion11:
+  scion1-1:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion12:
+  scion1-2:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion13:
+  scion1-3:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion14:
+  scion1-4:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion15:
+  scion1-5:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion21:
+  scion2-1:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion22:
+  scion2-2:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion23:
+  scion2-3:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion24:
+  scion2-4:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion25:
+  scion2-5:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion31:
+  scion3-1:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion32:
+  scion3-2:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion33:
+  scion3-3:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion34:
+  scion3-4:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion35:
+  scion3-5:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion41:
+  scion4-1:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion42:
+  scion4-2:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion43:
+  scion4-3:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion44:
+  scion4-4:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion45:
+  scion4-5:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared

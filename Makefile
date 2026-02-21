@@ -41,7 +41,7 @@ build-scion:
 		$(foreach as,$(ISD$(isd)_AS_RANGE), \
 			echo ">>> Building SCION node ISD=$(isd) AS=$(as) INDEX=$$i"; \
 			docker build \
-				-t scion$(isd)$(as):$(VERSION) \
+				-t scion$(isd)-$(as):$(VERSION) \
 				--build-arg INDEX=$$i \
 				--build-arg ISD=$(isd) \
 				--build-arg AS=$(as) \
@@ -51,12 +51,14 @@ build-scion:
 	)
 
 build-endhost%:
-	@as=$*; \
-	docker build -t endhost-as$$as:$(VERSION) \
-		-f ./endhosts/endhost-as$$as/Dockerfile \
-		./endhosts/endhost-as$$as
+	@id=$*; \
+	isd=$${id%-*}; \
+	as=$${id#*-}; \
+	docker build -t endhost-as$$isd-$$as:$(VERSION) \
+		-f ./endhosts/endhost-as$$isd-$$as/Dockerfile \
+		./endhosts/endhost-as$$isd-$$as
 
-build-all-endhost: build-endhost15 build-endhost35
+build-all-endhost: build-endhost1-5 build-endhost3-5
 
 
 build-monitor: generate-nodeconfig 
@@ -80,7 +82,7 @@ rebuild-scion:
 		$(foreach as,$(ISD$(isd)_AS_RANGE), \
 			echo ">>> Building SCION node ISD=$(isd) AS=$(as) INDEX=$$i"; \
 			docker build --no-cache --progress=plain \
-				-t scion$(isd)$(as):$(VERSION) \
+				-t scion$(isd)-$(as):$(VERSION) \
 				--build-arg INDEX=$$i \
 				--build-arg ISD=$(isd) \
 				--build-arg AS=$(as) \

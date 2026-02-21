@@ -5,7 +5,7 @@ import argparse
 
 def node(asn, isd, isd_n):
     return {
-        "name": f"scion{isd}{asn}",
+        "name": f"scion{isd}-{asn}",
         "address": f"10.100.{isd}.{asn}",
         "isd": isd_n,
         "as": asn

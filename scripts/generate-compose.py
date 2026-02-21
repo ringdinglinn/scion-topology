@@ -16,29 +16,29 @@ STATIC_SERVICES = {
         'volumes': ['./captures:/data', '/sys/fs/cgroup:/sys/fs/cgroup'],
         'tmpfs': ['/run', '/run/lock']
     },
-    'endhost-as15': {
-        'container_name': 'endhost-as15',
-        'image': 'endhost-as15:1.0',
-        'hostname': 'endhost-as15',
+    'endhost-as1-5': {
+        'container_name': 'endhost-as1-5',
+        'image': 'endhost-as1-5:1.0',
+        'hostname': 'endhost-as1-5',
         'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup'],
         'tmpfs': ['/run', '/run/lock'],
         'networks': {
-            'as_net_15': {'ipv4_address': '10.1.5.200'},
+            'as_net_1-5': {'ipv4_address': '10.1.5.200'},
             'transit_net': {'ipv4_address': '10.100.1.150'}
         },
-        'depends_on': ['scion15']
+        'depends_on': ['scion1-5']
     },
-    'endhost-as35': {
-        'container_name': 'endhost-as35',
-        'image': 'endhost-as35:1.0',
-        'hostname': 'endhost-as35',
+    'endhost-as3-5': {
+        'container_name': 'endhost-as3-5',
+        'image': 'endhost-as3-5:1.0',
+        'hostname': 'endhost-as3-5',
         'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup'],
         'tmpfs': ['/run', '/run/lock'],
         'networks': {
-            'as_net_35': {'ipv4_address': '10.3.5.200'},
+            'as_net_3-5': {'ipv4_address': '10.3.5.200'},
             'transit_net': {'ipv4_address': '10.100.3.200'}
         },
-        'depends_on': ['scion35']
+        'depends_on': ['scion3-5']
     }
 }
 
@@ -53,13 +53,13 @@ STATIC_NETWORKS = {
 
 def generate_scion_service(isd, as_num, version):
     """Generate a single scion service configuration"""
-    name = f"scion{isd}{as_num}"
+    name = f"scion{isd}-{as_num}"
     return {
         'image': f'{name}:{version}',
         'container_name': name,
         'hostname': name,
         'networks': {
-            f'as_net_{isd}{as_num}': {} if name != "scion15" else {"ipv4_address": "10.1.5.100"},
+            f'as_net_{isd}-{as_num}': {} if name != "scion1-5" else {"ipv4_address": "10.1.5.100"},
             'transit_net': {
                 'ipv4_address': f'10.100.{isd}.{as_num}'
             }
@@ -73,7 +73,7 @@ def generate_scion_service(isd, as_num, version):
 
 def generate_mac_volume_override(isd, as_num):
     """Generate Mac-specific volume override for a scion service"""
-    name = f"scion{isd}{as_num}"
+    name = f"scion{isd}-{as_num}"
     return {
         name: {
             'volumes': [
@@ -86,7 +86,7 @@ def generate_mac_volume_override(isd, as_num):
 def generate_network(isd, as_num):
     """Generate a single as_net network configuration"""
     return {
-        f'as_net_{isd}{as_num}': {
+        f'as_net_{isd}-{as_num}': {
             'ipam': {
                 'config': [
                     {'subnet': f'10.{isd}.{as_num}.0/24'}
@@ -114,7 +114,7 @@ def main():
     for isd in isds:
         n = isds[isd]["n"]
         for as_num in range(n):
-            name = f"scion{isd}{as_num+1}"
+            name = f"scion{isd}-{as_num+1}"
             scion_services[name] = generate_scion_service(isd, as_num+1, VERSION)
             mac_overrides.update(generate_mac_volume_override(isd, as_num+1))
     
