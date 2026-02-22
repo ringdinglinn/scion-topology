@@ -61,14 +61,14 @@ build-endhost%:
 build-all-endhost: build-endhost1-5 build-endhost3-5
 
 
-build-monitor: generate-nodeconfig 
+build-monitor: generate-nodeconfig generate-web-ui
 	docker build -t monitor:$(VERSION) \
 		-f ./monitor/Dockerfile \
 		./monitor
 
-build: generate-compose generate-topologies build-base build-monitor build-scion generate-tests
+build: generate-compose generate-topologies build-base build-monitor build-scion generate-tests 
 
-rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebuild-scion generate-tests
+rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebuild-scion generate-tests 
 
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
@@ -91,8 +91,7 @@ rebuild-scion:
 		) \
 	)
 
-
-rebuild-monitor: generate-nodeconfig
+rebuild-monitor: generate-nodeconfig generate-web-ui
 	cd ./monitor/scionctl && GOOS=linux GOARCH=amd64 go build -o scionctl .
 	docker build --no-cache -t monitor:$(VERSION) \
 		-f ./monitor/Dockerfile \
@@ -114,6 +113,12 @@ generate-nodeconfig:
 
 generate-tests:
 	python3 scripts/generate-tests.py --config $(CONFIG_PATH)
+
+generate-web-ui:
+	python3 scripts/generate-web-ui.py \
+		--config $(CONFIG_PATH) \
+		--template monitor/index-template.html \
+		--output monitor/index.html
 
 #install bats shell testing framework
 install-bats:

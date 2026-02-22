@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCION Configuration Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #3498db;
+            margin-top: 25px;
+        }
+
+        .server-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .server-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px;
+            background: #fafafa;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            margin: 8px 8px 8px 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-secondary {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #636e72;
+        }
+
+        .status {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .loading::after {
+            content: "⏳ Loading...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .request-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 13px;
+            border-left: 3px solid #3498db;
+        }
+
+        .topology-data {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid #3498db;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .url-display {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>SCION Network Configuration</h1>
+
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('server-tab', event)">Server Status</div>
+            <div class="tab" onclick="switchTab('config-tab', event)">Configuration</div>
+            <div class="tab" onclick="switchTab('actions-tab', event)">Quick Actions</div>
+        </div>
+
+        <!-- Server Selection -->
+        <div>
+            <h2>Select SCION Node</h2>
+            <select id="serverSelect" name="server">
+                <option value="">Select a SCION AS node...</option>
+            </select>
+            <div class="url-display" id="serverUrlDisplay">No server selected</div>
+        </div>
+
+        <!-- Server Status Tab -->
+        <div id="server-tab" class="tab-content active">
+            <h2>Service Status</h2>
+
+            <select id="serviceSelect" name="service">
+                <option value="">Select a service</option>
+
+                <option selected value="30452">Control Service</option>
+                <option value="30442">Border Router</option>
+                <option value="30455">Daemon Service</option>
+            </select>
+
+            <button class="btn btn-primary" onclick="checkServiceStatus()">Check Service Status</button>
+            <div class="url-display">Endpoint: /info</div>
+
+            <div id="serviceStatus" class="server-card">
+                <h3>Service Status</h3>
+                <p>Select a server and service and click "Check Service Status"</p>
+            </div>
+
+            <!-- Topology Information -->
+            <div id="topologySection">
+                <h2>Topology Information</h2>
+                <button class="btn btn-primary" onclick="loadTopology()">Load Topology</button>
+                <div class="url-display">Endpoint: /topology (Port 30452)</div>
+                <div id="topologyData" class="server-card">
+                    <h3>Topology Data</h3>
+                    <p>Click "Load Topology" to fetch topology data</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Tab -->
+        <div id="config-tab" class="tab-content">
+            <h2>Configuration Management</h2>
+
+            <div id="currentConfig" class="server-card">
+                <h3>Current Configuration</h3>
+                <p>Select a server and click "Load Configuration"</p>
+            </div>
+            <button class="btn btn-primary" onclick="loadConfiguration()">Load Configuration</button>
+            <div class="url-display">Endpoint: /config (Port 30452)</div>
+
+            <div class="server-card">
+                <h3>Update Configuration</h3>
+                <form id="configForm" onsubmit="applyConfiguration(event)">
+                    <div>
+                        <label for="configData">Configuration JSON:</label>
+                        <textarea id="configData" name="config" rows="6" placeholder='{"key": "value"}'></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Apply Configuration</button>
+                </form>
+                <div class="url-display">Endpoint: /scion/config (Port 8080)</div>
+                <div id="configResult"></div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Tab -->
+        <div id="actions-tab" class="tab-content">
+            <h2>Quick Actions</h2>
+
+            <select id="requestServerSelect" name="requestServer">
+                <option value="">Select AS node</option>
+            </select>
+            <div class="url-display">Destination of ping commands</div>
+
+            <br>
+            <script>
+                const requestServerSelect = document.getElementById('requestServerSelect');
+                const scionAddresses = {{SCION_ADDRESSES_JSON}};
+                scionAddresses.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.addr;
+                    option.textContent = `${s.name} : ${s.addr}`;
+                    requestServerSelect.appendChild(option);
+                });
+            </script>
+
+            <button class="btn btn-secondary" onclick="quickAction('/scion/restart')">Restart Node</button>
+            <button class="btn btn-secondary" onclick="quickAction('/scion/status')">Check Status</button>
+
+            <br>
+
+            <button class="btn btn-secondary" onclick="quickAction('/api/dispatch/ping/start')">Start Ping</button>
+            <button class="btn btn-secondary" onclick="quickAction('/api/dispatch/ping/stop')">Stop Ping</button>
+            <button class=" btn btn-secondary" onclick="quickAction('/api/dispatch/ping/files')">Get files</button>
+
+            <br>
+
+            <button class="btn btn-secondary" onclick="quickAction('/api/dispatch/scionping/start')">Start Scion
+                Ping</button>
+            <button class="btn btn-secondary" onclick="quickAction('/api/dispatch/scionping/stop')">Stop Scion
+                Ping</button>
+            <button class="btn btn-secondary" onclick="quickAction('/api/dispatch/scionping/files')">Get files</button>
+
+            <br>
+
+            <button class="btn btn-secondary" onclick="quickAction('/api/capture/start')">Start Packet Capture</button>
+            <button class="btn btn-secondary" onclick="quickAction('/api/capture/stop')">Stop Packet Capture</button>
+            <button class="btn btn-secondary" onclick="quickAction('/api/capture/files')">Get files</button>
+
+            <div id="quickActionResult" class="server-card">
+                <p>Action results will appear here</p>
+            </div>
+        </div>
+
+        <!-- Request Information Panel -->
+        <div class="server-card">
+            <h3>Request Information</h3>
+            <div id="requestInfo" class="request-info">
+                Requests will be made to these endpoints with the selected server IP.<br>
+                The server should proxy these requests to the appropriate ports:<br>
+                - /scion/status, /scion/config, /scion/restart → Port 8080<br>
+                - /scion/topology → Port 30452
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Populate server dropdown
+        const serverSelect = document.getElementById('serverSelect');
+        const servers = {{SERVERS_JSON}};
+        servers.forEach(s => {
+            const option = document.createElement('option');
+            option.value = s.ip;
+            option.textContent = `${s.name} : ${s.ip}`;
+            serverSelect.appendChild(option);
+        });
+
+        serverSelect.addEventListener('change', e => {
+            const server = e.target.value;
+            document.getElementById('serverUrlDisplay').textContent =
+                server ? `Selected server: ${server}` : 'No server selected';
+        });
+
+        const serviceSelect = document.getElementById('serviceSelect')
+
+
+        // Tab switching
+        function switchTab(tabId, event) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // Request helper
+        async function makeRequest(method, endpoint, body, targetId) {
+            const server = serverSelect.value;
+            if (!server) {
+                alert('Please select a server first');
+                return;
+            }
+
+            const target = document.getElementById(targetId);
+            target.classList.add('loading');
+            document.getElementById('requestInfo').textContent = `${method} ${endpoint}`;
+
+            try {
+                const options = { method, headers: { 'Content-Type': 'application/json' } };
+                if (body) options.body = JSON.stringify(body);
+
+                const port = document.getElementById("serviceSelect").value
+
+                // We proxy every request
+                const requestURL = "/proxy?" + new URLSearchParams({
+                    target: server + ":" + serviceSelect.value, // serviceSelect stores the port number for each service
+                    endpoint: endpoint,
+                    method: method
+                })
+
+                const res = await fetch(requestURL, options);
+                if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    target.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    const text = await res.text();
+                    target.innerHTML = `<pre>${text}</pre>`;
+                }
+            } catch (err) {
+                target.innerHTML = `<div class="status status-offline">Error: ${err.message}</div>`;
+            } finally {
+                target.classList.remove('loading');
+            }
+        }
+
+        // Actions
+        function checkServiceStatus() {
+            const service = document.getElementById('serviceSelect').value;
+            if (!service) {
+                alert('Please select a service');
+                return;
+            }
+            makeRequest('GET', '/info', null, 'serviceStatus');
+        }
+
+        function loadTopology() {
+            makeRequest('GET', '/topology', null, 'topologyData');
+        }
+
+        function loadConfiguration() {
+            makeRequest('GET', '/config', null, 'currentConfig');
+        }
+
+        function applyConfiguration(event) {
+            event.preventDefault();
+            const config = document.getElementById('configData').value;
+            try {
+                const parsed = JSON.parse(config);
+                makeRequest('POST', '/scion/config', parsed, 'configResult');
+            } catch (e) {
+                alert('Invalid JSON');
+            }
+        }
+
+        function quickAction(endpoint) {
+            makeRequest('POST', endpoint, null, 'quickActionResult');
+        }
+    </script>
+</body>
+
+</html>

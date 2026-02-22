@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy binary and systemd unit file
 COPY web-ui /usr/local/bin/
 RUN chmod +x /usr/local/bin/web-ui
+COPY index.html /var/lib/web-ui/
+WORKDIR /var/lib/web-ui
 COPY /scionctl/scionctl /usr/local/bin/
 # This is not a good place to store this
 COPY /scionctl/internal/config/nodeconfig.yaml /home/
