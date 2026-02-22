@@ -17,7 +17,7 @@ def addr(isd, asn):
     return f"10.100.{isd}.{asn}"
 
 def port(dst_isd, dst_as):
-    return 50000 + dst_isd * 10 + dst_as
+    return 50000 + dst_isd * 100 + dst_as
 
 def get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as):
     src_core = src_as in core_ases.get(src_isd, set())
