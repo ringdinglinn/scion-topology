@@ -66,9 +66,9 @@ build-monitor: generate-nodeconfig
 		-f ./monitor/Dockerfile \
 		./monitor
 
-build: generate-compose generate-topologies build-base build-monitor build-scion build-all-endhost
+build: generate-compose generate-topologies build-base build-monitor build-scion generate-tests
 
-rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebuild-scion
+rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebuild-scion generate-tests
 
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
@@ -111,6 +111,9 @@ generate-topologies:
 
 generate-nodeconfig:
 	python3 scripts/generate-nodeconfig.py --config $(CONFIG_PATH)
+
+generate-tests:
+	python3 scripts/generate-tests.py --config $(CONFIG_PATH)
 
 #install bats shell testing framework
 install-bats:

@@ -15,30 +15,6 @@ STATIC_SERVICES = {
         },
         'volumes': ['./captures:/data', '/sys/fs/cgroup:/sys/fs/cgroup'],
         'tmpfs': ['/run', '/run/lock']
-    },
-    'endhost-as1-5': {
-        'container_name': 'endhost-as1-5',
-        'image': 'endhost-as1-5:1.0',
-        'hostname': 'endhost-as1-5',
-        'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup'],
-        'tmpfs': ['/run', '/run/lock'],
-        'networks': {
-            'as_net_1-5': {'ipv4_address': '10.1.5.200'},
-            'transit_net': {'ipv4_address': '10.100.1.150'}
-        },
-        'depends_on': ['scion1-5']
-    },
-    'endhost-as3-5': {
-        'container_name': 'endhost-as3-5',
-        'image': 'endhost-as3-5:1.0',
-        'hostname': 'endhost-as3-5',
-        'volumes': ['/sys/fs/cgroup:/sys/fs/cgroup'],
-        'tmpfs': ['/run', '/run/lock'],
-        'networks': {
-            'as_net_3-5': {'ipv4_address': '10.3.5.200'},
-            'transit_net': {'ipv4_address': '10.100.3.200'}
-        },
-        'depends_on': ['scion3-5']
     }
 }
 
