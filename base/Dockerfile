@@ -2,6 +2,7 @@
 FROM --platform=$BUILDPLATFORM debian:12-slim
 
 ARG TARGETARCH
+ARG CONFIG_PATH
 ARG SCION_VER=0.14.0
 ARG RELEASE="https://github.com/scionproto/scion/releases/download/v${SCION_VER}/scion_${SCION_VER}_deb_${TARGETARCH}.tar.gz"
 
@@ -97,7 +98,7 @@ COPY base/cs.toml /etc/scion/cs.toml
 
 WORKDIR /pki
 
-COPY isds.yaml /tmp/isds.yaml
+COPY ${CONFIG_PATH} /tmp/isds.yaml
 
 COPY base/pki/pki-generation.py /pki/pki-generation.py
 RUN chmod +x /pki/pki-generation.py

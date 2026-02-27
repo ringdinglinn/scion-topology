@@ -5,7 +5,7 @@ import torch
 import numpy as np
 from scipy import sparse as sp
 import time
-from helpers.parse_topology import parse_graph
+from helpers.parse_topology import yaml_to_graph, graph_to_yaml
 import argparse
 import matplotlib.pyplot as plt
 import yaml
@@ -276,28 +276,17 @@ def run(graph, mode="min"):
     
     return results
 
-def can_connect(isds, u, v):
-    as_u, as_v = int(u.split("-")[1]), int(v.split("-")[1])
-    isd_u, isd_v = int(u.split("-")[0]), int(v.split("-")[0])
-
-    if isd_u == isd_v:
+def can_connect(u, v):
+    print(f"can connect, u: {u}, v: {v}")
+    if u["isd_n"] == v["isd_n"]:
         return True
     
-    if as_u in isds[isd_u]["core"] and as_v in isds[isd_v]["core"]:
+    if u["is_core"] and v["is_core"]:
         return True
     
     return False
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Parse an edge list into a NetworkX graph.")
-    parser.add_argument("--topology", "-t", required=True, help="Path to the topology text file")
-    parser.add_argument("--isd-config",  "-ic", required=True, help="Path to the isd config yaml file")
-    args = parser.parse_args()
-    G, _ = parse_graph(args.topology)
-    with open(args.isd_config, 'r') as f:
-        isds = yaml.safe_load(f)["ISDs"]
-    
-
+def iteration(G, path, iteration):
     nx.draw(G, with_labels=True, node_color="lightblue", edge_color="gray")
     plt.show()
 
@@ -312,9 +301,6 @@ if __name__ == "__main__":
     max_set_a = set(max_partition)
     max_edges = [(u, v) for (u, v) in G.edges if (u in max_set_a) != (v in max_set_a)]
 
-    draw_partition(G, min_set_a, min_edges)
-    draw_partition(G, max_set_a, max_edges)
-
     T = nx.minimum_spanning_tree(G)
     msp_edges = set(T.edges())
     del_edges = set(max_edges) - msp_edges - set(min_edges)
@@ -323,12 +309,12 @@ if __name__ == "__main__":
         raise Exception('No edges to delete')
     
     del_edge = del_edges.pop()
-    highlight_edges(G, del_edges)
 
     new_edge = None
     for u in min_set_a:
         for v in set(list(G.nodes)) - min_set_a:
-            if (u, v) not in min_edges and can_connect(isds, G.nodes[u]["label"], G.nodes[v]["label"]):
+            print(can_connect(G.nodes[u], G.nodes[v]))
+            if (u, v) not in min_edges and can_connect(G.nodes[u], G.nodes[v]):
                 new_edge = (u,v)
                 break
 
@@ -336,8 +322,20 @@ if __name__ == "__main__":
 
     G.add_edge(new_edge[0], new_edge[1])
     G.remove_edge(del_edge[0], del_edge[1])
-
-    print(G.nodes)
-
     highlight_edges(G, {new_edge}, color="limegreen")
 
+    graph_to_yaml(G, path + f"_it{iteration}" + ".yaml")
+
+    return G
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Parse the topology config into an NetworkX graph.")
+    parser.add_argument("--topology-config", "-tc", required=True, help="Path to the topology yaml file")
+    args = parser.parse_args()
+
+    G = yaml_to_graph(args.topology_config)
+
+    path = (args.topology_config).split("_")[0]
+
+    for i in range(5):
+        G = iteration(G, path, i+1)

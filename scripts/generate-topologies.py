@@ -108,26 +108,24 @@ def generate_topology_file(isd, as_num, edges, core_ases, output_dir):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--edges', required=True, help='Space-separated edge list')
-    parser.add_argument('--isds', required=True, help='Space-separated ISD list')
-    parser.add_argument('--output-dir', required=True, help='Topologies directory')
+    parser.add_argument('--topology-path', '-tp', required=True, help='Path to Topology/ISD configuration')
+    parser.add_argument('--output-dir', '-o', required=True, help='Topologies directory')
     args = parser.parse_args()
     
     edges = []
-    with open(args.edges, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if line:  # Skip empty lines
-                src, dst = parse_edge(line)
-                edges.append((src, dst))
+
+    with open(args.topology_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    for line in config["Topology"]:
+        line = line.strip()
+        if line:
+            src, dst = parse_edge(line)
+            edges.append((src, dst))
     
     # Create output directory
     import os
     os.makedirs(args.output_dir, exist_ok=True)
-
-        
-    with open(args.isds, 'r') as f:
-        config = yaml.safe_load(f)
     
     isds = config['ISDs']
 

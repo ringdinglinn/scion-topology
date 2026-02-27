@@ -1,4 +1,5 @@
 captures/
 bats-core/
+configurations/results/
 
 .DS_Store

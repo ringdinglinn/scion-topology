@@ -1,6 +1,6 @@
 # ==== CONFIG ====
-CONFIG_PATH := isds.yaml
-EDGELIST_PATH := topology.txt
+CONFIG_PATH := topology.yaml
+CONFIG_FOLDER := configurations
 TOPOLOGIES_PATH := topologies
 
 CONFIG_MK := .isd-vars.mk
@@ -32,6 +32,7 @@ build-debian-base:
 
 build-base: build-debian-base
 	docker build -t scion-base:$(VERSION) \
+		--build-arg CONFIG_PATH=$(CONFIG_PATH) \
 		-f ./base/Dockerfile \
 		.
 
@@ -104,8 +105,7 @@ generate-compose:
 
 generate-topologies:
 	python3 scripts/generate-topologies.py \
-		--edges $(EDGELIST_PATH) \
-		--isds $(CONFIG_PATH) \
+		-tp $(CONFIG_PATH) \
 		--output-dir $(TOPOLOGIES_PATH)
 
 generate-nodeconfig:
@@ -162,3 +162,15 @@ purge: down
 
 test: install-bats
 	bats test/
+
+topo-optim: $(CONFIG_FOLDER)/*
+	for topo in $^ ; do \
+		file=$$(ls $$topo/*_it0.yaml) ; \
+		python3 scripts/network-partition.py -tc $$file; \
+	done
+
+eval-topo: $(CONFIG_FOLDER)/*
+	for topo in $^ ; do \
+		for iter in topo; do \
+			python3 scripts/evaluate_topology.py -tc $$file; \
+	done
