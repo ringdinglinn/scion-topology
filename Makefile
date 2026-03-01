@@ -180,6 +180,6 @@ topo-plot:
 	python3 scripts/plot_topology.py \
 	-i $(RESULTS_PATH) \
 	-g "configurations/([^/]+)/" \
-	-m "cheeger constant" "spectral gap" "algebraic connectivity" \
+	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" \
 	-s topology \
 	-o $(PLOTS_FOLDER)
