@@ -43,7 +43,7 @@ def graph_to_isds(G):
     isds = {}
     for node, data in G.nodes(data=True):
         isd = int(data['isd_n'])
-        as_n = data['as_n']
+        as_n = int(data['as_n'])
         if isd not in isds:
             isds[isd] = {'n': 0, 'core': []}
         isds[isd]['n'] += 1

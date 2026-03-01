@@ -277,7 +277,6 @@ def run(graph, mode="min"):
     return results
 
 def can_connect(u, v):
-    print(f"can connect, u: {u}, v: {v}")
     if u["isd_n"] == v["isd_n"]:
         return True
     
@@ -313,7 +312,6 @@ def iteration(G, path, iteration):
     new_edge = None
     for u in min_set_a:
         for v in set(list(G.nodes)) - min_set_a:
-            print(can_connect(G.nodes[u], G.nodes[v]))
             if (u, v) not in min_edges and can_connect(G.nodes[u], G.nodes[v]):
                 new_edge = (u,v)
                 break

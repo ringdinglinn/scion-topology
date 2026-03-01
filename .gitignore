@@ -3,3 +3,4 @@ bats-core/
 configurations/results/
 
 .DS_Store
+__pycache__/

@@ -1,7 +1,9 @@
 # ==== CONFIG ====
 CONFIG_PATH := topology.yaml
 CONFIG_FOLDER := configurations
+RESULTS_PATH := configurations/results/results.csv
 TOPOLOGIES_PATH := topologies
+PLOTS_FOLDER := configurations/plots/
 
 CONFIG_MK := .isd-vars.mk
 
@@ -163,14 +165,21 @@ purge: down
 test: install-bats
 	bats test/
 
+run-topology-optimizer: topo-optim topo-eval topo-plot
+
 topo-optim: $(CONFIG_FOLDER)/*
 	for topo in $^ ; do \
 		file=$$(ls $$topo/*_it0.yaml) ; \
 		python3 scripts/network-partition.py -tc $$file; \
 	done
 
-eval-topo: $(CONFIG_FOLDER)/*
-	for topo in $^ ; do \
-		for iter in topo; do \
-			python3 scripts/evaluate_topology.py -tc $$file; \
-	done
+topo-eval: 
+	python3 scripts/evaluate_topology.py -i $(CONFIG_FOLDER) -o $(RESULTS_PATH); \
+
+topo-plot:
+	python3 scripts/plot_topology.py \
+	-i $(RESULTS_PATH) \
+	-g "configurations/([^/]+)/" \
+	-m "cheeger constant" "spectral gap" "algebraic connectivity" \
+	-s topology \
+	-o $(PLOTS_FOLDER)
