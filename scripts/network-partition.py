@@ -1,19 +1,19 @@
 import math
-import json
 import networkx as nx
 import torch
-import numpy as np
-from scipy import sparse as sp
 import time
 from helpers.parse_topology import yaml_to_graph, graph_to_yaml
 import argparse
 import matplotlib.pyplot as plt
-import yaml
+import numpy as np
 
+NR_PASSES = 5
+R_VALUES = [0.051, 0.15, 0.25, 0.35, 0.45]
+MIN_PART_SIZE = 1 # not yet implemented
+M = 0.05
 
 # --- Utilities ----------------------------------------------------------------
 
-MIN_PART_SIZE = 1
 
 def build_sparse_coo_from_nx(G):
     """
@@ -28,46 +28,42 @@ def build_sparse_coo_from_nx(G):
     data = torch.tensor(A.data, dtype=torch.float32)
     return row, col, data, A.shape
 
-def update_balanced(balanced, assignment, r):
+def update_balanced(balanced, assignment, r, mask_bool):
     """
-    Updates the balanced tensor in-place.
-    - balanced: torch.BoolTensor of shape (n,)
-    - assignment: torch.IntTensor of shape (n,) with values ±1
-    - r: float, target fraction
+    Updates the balanced tensor in-place, ignoring masked nodes.
     """
-    m = 0.05
+    m = M  # 0.05
 
-    n = assignment.numel()
-    num_neg = (assignment == -1).sum().item()
-    num_pos = n - num_neg
+    # only consider unmasked nodes
+    valid = ~mask_bool
 
+    num_neg = (assignment[valid] == -1).sum().item()
+    num_pos = (assignment[valid] == 1).sum().item()
+    n = num_neg + num_pos
+
+    # compute per-node balance only for unmasked nodes
     a = num_neg + assignment
     b = num_pos - assignment
+    # zero out masked nodes so they don't affect s
+    a[mask_bool] = 0
+    b[mask_bool] = 0
+
     s = torch.minimum(a, b)
 
     max_m = round(n * m)
+    print(f"r = {r}, max_m = {max_m}")
     s_r = round(min(n * r, n * (1 - r)))
 
-    # in-place update
     balance_ok = (torch.abs(s_r - s) <= max_m)
     non_empty_ok = (a > 0) & (b > 0)
 
-    # in-place update
     balanced.copy_(balance_ok & non_empty_ok)
 
 # --- Sparse helpers -----------------------------------------------------------
 
-def compute_cut_data_from_adj(adj_row, adj_col, adj_data, assignment):
-    """
-    Given adjacency in COO (adj_row, adj_col, adj_data) and assignment (tensor of ±1),
-    compute cut_matrix = adj @ diag(assignment) in COO-value form.
-    For each nonzero (i,j) of adj, cut_value = adj_value * assignment[j].
-    Returns cut_row, cut_col, cut_data (same indices as adjacency with new values).
-    (We simply reuse adj_row/adj_col and modify data.)
-    """
-    # assignment is 1-D tensor (n,), and adj_col indexes into it
-    cut_data = adj_data * assignment[adj_row] * assignment[adj_col].to(adj_data.dtype)
-    return adj_row, adj_col, cut_data
+def compute_cut_data_from_adj(adj_sp, assignment):
+    cut_data = adj_sp.values() * assignment[adj_sp.indices()[0]] * assignment[adj_sp.indices()[1]].to(adj_sp.values().dtype)
+    return torch.sparse_coo_tensor(adj_sp.indices(), cut_data, adj_sp.size())
 
 def row_sum_from_coo(row_idx, values, n_rows):
     """
@@ -89,7 +85,7 @@ def count_neg_entries_in_DX(row_idx, col_idx, cut_data, assignment):
     return int((v2 == -1).sum().item())
 
 def create_cut(cut_data, assignment):
-    n_cuts_raw = int((cut_data == -1).sum().item())
+    n_cuts_raw = int((cut_data.values() == -1).sum().item())
     n_cuts = n_cuts_raw // 2
 
     a, b = int((assignment == -1).sum().item()), int((assignment == 1).sum().item())
@@ -98,64 +94,81 @@ def create_cut(cut_data, assignment):
 def cheeger(c, a, b):
     return c / min(a, b)
 
+def initial_partition(n, r, mask_nodes):
+    k = round((n - len(mask_nodes)) * r)
+    all_idx = torch.arange(n)
+    keep_mask = torch.ones(n, dtype=torch.bool)
+    keep_mask[mask_nodes] = False
+    perm = all_idx[keep_mask][torch.randperm(keep_mask.sum())]
+    A_idx = perm[:k]
+    return A_idx
+
+def initialize_adj_matrix(adj_sp, mask_nodes, n):
+    indices = torch.tensor(np.array([adj_sp.row, adj_sp.col]), dtype=torch.long)
+    data = torch.tensor(adj_sp.data, dtype=torch.float32)
+    adj = torch.sparse_coo_tensor(indices, data, (n, n))
+    
+    # zero out masked rows and cols via diagonal mask
+    mask = torch.ones(n, dtype=torch.float32)
+    mask[mask_nodes] = 0
+    mask_sp = torch.diag(mask).to_sparse()
+    
+    return mask_sp @ adj @ mask_sp
+
 # --- Algorithm ---------------------------------------------------------------
 
-def partition_pass(G, r, mode="min"):
-    """
-    One pass of the partition improvement heuristic, implemented with PyTorch tensors.
-    Returns tuple (min_cuts, |A|, |B|) found during this pass (same semantics as original).
-    """
-    nodes = list(G.nodes())
-    n = len(nodes)
+def partition_pass(G, r, mode="min", mask_nodes=[]):
+    n = len(list(G.nodes()))
     if n == 0:
         return None
 
-    # Mapping from node label -> contiguous index [0..n-1]
-    idx_of_node = {node: i for i, node in enumerate(nodes)}
     # Build adjacency as COO via scipy then to torch
     adj_sp = nx.to_scipy_sparse_array(G).tocoo()
     # Sanity: if adjacency has shape mismatch, handle it
     assert adj_sp.shape[0] == n and adj_sp.shape[1] == n, "Adjacency shape mismatch with node list"
 
-    adj_row = torch.tensor(adj_sp.row, dtype=torch.long)
-    adj_col = torch.tensor(adj_sp.col, dtype=torch.long)
-    adj_data = torch.tensor(adj_sp.data, dtype=torch.float32)
+    # create a tensor boolean mask using mask_nodes index array
+    mask_bool = torch.zeros(n, dtype=torch.bool)
+    mask_bool[mask_nodes] = True
+
+    adj_sp = initialize_adj_matrix(adj_sp, mask_nodes, n)
 
     # initial random partition: choose k nodes for A (assignment -1), rest 1
-    k = round(n * r)
-    perm = torch.randperm(n)
-    A_idx = perm[:k]
+    A_idx = initial_partition(n, r, mask_nodes)
 
     assignment = torch.ones(n, dtype=torch.int32)
     assignment[A_idx] = -1
+    assignment[mask_nodes] = 0
 
     moveable = torch.ones(n, dtype=torch.bool)
+    moveable[mask_nodes] = False
 
-    # Compute cut_matrix = adj @ diag(assignment) in COO form
-    cut_row, cut_col, cut_data = compute_cut_data_from_adj(adj_row, adj_col, adj_data, assignment)
+    cut_data = compute_cut_data_from_adj(adj_sp, assignment)
 
     # balanced per vertex
     balanced = torch.ones(n, dtype=torch.bool)
-    update_balanced(balanced, assignment, r)
+    update_balanced(balanced, assignment, r, mask_bool)
 
-    cuts = []
-    
-    cuts.append((cheeger(*create_cut(cut_data, assignment)), assignment))
+    opt_cut = (cheeger(*create_cut(cut_data, assignment)), torch.where(assignment == -1)[0].tolist(), cut_data)
+    num_neg, num_pos = torch.full((n,), 0), torch.full((n,), 0)
 
+    print(moveable, balanced)
+    print((moveable & balanced).any().item())
     while (moveable & balanced).any().item():
         # Compute gains:
         # gains = - (cut_matrix).sum(axis=1)
         num_neg_total = (assignment == -1).sum().item()
         num_neg = torch.full((n,), num_neg_total, dtype=assignment.dtype)
-        num_neg = num_neg - assignment
+        # num_neg is prospective size of cut B if node i were moved?
+        num_neg = num_neg + assignment
 
         num_pos_total = (assignment == 1).sum().item()
         num_pos = torch.full((n,), num_pos_total, dtype=assignment.dtype)
-        num_pos = num_pos + assignment
+        num_pos = num_pos - assignment
 
         min_size = torch.minimum(num_neg, num_pos)
 
-        row_sums = row_sum_from_coo(cut_row, cut_data, n)
+        row_sums = row_sum_from_coo(cut_data.row, cut_data, n)
         gains = - row_sums / min_size if mode == "min" else row_sums / min_size
 
         # Find candidate indices where moveable & balanced
@@ -173,58 +186,71 @@ def partition_pass(G, r, mode="min"):
 
         # Update cut_data: because cut_data = adj_value * assignment[col]
         # flipping assignment[v] toggles sign of all entries with col == v
-        affected = (cut_col == max_vertex) | (cut_row == max_vertex)
+        affected = (cut_data.col == max_vertex) | (cut_data.row == max_vertex)
         if affected.any().item():
             cut_data[affected] *= -1        
 
         # Update balanced after flip
-        update_balanced(balanced, assignment, r)
-
-        cuts.append((cheeger(*create_cut(cut_data, assignment)), torch.where(assignment == -1)[0].tolist()))
+        update_balanced(balanced, assignment, r, mask_bool)
 
         # mark vertex as non-moveable
         moveable[max_vertex] = False
 
-    return (max if mode == "max" else min)(cuts, key=lambda x: x[0]) if cuts else None
+        cut = (cheeger(*create_cut(cut_data, assignment)), torch.where(assignment == -1)[0].tolist(), cut_data)
+        opt_cut = (min if mode == "min" else max)([opt_cut, cut], key=lambda x: x[0])
+
+    return opt_cut
 
 
 # --- Top-level helpers -------------------------------------------------------
 
-def run_passes(G, r, n_passes, mode="min"):
-    best_cheeger = math.inf if mode == "min" else -math.inf
-    best_partition = None
-    updates = 0
+def run(G, mode="min", mask_nodes=[]):
+    results = {}
+    opt = (lambda x, y: x < y) if mode == "min" else (lambda x, y: x > y)
 
-    for i in range(n_passes):
-        res = partition_pass(G, r, mode)
-        if res is None:
-            print(f"pass {i}: no improving moves.")
-            continue
-        c, s = res
-        current = c
+    for r in R_VALUES:
+        start = time.time()
 
-        is_better = current < best_cheeger if mode == "min" else current > best_cheeger
-        if is_better:
-            best_cheeger   = current
-            best_partition = c, s
-            updates += 1
+        best_cheeger = math.inf if mode == "min" else -math.inf
+        best_partition = None
+        updates = 0
 
-        print(f"pass {i}  updates={updates}  cheeger={current:.6f}")
+        for i in range(NR_PASSES):
+            res = partition_pass(G, r, mode=mode, mask_nodes=mask_nodes)
 
-    return best_partition
+            if res is None:
+                print(f"r={r} pass {i}: no improving moves.")
+                continue
 
-# --- JSON encoder for torch types -------------------------------------------
+            ch, part_a, cut = res
 
-class TorchJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if torch.is_tensor(obj):
-            return obj.tolist()
-        if isinstance(obj, (np.integer,)):
-            return int(obj)
-        if isinstance(obj, (np.floating,)):
-            return float(obj)
-        return super().default(obj)
-    
+            if opt(ch, best_cheeger):
+                best_cheeger = ch
+                best_partition = (ch, part_a, cut)
+                updates += 1
+
+            print(
+                f"r={r} pass {i}  "
+                f"updates={updates}  "
+                f"cheeger={ch:.6f}"
+            )
+
+        elapsed = time.time() - start
+
+        if best_partition is None:
+            results[str(r)] = None
+        else:
+            ch, part_a, cut = best_partition
+            results[str(r)] = {
+                "cheeger": ch,
+                "partition": part_a,
+                "cut_data": cut,
+            }
+
+        print(f"r={r}: {elapsed:.2f}s")
+
+    return results
+
 
 # --- VISUALIZATION -----------------------------------------------------------
 
@@ -260,61 +286,107 @@ def highlight_edges(G, edges, color="red"):
 
 # --- main --------------------------------------------------------------------
 
-def run(graph, mode="min"):
-    r_s = [0.15, 0.25, 0.35, 0.45]
-    results = {}
-    for r in r_s:
-        start = time.time()
-        res = run_passes(graph, r, 5, mode)
-        elapsed = time.time() - start
-        if res is None:
-            results[str(r)] = None
-        else:
-            c, s = res
-            results[str(r)] = {"cheeger": c, "partition": s}
-        print(f"r={r}: {elapsed:.2f}s")
-    
-    return results
+def can_connect(G, u, v):
+    u_data = G.nodes[u]
+    v_data = G.nodes[v]
 
-def can_connect(u, v):
-    if u["isd_n"] == v["isd_n"]:
+    if u_data["isd_n"] == v_data["isd_n"]:
         return True
-    
-    if u["is_core"] and v["is_core"]:
+
+    if u_data["is_core"] and v_data["is_core"]:
         return True
-    
+
     return False
 
+
+def get_global_max_cut(G, min_cut_data, list_a, list_b):
+    result_a = max(run(G, mode="max", mask_nodes=list_b).values(), key=lambda x: x["cheeger"])
+    result_b = max(run(G, mode="max", mask_nodes=list_a).values(), key=lambda x: x["cheeger"])
+
+    max_res = max([result_a, result_b], key=lambda x: x["cheeger"])
+    max_cut_data = max_res["cut_data"].coalesce()
+
+    # --------------------------------------------------
+    # STEP 1: row u with most -1 entries
+    # --------------------------------------------------
+    rows, cols = max_cut_data.indices()
+    values = max_cut_data.values()
+
+    neg_mask = values == -1
+    neg_rows = rows[neg_mask]
+
+    n_rows = max_cut_data.size(0)
+
+    counts = torch.bincount(
+        neg_rows,
+        minlength=n_rows
+    )
+
+    u = torch.argmax(counts).item()
+
+    # pick ONE column where (u, col) == -1
+    u_neg_cols = cols[neg_mask & (rows == u)]
+    v_og = u_neg_cols[0].item()   # or random choice
+
+    # --------------------------------------------------
+    # STEP 2: valid columns from min_cut_data
+    # --------------------------------------------------
+    min_cut_data = min_cut_data.coalesce()
+
+    m_rows, m_cols = min_cut_data.indices()
+    m_vals = min_cut_data.values()
+
+    n_cols = min_cut_data.size(1)
+
+    cols_with_neg1 = torch.unique(
+        m_cols[m_vals == -1]
+    )
+
+    valid_cols_mask = torch.ones(n_cols, dtype=torch.bool)
+    valid_cols_mask[cols_with_neg1] = False
+
+    row_u_mask = (m_rows == u)
+
+    cols_at_u = m_cols[row_u_mask]
+    vals_at_u = m_vals[row_u_mask]
+
+    zero_cols_at_u = cols_at_u[vals_at_u == 0]
+
+    valid_cols = zero_cols_at_u[
+        valid_cols_mask[zero_cols_at_u]
+    ]
+
+    valid_cols = torch.tensor(
+        [
+            col.item()
+            for col in valid_cols
+            if can_connect(G, u, col.item())
+        ],
+        device=zero_cols_at_u.device,
+        dtype=zero_cols_at_u.dtype,
+    )
+
+    if len(valid_cols) == 0:
+        raise Exception("no vertices to connect to")
+    
+    v_new = valid_cols[0]
+
+    return (u, v_og), (u, v_new)
+
+
 def iteration(G, path, iteration):
-    nx.draw(G, with_labels=True, node_color="lightblue", edge_color="gray")
-    plt.show()
+    # nx.draw(G, with_labels=True, node_color="lightblue", edge_color="gray")
+    # plt.show()
 
     min_res = min(run(G).values(), key=lambda x: x["cheeger"])
     min_partition = min_res["partition"]
 
-    max_res = max(run(G, mode="max").values(), key=lambda x: x["cheeger"])
-    max_partition = max_res["partition"]
-
     min_set_a = set(min_partition)
     min_edges = [(u, v) for (u, v) in G.edges if (u in min_set_a) != (v in min_set_a)]
-    max_set_a = set(max_partition)
-    max_edges = [(u, v) for (u, v) in G.edges if (u in max_set_a) != (v in max_set_a)]
 
-    T = nx.minimum_spanning_tree(G)
-    msp_edges = set(T.edges())
-    del_edges = set(max_edges) - msp_edges - set(min_edges)
+    draw_partition(G, min_set_a, min_edges)
 
-    if len(del_edges) == 0:
-        raise Exception('No edges to delete')
-    
-    del_edge = del_edges.pop()
-
-    new_edge = None
-    for u in min_set_a:
-        for v in set(list(G.nodes)) - min_set_a:
-            if (u, v) not in min_edges and can_connect(G.nodes[u], G.nodes[v]):
-                new_edge = (u,v)
-                break
+    del_edge, new_edge = get_global_max_cut(G, min_res["cut_data"], min_partition, list(G.nodes() - min_partition))
 
     print(new_edge, del_edge)
 

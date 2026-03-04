@@ -170,7 +170,7 @@ run-topology-optimizer: topo-optim topo-eval topo-plot
 topo-optim: $(CONFIG_FOLDER)/*
 	for topo in $^ ; do \
 		file=$$(ls $$topo/*_it0.yaml) ; \
-		python3 scripts/network-partition.py -tc $$file; \
+		python3 scripts/network-partition-scipy.py -tc $$file; \
 	done
 
 topo-eval: 
@@ -180,6 +180,6 @@ topo-plot:
 	python3 scripts/plot_topology.py \
 	-i $(RESULTS_PATH) \
 	-g "configurations/([^/]+)/" \
-	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" \
+	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" "cheeger_raw" \
 	-s topology \
 	-o $(PLOTS_FOLDER)
