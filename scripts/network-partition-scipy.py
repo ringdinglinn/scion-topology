@@ -113,12 +113,11 @@ def initial_partition(n, r, mask_nodes):
     k = round(len(perm) * r)
     return perm[:k]
 
-def partition_pass(G, r, mode="min", mask_nodes=[]):
-    n = len(G.nodes())
+def partition_pass(adj_sp, r, mode="min", mask_nodes=[]):
+    n = adj_sp.shape[0]
     if n == 0:
         return None
 
-    adj_sp = nx.to_scipy_sparse_array(G).tocoo()
     assert adj_sp.shape == (n, n)
 
     mask_bool = torch.zeros(n, dtype=torch.bool)
@@ -188,34 +187,25 @@ def partition_pass(G, r, mode="min", mask_nodes=[]):
 # the agg_adj_sp is all min_adj_sp equal and minimum size aggregated, meaning
 # all minimum edges are removed from it.
 
-def get_cur_adj_sp(min_cut_data):
-    return np.max(min_cut_data, 0)
+def get_cur_min_edges(min_cut_data):
+    return -np.minimum(min_cut_data, 0)
 
-def aggregate_min_adj(agg_adj_sp, cur_adj_sp):
-    if (agg_adj_sp):
-        agg_adj_sp = cur_adj_sp.copy()
+def aggregate_min_edges(agg_min_edges, cur_min_edges):
+    if (agg_min_edges.shape[0] == 0):
+        agg_min_edges = cur_min_edges.copy()
     else:
-        agg_adj_sp = np.min(agg_adj_sp, cur_adj_sp)
+        agg_adj_sp = np.maximum(agg_min_edges, cur_min_edges)
     return agg_adj_sp
-
-def update_agg_adj(agg_adj_sp, min_adj_sp, cur_adj_sp):
-    if (min_adj_sp.nnz < cur_adj_sp.nzz):
-        min_adj_sp = cur_adj_sp
-        agg_adj_sp = min_adj_sp
-    elif (min_adj_sp.nnz == cur_adj_sp.nzz):
-        agg_adj_sp = aggregate_min_adj(agg_adj_sp, cur_adj_sp)
-
-    return agg_adj_sp, min_adj_sp
 
 
 # --- Top-level ---------------------------------------------------------------
 
-def run(G, mode="min", mask_nodes=[]):
+def run(adj_mat, mode="min", mask_nodes=[]):
     results = {}
     opt = (lambda x, y: x < y) if mode == "min" else (lambda x, y: x > y)
-    agg_adj_sp = None
-    min_adj_sp = None
-    cur_adj_sp = None
+    agg_min_edges = []
+    min_edges = []
+    cur_min_edges = []
 
     for r in R_VALUES:
         start = time.time()
@@ -224,23 +214,23 @@ def run(G, mode="min", mask_nodes=[]):
         updates = 0
 
         for i in range(NR_PASSES):
-            res = partition_pass(G, r, mode=mode, mask_nodes=mask_nodes)
+            res = partition_pass(adj_mat, r, mode=mode, mask_nodes=mask_nodes)
             if res is None:
                 continue
 
             ch, part_a, cut_values = res
-            cur_adj_sp = get_cur_adj_sp(cut_values)
+            cur_min_edges = get_cur_min_edges(cut_values)
             if ch == best_cheeger:
-                # if equal, the cut is aggregated to the agg_adj_sp
-                agg_adj_sp = aggregate_min_adj(agg_adj_sp, cur_adj_sp)
+                # if equal, the cut is aggregated to the agg_min_edges
+                agg_min_edges = aggregate_min_edges(agg_min_edges, cur_min_edges)
             elif opt(ch, best_cheeger):
                 best_cheeger = ch
                 best_partition = (ch, part_a, cut_values)
                 updates += 1
 
                 # if better cheeger is found, min_adj_sp and and agg_adj_sp are overwritten
-                min_adj_sp = cur_adj_sp
-                agg_adj_sp = min_adj_sp
+                min_edges = cur_min_edges
+                agg_min_edges = min_edges.copy()
 
             print(f"r={r} pass {i}  updates={updates}  cheeger={ch:.6f}")
 
@@ -249,7 +239,7 @@ def run(G, mode="min", mask_nodes=[]):
             results[str(r)] = None
         else:
             ch, part_a, cut_values = best_partition
-            results[str(r)] = {"cheeger": ch, "partition": part_a, "cut_values": cut_values}
+            results[str(r)] = {"cheeger": ch, "partition": part_a, "cut_values": cut_values, "agg_min_edges": agg_min_edges}
 
         print(f"r={r}: {elapsed:.2f}s")
 
@@ -261,10 +251,10 @@ def run(G, mode="min", mask_nodes=[]):
 def can_connect(G, u, v):
     return G.nodes[u]["isd_n"] == G.nodes[v]["isd_n"] or (G.nodes[u]["is_core"] and G.nodes[v]["is_core"])
 
-def get_global_max_cut(G, min_cut_values, list_a, list_b):
-    n = len(G.nodes())
-    result_a = max(run(G, mode="max", mask_nodes=list_b).values(), key=lambda x: x["cheeger"])
-    result_b = max(run(G, mode="max", mask_nodes=list_a).values(), key=lambda x: x["cheeger"])
+def get_global_max_cut(adj_sp, agg_adj_sp, list_a, list_b):
+    n = adj_sp.shape[0]
+    result_a = max(run(agg_adj_sp, mode="max", mask_nodes=list_b).values(), key=lambda x: x["cheeger"])
+    result_b = max(run(agg_adj_sp, mode="max", mask_nodes=list_a).values(), key=lambda x: x["cheeger"])
 
     if result_a["cheeger"] >= result_b["cheeger"]:
         max_res = result_a
@@ -275,8 +265,7 @@ def get_global_max_cut(G, min_cut_values, list_a, list_b):
         active_mask = list_a
         anti_mask = list_b
 
-    adj_sp = nx.to_scipy_sparse_array(G).tocoo()
-    max_adj_sp = initialize_adj_matrix(adj_sp, active_mask, n)
+    max_adj_sp = initialize_adj_matrix(agg_adj_sp, active_mask, n)
     max_cut_values = max_res["cut_values"]
     max_res = max([result_a, result_b], key=lambda x: x["cheeger"])
 
@@ -295,13 +284,6 @@ def get_global_max_cut(G, min_cut_values, list_a, list_b):
 
     # max_cut and min_cut as full-graph sparse matrices (masked nodes already zeroed via initialize_adj_matrix)
     max_cut_sp = scipy.sparse.coo_matrix((max_cut_values, (max_adj_sp.row, max_adj_sp.col)), shape=(n, n))
-    min_cut_sp = scipy.sparse.coo_matrix((min_cut_values, (adj_sp.row, adj_sp.col)), shape=(n, n))
-    def same_sparsity(A, B):
-        a = A.tocsr()
-        b = B.tocsr()
-        return np.array_equal(a.indices, b.indices) and np.array_equal(a.indptr, b.indptr)
-
-    assert same_sparsity(adj_sp, min_cut_sp), "adj_sp and min_cut_sp must have matching sparsity pattern"
 
     anti_mask_diag = scipy.sparse.diags([1.0 if i in set(anti_mask) else 0.0 for i in range(n)])
     active_mask_diag = scipy.sparse.diags([1.0 if i in set(active_mask) else 0.0 for i in range(n)])
@@ -312,27 +294,27 @@ def get_global_max_cut(G, min_cut_values, list_a, list_b):
 
     valid_sp = anti_mask_diag @ valid_sp @ active_mask_diag
 
-    min_cut_neg = min_cut_sp.minimum(0)  # -1 where cut, 0 elsewhere
     max_cut_neg = max_cut_sp.minimum(0)
 
     # count cut edges per node, restricted to valid edges only
-
-    n_edges = adj_sp.nnz / 2
 
     # u: valid rows only
     row_cut_counts = np.array(max_cut_neg.sum(axis=1)).flatten()
     u_scores = np.zeros(n)
     valid_rows = np.unique(valid_sp.tocoo().row)
     u_scores[valid_rows] = -row_cut_counts[valid_rows]
-    row_cut_counts = np.array(min_cut_neg.sum(axis=1)).flatten()
-    u_scores[valid_rows] += row_cut_counts[valid_rows]
     u = int(np.argmax(u_scores))
 
     # v: valid cols only
-    col_cut_counts = np.array(min_cut_neg.sum(axis=0)).flatten()
     v_scores = np.zeros(n)
     valid_cols = np.unique(valid_sp.tocoo().col)
-    v_scores[valid_cols] = n_edges + col_cut_counts[valid_cols]
+    v_scores[valid_cols] = 1.0
+    v = int(np.argmax(v_scores))
+
+    col_cut_counts = np.array((agg_adj_sp - adj_sp).sum(axis=0)).flatten()
+    v_scores = np.zeros(n)
+    valid_cols = np.unique(valid_sp.tocoo().col)
+    v_scores[valid_cols] = adj_sp.nnz + col_cut_counts[valid_cols]
     v = int(np.argmax(v_scores))
 
     highlight_nodes(G, {u}, color="blue")
@@ -350,14 +332,23 @@ def get_global_max_cut(G, min_cut_values, list_a, list_b):
     return (u, v_old), (u, v)
 
 def iteration(G, path, iteration):
-    min_res = min(run(G).values(), key=lambda x: x["cheeger"])
+    full_adj = nx.to_scipy_sparse_array(G).tocoo()
+
+    min_res = min(run(full_adj).values(), key=lambda x: x["cheeger"])
     min_partition = min_res["partition"]
 
     min_set_a = set(min_partition)
     min_edges = [(u, v) for (u, v) in G.edges if (u in min_set_a) != (v in min_set_a)]
     draw_partition(G, min_set_a, min_edges)
 
-    del_edge, new_edge = get_global_max_cut(G, min_res["cut_values"], min_partition, list(set(G.nodes()) - min_set_a))
+    agg_min_edges = min_res["agg_min_edges"]  # 0/1 array, length = full_adj.nnz
+    non_cut_mask = agg_min_edges == 0
+    adj_mat_no_min = scipy.sparse.coo_matrix(
+        (full_adj.data[non_cut_mask], (full_adj.row[non_cut_mask], full_adj.col[non_cut_mask])),
+        shape=full_adj.shape
+    )
+
+    del_edge, new_edge = get_global_max_cut(full_adj, adj_mat_no_min, min_partition, list(set(G.nodes()) - min_set_a))
     print(new_edge, del_edge)
 
     G.add_edge(new_edge[0], new_edge[1])
