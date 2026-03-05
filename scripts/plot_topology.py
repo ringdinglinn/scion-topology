@@ -11,7 +11,7 @@ AVAILABLE_METRICS = [
     "algebaric connectivity", "assortativity", "average_clustering",
     "avg_degree", "cheeger constant", "degree_entropy", "degree_std",
     "effective graph resistance", "natural connectivity", "sparsity",
-    "spectral gap", "spectral radius", "transitivity", "|E|", "|V|"
+    "spectral gap", "spectral radius", "transitivity", "|E|", "|V|",
 ]
 
 def parse_args():
@@ -40,7 +40,6 @@ def load_csv(path):
     with open(path, "r") as f:
         reader = csv.DictReader(f)
         return list(reader)
-
 
 def group_rows(rows, group_regex):
     pattern = re.compile(group_regex)

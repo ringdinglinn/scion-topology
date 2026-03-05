@@ -57,6 +57,9 @@ def graph_to_yaml(G, path):
     with open(path, 'w') as f:
         yaml.safe_dump(yaml_graph, f)
 
+def get_label_to_node_dict(G):
+    return {data["label"]: node for node, data in G.nodes(data=True)}
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Parse an edge list into a NetworkX graph.")
     parser.add_argument("--input", "-i", required=True, help="Path to the input text file")

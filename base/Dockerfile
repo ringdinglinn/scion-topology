@@ -99,6 +99,7 @@ COPY base/cs.toml /etc/scion/cs.toml
 WORKDIR /pki
 
 COPY ${CONFIG_PATH} /tmp/isds.yaml
+RUN echo "Config path: ${CONFIG_PATH}"
 
 COPY base/pki/pki-generation.py /pki/pki-generation.py
 RUN chmod +x /pki/pki-generation.py

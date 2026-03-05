@@ -3,6 +3,7 @@ import argparse
 from helpers.parse_topology import yaml_to_graph
 import os
 import csv
+from pathlib import Path
 
 def run_all_metrics(G):
     results = {}
@@ -31,7 +32,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     topo_paths = search_dir_for_yaml(args.input_path)
-    results = { topo_path : run_all_metrics(yaml_to_graph(topo_path)) for topo_path in topo_paths }
+    results = { Path(topo_path).stem : run_all_metrics(yaml_to_graph(topo_path)) for topo_path in topo_paths }
 
     with open(args.output_path, 'w', newline='') as csvfile:
         fieldnames = set()

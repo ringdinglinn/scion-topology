@@ -1,9 +1,10 @@
 # ==== CONFIG ====
-CONFIG_PATH := topology.yaml
+CONFIG_PATH := configurations/topo1/topo1_it.yaml
 CONFIG_FOLDER := configurations
 RESULTS_PATH := configurations/results/results.csv
 TOPOLOGIES_PATH := topologies
 PLOTS_FOLDER := configurations/plots/
+SHOWPATHS_PATH := configurations/results/show_paths
 
 CONFIG_MK := .isd-vars.mk
 
@@ -76,6 +77,7 @@ rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebui
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
 	docker build --no-cache -t scion-base:$(VERSION) \
+		--build-arg CONFIG_PATH=$(CONFIG_PATH) \
 		-f ./base/Dockerfile \
 		.
 
@@ -179,7 +181,13 @@ topo-eval:
 topo-plot:
 	python3 scripts/plot_topology.py \
 	-i $(RESULTS_PATH) \
-	-g "configurations/([^/]+)/" \
-	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" "cheeger_raw" \
+	-g "^([^_]+)" \
+	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" "cheeger_raw" "num_scion_paths" "num_simple_paths" \
 	-s topology \
 	-o $(PLOTS_FOLDER)
+
+show-paths:
+	python3 scripts/show_paths.py --config $(CONFIG_PATH) --output-path $(SHOWPATHS_PATH); \
+
+eval-paths:
+	python3 scripts/evaluate_paths.py --folder $(SHOWPATHS_PATH) --topologies $(CONFIG_FOLDER) --output $(RESULTS_PATH);  \
