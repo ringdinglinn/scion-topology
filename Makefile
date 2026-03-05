@@ -184,7 +184,8 @@ topo-plot:
 	-g "^([^_]+)" \
 	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" "cheeger_raw" "num_scion_paths" "num_simple_paths" \
 	-s topology \
-	-o $(PLOTS_FOLDER)
+	-o $(PLOTS_FOLDER) \
+	-t $(CONFIG_FOLDER)
 
 show-paths:
 	python3 scripts/show_paths.py --config $(CONFIG_PATH) --output-path $(SHOWPATHS_PATH); \
