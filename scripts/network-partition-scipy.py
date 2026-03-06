@@ -9,7 +9,7 @@ import argparse
 import matplotlib.pyplot as plt
 
 NR_PASSES = 5
-R_VALUES = [0.051, 0.15, 0.25, 0.35, 0.45]
+R_VALUES = [0.05, 0.15, 0.25, 0.35, 0.45]
 M = 0.05
 
 # --- Visualization / main (unchanged) ----------------------------------------
@@ -93,7 +93,11 @@ def initial_partition(n, r, mask_nodes):
     r = min(1-r, r)
     k = round(len(perm) * r)
     k = max(1, k)
-    return perm[:k]
+    A_idx = perm[:k]
+    assignment = torch.ones(n, dtype=torch.int32)
+    assignment[A_idx] = -1
+    assignment[mask_nodes] = 0
+    return assignment
 
 def calculate_prospective_cut_sizes(assignment, mask_bool):
     num_neg_total = (assignment == -1).sum().item()
@@ -120,10 +124,6 @@ def update_balanced(balanced, assignment, r, mask_bool):
 
 def partition_pass(adj_sp, r, mode="min", mask_nodes=[]):
     n = adj_sp.shape[0]
-    if n == 0:
-        return None
-
-    assert adj_sp.shape == (n, n)
 
     mask_bool = torch.zeros(n, dtype=torch.bool)
     mask_bool[mask_nodes] = True
@@ -131,11 +131,7 @@ def partition_pass(adj_sp, r, mode="min", mask_nodes=[]):
     # filter masked nodes from adjacency
     adj_sp = initialize_adj_matrix(adj_sp, mask_nodes, n)
 
-    # initial assignment
-    A_idx = initial_partition(n, r, mask_nodes)
-    assignment = torch.ones(n, dtype=torch.int32)
-    assignment[A_idx] = -1
-    assignment[mask_nodes] = 0
+    assignment = initial_partition(n, r, mask_nodes)
 
     moveable = torch.ones(n, dtype=torch.bool)
     moveable[mask_nodes] = False
@@ -152,15 +148,11 @@ def partition_pass(adj_sp, r, mode="min", mask_nodes=[]):
     while (moveable & balanced).any().item():
         num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
         min_size = torch.minimum(num_neg, num_pos).float()
-        print("num neg: ", num_neg)
-        print("num pos: ", num_pos)
-
+    
         row_sums = row_sums_from_cut(adj_sp, cut_values, n)
         gains = -row_sums / min_size if mode == "min" else row_sums / min_size
 
         candidates = torch.where(moveable & balanced)[0]
-        if candidates.numel() == 0:
-            break
 
         max_vertex = int(candidates[torch.argmax(gains[candidates])].item())
         assignment[max_vertex] *= -1
@@ -173,20 +165,13 @@ def partition_pass(adj_sp, r, mode="min", mask_nodes=[]):
         moveable[max_vertex] = False
 
         cut = create_cut(adj_sp, cut_values, assignment)
-        print("cut: ", cut)
         ch = cheeger(*cut)
         if (mode == "min" and ch < opt_cut[0]) or (mode == "max" and ch > opt_cut[0]):
             opt_cut = (ch, torch.where(assignment == -1)[0].tolist(), cut_values.copy())
 
     return opt_cut
 
-# --- Aggregate Min Adjacency Matrix ------------------------------------------
-
-# the min_adj_sp is an adjacency matrix with the minimum cut edges removed
-# it must always correspond to the current minimum cut, meaning it has 
-# the most edges present of all possible min_adj_sp
-# the agg_adj_sp is all min_adj_sp equal and minimum size aggregated, meaning
-# all minimum edges are removed from it.
+# --- Aggregate Min Cut Edges ------------------------------------------------
 
 def get_cur_min_edges(min_cut_data):
     return -np.minimum(min_cut_data, 0)
@@ -247,7 +232,7 @@ def run_network_partitioning(adj_mat, mode="min", mask_nodes=[]):
     results = {k: v for k, v in results.items() if v is not None}
     if not results:
         return None
-    best_r = max(results.keys(), key=lambda k: results[k]["cheeger"] if mode == "min" else -results[k]["cheeger"])
+    best_r = max(results.keys(), key=lambda k: results[k]["cheeger"] if mode == "max" else -results[k]["cheeger"])
     return results[best_r]
 
 
@@ -284,7 +269,7 @@ def get_global_max_cut(agg_adj_sp, list_a, list_b):
     return max_res, inactive_partition, active_partition
 
 def build_validity_matrix(adj_sp, u_partition, v_partition):
-    n = adj_sp.nnz
+    n = adj_sp.shape[0]
     can_connect_sp = build_can_connect_matrix(n)
 
     u_partition_diag = scipy.sparse.diags([1.0 if i in set(u_partition) else 0.0 for i in range(n)])
@@ -307,12 +292,14 @@ def find_anchor_node(max_cut_sp, valid_sp, n):
     u = int(np.argmax(u_scores))
     return u
 
-def find_new_node(adj_sp, agg_adj_sp, valid_sp):
-    n = adj_sp.nnz
-    # v: new node to connect to u
+def find_new_node(adj_sp, agg_adj_sp, valid_sp, u):
+    n = adj_sp.shape[0]
+    # only consider columns that are valid for this specific u
+    u_row = valid_sp.getrow(u)
+    valid_cols = u_row.indices  # only cols where valid_sp[u, col] != 0
+
     col_cut_counts = np.array((agg_adj_sp - adj_sp).sum(axis=0)).flatten()
     v_scores = np.zeros(n)
-    valid_cols = np.unique(valid_sp.tocoo().col)
     v_scores[valid_cols] = adj_sp.nnz + col_cut_counts[valid_cols]
     v = int(np.argmax(v_scores))
     return v
@@ -327,15 +314,15 @@ def find_old_node(adj_sp, max_cut_sp, u):
     return v_old
 
 def find_old_and_new_edge(max_res, adj_sp, agg_adj_sp, u_partition, v_partition):
-    n = adj_sp.nnz
-    max_adj_sp = initialize_adj_matrix(agg_adj_sp, u_partition, n)
+    n = adj_sp.shape[0]
+    max_adj_sp = initialize_adj_matrix(agg_adj_sp, v_partition, n)
     max_cut_values = max_res["cut_values"]
 
     valid_sp = build_validity_matrix(adj_sp, u_partition, v_partition)
     max_cut_sp = scipy.sparse.coo_matrix((max_cut_values, (max_adj_sp.row, max_adj_sp.col)), shape=(n, n))
 
     u = find_anchor_node(max_cut_sp, valid_sp, n)
-    v = find_new_node(adj_sp, agg_adj_sp, valid_sp)
+    v = find_new_node(adj_sp, agg_adj_sp, valid_sp, u)
     v_old = find_old_node(adj_sp, max_cut_sp, u)
 
     highlight_nodes(G, {u}, color="blue")
@@ -362,6 +349,7 @@ def iteration(G, path, iteration):
 
     max_res, inactive_partition, active_partition = get_global_max_cut(adj_mat_no_min, min_partition, list(set(G.nodes()) - min_set_a))
 
+    print(f"min cheeger: {min_res['cheeger']:.6f}, max cheeger: {max_res['cheeger']:.6f}")
     if (max_res["cheeger"] <= min_res["cheeger"]):
         return G, False
 

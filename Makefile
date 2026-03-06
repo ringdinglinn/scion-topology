@@ -169,11 +169,17 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-topo-optim: $(CONFIG_FOLDER)/*
-	for topo in $^ ; do \
-		file=$$(ls $$topo/*_it0.yaml) ; \
-		python3 scripts/network-partition-scipy.py -tc $$file; \
-	done
+# topo-optim: $(CONFIG_FOLDER)/*
+# 	for topo in $^ ; do \
+# 		file=$$(ls $$topo/*_it0.yaml) ; \
+# 		python3 scripts/network-partition-scipy.py -tc $$file; \
+# 	done
+
+TOPO_OPTIM_FOLDER := configurations/topo2
+
+topo-optim:
+	file=$$(ls $(TOPO_OPTIM_FOLDER)/*_it0.yaml) ; \
+	python3 scripts/network-partition-scipy.py -tc $$file
 
 topo-eval: 
 	python3 scripts/evaluate_topology.py -i $(CONFIG_FOLDER) -o $(RESULTS_PATH); \
