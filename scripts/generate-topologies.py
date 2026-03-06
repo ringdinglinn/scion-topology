@@ -7,14 +7,14 @@ import yaml
 import os
 
 def parse_edge(edge_str):
-    """Parse edge string '1-1 1-4' into components"""
+    """Parse edge string like '1-1 1-4' into components"""
     parts = edge_str.split(' ')
     src_isd, src_as = parts[0].split('-')
     dst_isd, dst_as = parts[1].split('-')
     return (int(src_isd), int(src_as)), (int(dst_isd), int(dst_as)),
 
 def addr(isd, asn):
-    return f"10.100.{isd}.{asn}"
+    return f"10.100.0.{isd}{asn}"
 
 def port(dst_isd, dst_as):
     return 50000 + dst_isd * 100 + dst_as
