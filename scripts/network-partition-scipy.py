@@ -14,7 +14,9 @@ M = 0.05
 
 # --- Visualization / main (unchanged) ----------------------------------------
 
-def draw_partition(G, partition_a, cut_edges):
+def draw_partition(G, partition_a):
+    cut_edges = [(u, v) for (u, v) in G.edges if (u in partition_a) != (v in partition_a)]
+
     color_map = ["skyblue" if n in partition_a else "salmon" for n in G.nodes()]
     labels = {n: G.nodes[n]["label"] for n in G.nodes()}
     edge_color_map = ["gray" if (u,v) not in cut_edges else "red" for (u,v) in G.edges()]
@@ -46,28 +48,6 @@ def highlight_nodes(G, nodes, color="red"):
             node_size=800, font_size=8, edge_color="grey")
     plt.title("Graph Partition")
     plt.show()
-
-# --- Utilities ----------------------------------------------------------------
-
-def update_balanced(balanced, assignment, r, mask_bool):
-    m = M
-    valid = ~mask_bool
-    num_neg = (assignment[valid] == -1).sum().item()
-    num_pos = (assignment[valid] == 1).sum().item()
-    n = num_neg + num_pos
-
-    a = num_neg + assignment
-    b = num_pos - assignment
-    a[mask_bool] = 0
-    b[mask_bool] = 0
-
-    s = torch.minimum(a, b)
-    max_m = round(n * m)
-    s_r = round(min(n * r, n * (1 - r)))
-
-    balance_ok = (torch.abs(s_r - s) <= max_m)
-    non_empty_ok = (a > 0) & (b > 0)
-    balanced.copy_(balance_ok & non_empty_ok)
 
 # --- Sparse helpers (scipy + numpy) ------------------------------------------
 
@@ -104,14 +84,39 @@ def create_cut(adj_sp, cut_values, assignment):
 def cheeger(c, a, b):
     return c / min(a, b)
 
-# --- Algorithm ---------------------------------------------------------------
+# --- NETWORK PARTITIONING ---------------------------------------------------------------
 
 def initial_partition(n, r, mask_nodes):
     keep_mask = torch.ones(n, dtype=torch.bool)
     keep_mask[mask_nodes] = False
     perm = torch.arange(n)[keep_mask][torch.randperm(keep_mask.sum())]
+    r = min(1-r, r)
     k = round(len(perm) * r)
+    k = max(1, k)
     return perm[:k]
+
+def calculate_prospective_cut_sizes(assignment, mask_bool):
+    num_neg_total = (assignment == -1).sum().item()
+    num_pos_total = (assignment == 1).sum().item()
+
+    n = num_neg_total + num_pos_total
+
+    num_neg = num_neg_total + assignment
+    num_pos = num_pos_total - assignment
+    num_neg[mask_bool] = 0
+    num_pos[mask_bool] = 0
+    return num_neg, num_pos, n
+
+def update_balanced(balanced, assignment, r, mask_bool):
+    a, b, n = calculate_prospective_cut_sizes(assignment, mask_bool)
+
+    s = torch.minimum(a, b)
+    max_m = round(n * M)
+    s_r = round(min(n * r, n * (1 - r)))
+
+    balance_ok = (torch.abs(s_r - s) <= max_m)
+    non_empty_ok = (a > 0) & (b > 0)
+    balanced.copy_(balance_ok & non_empty_ok)
 
 def partition_pass(adj_sp, r, mode="min", mask_nodes=[]):
     n = adj_sp.shape[0]
@@ -145,15 +150,10 @@ def partition_pass(adj_sp, r, mode="min", mask_nodes=[]):
     opt_cut = (cheeger(*cut), torch.where(assignment == -1)[0].tolist(), cut_values.copy())
 
     while (moveable & balanced).any().item():
-        num_neg_total = (assignment == -1).sum().item()
-        num_pos_total = (assignment == 1).sum().item()
-
-        num_neg = num_neg_total + assignment
-        num_pos = num_pos_total - assignment
-        num_neg[mask_bool] = 0
-        num_pos[mask_bool] = 0
+        num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
         min_size = torch.minimum(num_neg, num_pos).float()
-        min_size[min_size == 0] = 1  # avoid div by zero
+        print("num neg: ", num_neg)
+        print("num pos: ", num_pos)
 
         row_sums = row_sums_from_cut(adj_sp, cut_values, n)
         gains = -row_sums / min_size if mode == "min" else row_sums / min_size
@@ -173,6 +173,7 @@ def partition_pass(adj_sp, r, mode="min", mask_nodes=[]):
         moveable[max_vertex] = False
 
         cut = create_cut(adj_sp, cut_values, assignment)
+        print("cut: ", cut)
         ch = cheeger(*cut)
         if (mode == "min" and ch < opt_cut[0]) or (mode == "max" and ch > opt_cut[0]):
             opt_cut = (ch, torch.where(assignment == -1)[0].tolist(), cut_values.copy())
@@ -200,7 +201,7 @@ def aggregate_min_edges(agg_min_edges, cur_min_edges):
 
 # --- Top-level ---------------------------------------------------------------
 
-def run(adj_mat, mode="min", mask_nodes=[]):
+def run_network_partitioning(adj_mat, mode="min", mask_nodes=[]):
     results = {}
     opt = (lambda x, y: x < y) if mode == "min" else (lambda x, y: x > y)
     agg_min_edges = []
@@ -242,8 +243,12 @@ def run(adj_mat, mode="min", mask_nodes=[]):
             results[str(r)] = {"cheeger": ch, "partition": part_a, "cut_values": cut_values, "agg_min_edges": agg_min_edges}
 
         print(f"r={r}: {elapsed:.2f}s")
-
-    return results
+    
+    results = {k: v for k, v in results.items() if v is not None}
+    if not results:
+        return None
+    best_r = max(results.keys(), key=lambda k: results[k]["cheeger"] if mode == "min" else -results[k]["cheeger"])
+    return results[best_r]
 
 
 # --- get_global_max_cut ------------------------------------------------------
@@ -251,82 +256,90 @@ def run(adj_mat, mode="min", mask_nodes=[]):
 def can_connect(G, u, v):
     return G.nodes[u]["isd_n"] == G.nodes[v]["isd_n"] or (G.nodes[u]["is_core"] and G.nodes[v]["is_core"])
 
-def get_global_max_cut(adj_sp, agg_adj_sp, list_a, list_b):
-    n = adj_sp.shape[0]
-    result_a = max(run(agg_adj_sp, mode="max", mask_nodes=list_b).values(), key=lambda x: x["cheeger"])
-    result_b = max(run(agg_adj_sp, mode="max", mask_nodes=list_a).values(), key=lambda x: x["cheeger"])
-
-    if result_a["cheeger"] >= result_b["cheeger"]:
-        max_res = result_a
-        active_mask = list_b
-        anti_mask = list_a
-    else:
-        max_res = result_b
-        active_mask = list_a
-        anti_mask = list_b
-
-    max_adj_sp = initialize_adj_matrix(agg_adj_sp, active_mask, n)
-    max_cut_values = max_res["cut_values"]
-    max_res = max([result_a, result_b], key=lambda x: x["cheeger"])
-
-    # --- Build full-graph sparse matrices ---
-    # can_connect as sparse matrix
+def build_can_connect_matrix(n):
     rows, cols = np.meshgrid(np.arange(n), np.arange(n), indexing='ij')
     rows, cols = rows.ravel(), cols.ravel()
 
-    # exclude self-loops
     mask = rows != cols
     rows, cols = rows[mask], cols[mask]
 
     cc_data = np.array([can_connect(G, int(i), int(j)) for i, j in zip(rows, cols)], dtype=np.float32)
     can_connect_sp = scipy.sparse.coo_matrix((cc_data, (rows, cols)), shape=(n, n))
     can_connect_sp.eliminate_zeros()
+    return can_connect_sp
 
-    # max_cut and min_cut as full-graph sparse matrices (masked nodes already zeroed via initialize_adj_matrix)
-    max_cut_sp = scipy.sparse.coo_matrix((max_cut_values, (max_adj_sp.row, max_adj_sp.col)), shape=(n, n))
+def get_global_max_cut(agg_adj_sp, list_a, list_b):
+    result_a = run_network_partitioning(agg_adj_sp, mode="max", mask_nodes=list_b)
+    result_b = run_network_partitioning(agg_adj_sp, mode="max", mask_nodes=list_a)
 
-    anti_mask_diag = scipy.sparse.diags([1.0 if i in set(anti_mask) else 0.0 for i in range(n)])
-    active_mask_diag = scipy.sparse.diags([1.0 if i in set(active_mask) else 0.0 for i in range(n)])
+    if result_a["cheeger"] >= result_b["cheeger"]:
+        max_res = result_a
+        inactive_partition = list_b
+        active_partition = list_a
+    else:
+        max_res = result_b
+        inactive_partition = list_a
+        active_partition = list_b
 
-    existing_edges = can_connect_sp.multiply(adj_sp.sign())
+    return max_res, inactive_partition, active_partition
 
-    valid_sp = can_connect_sp - existing_edges
+def build_validity_matrix(adj_sp, u_partition, v_partition):
+    n = adj_sp.nnz
+    can_connect_sp = build_can_connect_matrix(n)
 
-    valid_sp = anti_mask_diag @ valid_sp @ active_mask_diag
+    u_partition_diag = scipy.sparse.diags([1.0 if i in set(u_partition) else 0.0 for i in range(n)])
+    v_partition_diag = scipy.sparse.diags([1.0 if i in set(v_partition) else 0.0 for i in range(n)])
 
+    valid_sp = can_connect_sp - adj_sp                                      # valid edges are ones that can connect and don't exist already
+    valid_sp = u_partition_diag @ valid_sp @ v_partition_diag               # enforces that in valid_sp v is in v_partition and u is in u_partition
+    return valid_sp
+
+def find_anchor_node(max_cut_sp, valid_sp, n):
+    # u: anchor node
+    # count max cut edges per node, restricted to valid edges only
+    # pick u as the node with the most max cut edges
     max_cut_neg = max_cut_sp.minimum(0)
 
-    # count cut edges per node, restricted to valid edges only
-
-    # u: valid rows only
     row_cut_counts = np.array(max_cut_neg.sum(axis=1)).flatten()
     u_scores = np.zeros(n)
     valid_rows = np.unique(valid_sp.tocoo().row)
     u_scores[valid_rows] = -row_cut_counts[valid_rows]
     u = int(np.argmax(u_scores))
+    return u
 
-    # v: valid cols only
-    v_scores = np.zeros(n)
-    valid_cols = np.unique(valid_sp.tocoo().col)
-    v_scores[valid_cols] = 1.0
-    v = int(np.argmax(v_scores))
-
+def find_new_node(adj_sp, agg_adj_sp, valid_sp):
+    n = adj_sp.nnz
+    # v: new node to connect to u
     col_cut_counts = np.array((agg_adj_sp - adj_sp).sum(axis=0)).flatten()
     v_scores = np.zeros(n)
     valid_cols = np.unique(valid_sp.tocoo().col)
     v_scores[valid_cols] = adj_sp.nnz + col_cut_counts[valid_cols]
     v = int(np.argmax(v_scores))
+    return v
 
-    highlight_nodes(G, {u}, color="blue")
-    highlight_nodes(G, {v}, color="limegreen")
-
+def find_old_node(adj_sp, max_cut_sp, u):
     u_row = max_cut_sp.getrow(u)
     neg_cols = u_row.indices[u_row.data == -1]
     if len(neg_cols) == 0:
         raise Exception("no max cut edge from u found")
     degrees = np.array(adj_sp.sum(axis=1)).flatten()
     v_old = int(neg_cols[np.argmax(degrees[neg_cols])])
+    return v_old
 
+def find_old_and_new_edge(max_res, adj_sp, agg_adj_sp, u_partition, v_partition):
+    n = adj_sp.nnz
+    max_adj_sp = initialize_adj_matrix(agg_adj_sp, u_partition, n)
+    max_cut_values = max_res["cut_values"]
+
+    valid_sp = build_validity_matrix(adj_sp, u_partition, v_partition)
+    max_cut_sp = scipy.sparse.coo_matrix((max_cut_values, (max_adj_sp.row, max_adj_sp.col)), shape=(n, n))
+
+    u = find_anchor_node(max_cut_sp, valid_sp, n)
+    v = find_new_node(adj_sp, agg_adj_sp, valid_sp)
+    v_old = find_old_node(adj_sp, max_cut_sp, u)
+
+    highlight_nodes(G, {u}, color="blue")
+    highlight_nodes(G, {v}, color="limegreen")
     highlight_nodes(G, {v_old}, color="red")
 
     return (u, v_old), (u, v)
@@ -334,28 +347,37 @@ def get_global_max_cut(adj_sp, agg_adj_sp, list_a, list_b):
 def iteration(G, path, iteration):
     full_adj = nx.to_scipy_sparse_array(G).tocoo()
 
-    min_res = min(run(full_adj).values(), key=lambda x: x["cheeger"])
+    min_res = run_network_partitioning(full_adj)
     min_partition = min_res["partition"]
-
     min_set_a = set(min_partition)
-    min_edges = [(u, v) for (u, v) in G.edges if (u in min_set_a) != (v in min_set_a)]
-    draw_partition(G, min_set_a, min_edges)
 
-    agg_min_edges = min_res["agg_min_edges"]  # 0/1 array, length = full_adj.nnz
-    non_cut_mask = agg_min_edges == 0
+    draw_partition(G, min_set_a)
+
+    # get an adjacency matrix - (min cut edges)
+    non_cut_mask = min_res["agg_min_edges"] == 0   # 0/1 array, length = full_adj.nnz
     adj_mat_no_min = scipy.sparse.coo_matrix(
         (full_adj.data[non_cut_mask], (full_adj.row[non_cut_mask], full_adj.col[non_cut_mask])),
         shape=full_adj.shape
     )
 
-    del_edge, new_edge = get_global_max_cut(full_adj, adj_mat_no_min, min_partition, list(set(G.nodes()) - min_set_a))
+    max_res, inactive_partition, active_partition = get_global_max_cut(adj_mat_no_min, min_partition, list(set(G.nodes()) - min_set_a))
+
+    if (max_res["cheeger"] <= min_res["cheeger"]):
+        return G, False
+
+    del_edge, new_edge = find_old_and_new_edge(max_res, full_adj, adj_mat_no_min, active_partition, inactive_partition)
     print(new_edge, del_edge)
 
     G.add_edge(new_edge[0], new_edge[1])
     G.remove_edge(del_edge[0], del_edge[1])
+
     highlight_edges(G, {new_edge}, color="limegreen")
     graph_to_yaml(G, path + f"_it{iteration}.yaml")
-    return G
+
+    return G, True
+
+
+MAX_ITERATIONS = 5
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -363,5 +385,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     G = yaml_to_graph(args.topology_config)
     path = args.topology_config.split("_")[0]
-    for i in range(5):
-        G = iteration(G, path, i+1)
+
+    optimize = True
+
+    for i in range(MAX_ITERATIONS):
+        G, optimize = iteration(G, path, i + 1)
+        if not optimize:
+            break
