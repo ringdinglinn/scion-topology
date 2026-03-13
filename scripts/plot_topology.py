@@ -8,6 +8,7 @@ from plots import plot_grid, plot_grid_bars
 from plots.plot_graphs import plot_graphs
 from helpers.parse_topology import yaml_to_graph
 from pathlib import Path
+import pprint
 
 
 AVAILABLE_METRICS = [
@@ -34,8 +35,12 @@ def parse_args():
              "E.g. 'configurations/([^/]+)/' groups by top-level folder."
     )
     parser.add_argument(
-        "--sort-by", "-s", default=None,
+        "--sort-by", "-s", required=True,
         help="Column to sort rows within each group (e.g. 'topology')."
+    )
+    parser.add_argument(
+        "--subgroup-by", "-sg",
+        help="Optional second regex with capture group for subgrouping (e.g. algorithm)."
     )
     return parser.parse_args()
 
@@ -45,13 +50,46 @@ def load_csv(path):
         reader = csv.DictReader(f)
         return list(reader)
 
-def group_rows(rows, group_regex):
-    pattern = re.compile(group_regex)
-    groups = defaultdict(list)
+def attach_baselines(groups):
+    it0_pattern = re.compile(r"_it0$")
+
+    for topo, algos in groups.items():
+
+        baseline_rows = []
+        for algo, rows in algos.items():
+            for r in rows:
+                if it0_pattern.search(r["topology"]):
+                    baseline_rows.append(r)
+
+        if not baseline_rows:
+            continue
+
+        for algo in algos:
+            # avoid duplicates
+            has_it0 = any(it0_pattern.search(r["topology"]) for r in algos[algo])
+            if not has_it0:
+                algos[algo] = baseline_rows + algos[algo]
+
+    return groups
+
+def group_rows(rows, group_regex, subgroup_regex=None):
+    group_pattern = re.compile(group_regex)
+    subgroup_pattern = re.compile(subgroup_regex) if subgroup_regex else None
+
+    groups = defaultdict(lambda: defaultdict(list))
+
     for row in rows:
-        m = pattern.search(row["topology"])
-        key = m.group(1) if m else "ungrouped"
-        groups[key].append(row)
+        g = group_pattern.search(row["topology"])
+        group_key = g.group(1) if g else "ungrouped"
+
+        if subgroup_pattern:
+            s = subgroup_pattern.search(row["topology"])
+            subgroup_key = s.group(1) if s else "default"
+        else:
+            subgroup_key = "default"
+
+        groups[group_key][subgroup_key].append(row)
+
     return groups
 
 def get_graph_yaml_dir(topologies_path, graph_name):
@@ -61,19 +99,28 @@ def get_graph_yaml_dir(topologies_path, graph_name):
 def main():
     args = parse_args()
     rows = load_csv(args.input)
-    groups = group_rows(rows, args.group_by)
+    groups = group_rows(rows, args.group_by, args.subgroup_by)
+    for topo, algos in groups.items():
+        baseline_rows = algos.pop("default", [])
+        for algo, rows in algos.items():
+            # prepend baseline if not already present
+            it0_present = any(r['topology'].endswith('_it0') for r in rows)
+            if baseline_rows and not it0_present:
+                algos[algo] = baseline_rows + rows
+
+    pprint.pprint(groups)
 
     topo_paths = [get_graph_yaml_dir(args.topologies_path, row["topology"]) for row in rows]
-    graph_dict = {Path(topo_path).stem: yaml_to_graph(topo_path) for topo_path in topo_paths}
+    # graph_dict = {Path(topo_path).stem: yaml_to_graph(topo_path) for topo_path in topo_paths}
 
     print(f"Found {len(groups)} groups: {list(groups.keys())}")
 
     for metric in args.metrics:
         plot_grid.plot_metric(metric, groups, args.output_dir, args.sort_by)
 
-    plot_grid_bars.plot_metric("border_breadth", groups, args.output_dir, args.sort_by)
+    # plot_grid_bars.plot_metric("border_breadth", groups, args.output_dir, args.sort_by)
 
-    plot_graphs(groups, graph_dict, args.output_dir)
+    # plot_graphs(groups, graph_dict, args.output_dir)
 
 
 if __name__ == "__main__":

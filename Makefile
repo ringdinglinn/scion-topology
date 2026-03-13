@@ -169,17 +169,14 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-# topo-optim: $(CONFIG_FOLDER)/*
-# 	for topo in $^ ; do \
-# 		file=$$(ls $$topo/*_it0.yaml) ; \
-# 		python3 scripts/network-partition-scipy.py -tc $$file; \
-# 	done
-
-TOPO_OPTIM_FOLDER := configurations/topo2
+TOPO_OPTIM_FOLDERS := topo1 topo2 topo4 topo5 topo6 topo7 topo9
 
 topo-optim:
-	file=$$(ls $(TOPO_OPTIM_FOLDER)/*_it0.yaml) ; \
-	python3 scripts/network-partition-scipy.py -tc $$file
+	@for topo in $(TOPO_OPTIM_FOLDERS); do \
+		file=$$(ls configurations/$$topo/*_it0.yaml) ; \
+		python3 scripts/rewire_spectral.py -tc $$file ; \
+		python3 scripts/rewire_np.py -tc $$file ; \
+	done
 
 topo-eval: 
 	python3 scripts/evaluate_topology.py -i $(CONFIG_FOLDER) -o $(RESULTS_PATH); \
@@ -188,7 +185,8 @@ topo-plot:
 	python3 scripts/plot_topology.py \
 	-i $(RESULTS_PATH) \
 	-g "^([^_]+)" \
-	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" "cheeger_raw" "num_scion_paths" "num_simple_paths" \
+	-sg "_([^_]+)_" \
+	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" \
 	-s topology \
 	-o $(PLOTS_FOLDER) \
 	-t $(CONFIG_FOLDER)

@@ -1,6 +1,7 @@
 import networkx as nx
 import argparse
 import yaml
+import os
 
 def get_isd_and_as(node_label, isds):
     isd_n, as_n = node_label.split("-")[0], node_label.split("-")[1]
@@ -53,6 +54,8 @@ def graph_to_isds(G):
 
 def graph_to_yaml(G, path):
     yaml_graph = { "ISDs": graph_to_isds(G), "Topology": edges_to_yaml(G)}
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
 
     with open(path, 'w') as f:
         yaml.safe_dump(yaml_graph, f)

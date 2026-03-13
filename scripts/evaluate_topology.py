@@ -10,7 +10,7 @@ def run_all_metrics(G):
     results.update(metrics_basic.compute(G))
     results.update(metrics_complex.compute(G))
     results.update(spectral.compute(G))
-    results.update(sparsity.compute(G))
+    # results.update(sparsity.compute(G))
     results.update(border_breadth.compute(G))
     return results
 
