@@ -229,7 +229,7 @@ def aggregate_min_edges(agg_min_edges, cur_min_edges):
 
 # --- Top-level ---------------------------------------------------------------
 
-def run_network_partitioning(adj_mat, mode="min", mask_nodes=[]):
+def run_network_partitioning(adj_mat, mode="min", mask_nodes=[], iteration=0):
     results = {}
     opt = (lambda x, y: x < y) if mode == "min" else (lambda x, y: x > y)
 
@@ -245,7 +245,7 @@ def run_network_partitioning(adj_mat, mode="min", mask_nodes=[]):
         updates = 0
 
         for i in range(NR_PASSES):
-            res = partition_pass(masked_adj, r, mode=mode, mask_nodes=mask_nodes, iteration=i)
+            res = partition_pass(masked_adj, r, mode=mode, mask_nodes=mask_nodes, iteration=(iteration*NR_PASSES + i))
             if res is None:
                 continue
 
@@ -435,7 +435,7 @@ def iteration(G, max_cheeger, iteration, min_res):
         H.add_edge(new_edge[0], new_edge[1])
         H.remove_edge(del_edge[0], del_edge[1])
 
-        H_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo())
+        H_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), iteration=iteration)
 
         print(f"H cheeger: {H_min_res['cheeger']}, G cheeger: {min_res['cheeger']}")
         if (H_min_res["cheeger"] < min_res["cheeger"]):
@@ -458,5 +458,5 @@ if __name__ == "__main__":
     max_cheeger = get_max_cheeger(G)
     for i in range(MAX_ITERATIONS):
         min_res = run_network_partitioning(nx.to_scipy_sparse_array(G).tocoo())
-        G, min_res = iteration(G, max_cheeger, i + 1, min_res)
+        G, min_res = iteration(G, max_cheeger, i, min_res)
         graph_to_yaml(G, path + f"_it{i+1}.yaml")
