@@ -6,6 +6,7 @@ import math
 from matplotlib import pyplot as plt
 import argparse
 from helpers.parse_topology import yaml_to_graph, graph_to_yaml
+from scipy.sparse.linalg import ArpackError
 
 # --- Visualization ----------------------------------------
 
@@ -93,50 +94,21 @@ def build_validity_matrix(G, A):
 
 # -------- Eigenpairs updating -------
 
-
-def update_eigenvalue(x_j, delta_M):
-    delta_a_j = x_j.T @ delta_M @ x_j
-    return delta_a_j
-
-def update_eigenvals(X, delta_M):
-    delta_a = X.T @ delta_M @ X
-    return np.diag(delta_a)
-
-def update_eigenvec(j, X, a, delta_M, t):
-    delta_xj = np.zeros(X.shape[0])
-    for i in range(t):
-        if i == j: continue
-        delta_xj += ((X[:, i].T @ delta_M @ X[:, j]) / (a[j] - a[i])) * X[:, i]
-    return delta_xj
-
-def update_eigenvecs(X, a, delta_M):
-    n = delta_M.shape[0]
-    D = np.fromfunction(lambda j, i : 1 / (a[j] - a[i]) if j != i else 0, (n, n))
-    delta_X = X @ ((X.T @ delta_M @ X) * D)
-    return delta_X
-
-def update_spectral_gap(i, j, X):
-    # spectral gap = lambda_1 - lambda_2
-    # delta spectral gap = delta_lambda_1 - delta_lambda_2
-    # delta_lambda_1 - delta_lambda_2 = u_1.T @ delta_A @ u_1 - u_2.T @ delta_A @ u_2 
-    # delta_A is -1 or 1 for Aij, 0 otherwise
-    # delta spectral gap = 2*(u1j*u1i - u2j*u2i)
-
-    return 2 * (X[j,0] * X[i,0] - X[j,1] * X[i,1])
-
-def update_spectral_gap_mat(u1, u2):
-    return 2 * (np.outer(u1, u1) - np.outer(u2, u2))
-
 def get_top_t_eigenpairs(A, t):
     eigenvalues, eigenvectors = eigsh(A, k=t, which='LM')
-
-    # Sort descending by eigenvalue
     idx = np.argsort(eigenvalues)[::-1]
     return eigenvalues[idx], eigenvectors[:, idx]
 
 def get_bottom_t_eigenpairs(L, t):
-    eigenvalues, eigenvectors = eigsh(L, k=t, which='SM')
-    # Sort ascending by eigenvalue
+    try:
+        ncv = min(max(2 * t + 1, 20), L.shape[0] - 1)
+        eigenvalues, eigenvectors = eigsh(L, k=t, which='SM', ncv=ncv)
+    except ArpackError:
+        # fall back to full dense decomposition
+        eigenvalues, eigenvectors = np.linalg.eigh(L)
+        eigenvalues = eigenvalues[:t]
+        eigenvectors = eigenvectors[:, :t]
+
     idx = np.argsort(eigenvalues)
     return eigenvalues[idx], eigenvectors[:, idx]
 
@@ -144,61 +116,49 @@ def delta_mu2_matrix(v2):
     v2 = v2.reshape(-1,1)
     return (v2**2) + (v2**2).T - 2*(v2 @ v2.T)
 
-
-def optimize(G, path, t=20, k=5):
+def optimize(G, path, t=10, k=5):
     n = len(G.nodes())
-    t = min(t, n)
+    t = min(t, n-2)
     A = nx.adjacency_matrix(G).toarray().astype(float)
     L = nx.laplacian_matrix(G).toarray().astype(float)
-    lambdas, U = get_top_t_eigenpairs(A, t)
     mus, V = get_bottom_t_eigenpairs(L, t)
-    delta_A = np.zeros((n, n))
     for i in range(k):
-        # CC = can_connect matrix for new edges
+        flag = False
+        max_index = 0
+        min_index = 0
+
         CC = build_validity_matrix(G, A)
-        # dR = update_spectral_gap_mat(U[:, 0], U[:, 1])
         dR = delta_mu2_matrix(V[:, 1])
-        # dR[A == 1] *= -1
-        new_edge = np.unravel_index(np.argmax(dR * CC), (n, n))
-        dR1 = dR[new_edge]
 
-        edge_vals = {(i, j): dR[i, j] for i in range(n) for j in range(n)}
-        # show_edge_weights(G, edge_vals)
+        flat_max = (dR * CC).ravel()
+        dR_max_list = np.argsort(flat_max)[::-1]
 
-        dR[A == 0] = math.inf        
-        old_edge = np.unravel_index(np.argmin(dR), (n, n))
-        dR2 = dR[old_edge]
-        print(f"dR1 = {dR1}, dR2 = {dR2}, sum = {dR1 + dR2}, mu 2 {mus[1]}, new mu 2: {mus[1] + dR1 + dR2}")
-        print(G.nodes(data=True)[old_edge[0]]["label"], G.nodes(data=True)[old_edge[1]]["label"])
+        dR[A != 1] = math.inf
+        flat_min = dR.ravel()
+        dR_min_list =  np.argsort(flat_min)
 
-        delta_A = np.zeros((n, n))
-        delta_A[new_edge[0], new_edge[1]] = 1
-        delta_A[new_edge[1], new_edge[0]] = 1
-        delta_A[old_edge[0], old_edge[1]] = -1
-        delta_A[old_edge[1], old_edge[0]] = -1
+        while (not flag):
+            old_edge = np.unravel_index(dR_min_list[min_index], (n, n))
+            new_edge = np.unravel_index(dR_max_list[max_index], (n, n))
+            A[old_edge[0], old_edge[1]] = 0
+            A[old_edge[1], old_edge[0]] = 0
+            A[new_edge[1], new_edge[0]] = 1
+            A[new_edge[1], new_edge[0]] = 1
 
-        A[new_edge[0], new_edge[1]] = 1
-        A[new_edge[1], new_edge[0]] = 1
-        A[old_edge[0], old_edge[1]] = 0
-        A[old_edge[1], old_edge[0]] = 0
+            L = np.diag(np.sum(A, axis=1)) - A
+            mus, V = get_bottom_t_eigenpairs(L, t)
+            if (mus[1] <= 0 or old_edge not in G.edges()):
+                max_index += 1
+            elif (new_edge in G.edges()):
+                min_index += 1
+            else:
+                # highlight_edges(G, {old_edge})
+                G.remove_edge(*old_edge)
+                G.add_edge(*new_edge)
+                # highlight_edges(G, {new_edge}, color="limegreen")
+                graph_to_yaml(G, path + "_it" + str(i+1) + ".yaml")
+                flag = True
         
-        delta_X = np.column_stack([update_eigenvec(j, U, lambdas, delta_A, t) for j in range(t)])
-        delta_a = [update_eigenvalue(U[:, j], delta_A) for j in range(t)]
-
-        U += delta_X
-        lambdas += delta_a
-        
-        L = np.diag(A.sum(axis=1)) - A
-        mus, V = get_bottom_t_eigenpairs(L, t)
-
-        # highlight_edges(G, {old_edge})
-        G.remove_edge(*old_edge)
-        G.add_edge(*new_edge)
-        # highlight_edges(G, {new_edge}, color="limegreen")
-
-        graph_to_yaml(G, path + "_it" + str(i+1) + ".yaml")
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--topology-config", "-tc", required=True)

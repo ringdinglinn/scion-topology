@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from plots import plot_grid, plot_grid_bars
-from plots.plot_graphs import plot_graphs
+from plots.plot_graphs import plot_graph_grid
 from helpers.parse_topology import yaml_to_graph
 from pathlib import Path
 import pprint
@@ -118,7 +118,7 @@ def main():
 
     # plot_grid_bars.plot_metric("border_breadth", groups, args.output_dir, args.sort_by)
 
-    plot_graphs(groups, graph_dict, args.output_dir + "/graphs")
+    plot_graph_grid(groups, graph_dict, args.output_dir + "/graphs")
 
 
 if __name__ == "__main__":

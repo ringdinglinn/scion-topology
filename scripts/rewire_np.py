@@ -21,8 +21,8 @@ def draw_partition(G, partition_a):
     labels = {n: G.nodes[n]["label"] for n in G.nodes()}
     edge_color_map = ["gray" if (u,v) not in cut_edges else "red" for (u,v) in G.edges()]
     pos = nx.spring_layout(G, seed=42)
-    nx.draw(G, pos, labels=labels, node_color=color_map, with_labels=True,
-            node_size=800, font_size=8, edge_color=edge_color_map)
+    nx.draw(G, pos, node_color=color_map, with_labels=True,
+            node_size=200, font_size=8, edge_color=edge_color_map)
     handles = [
         plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="skyblue", markersize=12, label="Partition +1"),
         plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="salmon",  markersize=12, label="Partition -1"),
@@ -52,7 +52,7 @@ def show_edge_weights(G, edge_weights):
             edge_labels[(u, v)] = f"{weight:.2f}"
 
     nx.draw(G, pos, labels=labels, node_color="skyblue", with_labels=True,
-            node_size=800, font_size=8, edge_color=edge_colors)
+            node_size=200, font_size=8, edge_color=edge_colors)
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=7)
     plt.title("Edge Weights")
     plt.show()
@@ -418,7 +418,7 @@ def iteration(G, max_cheeger, iteration, min_res):
 
     min_res = run_network_partitioning(full_adj)
 
-    # show_edge_weights(G, min_res["edge_scores"])
+    # draw_partition(G, min_res["partition"])
     # show_edge_weights(G, min_res["edge_nrs"])
 
     print(f"max cheeger: {max_cheeger}")
