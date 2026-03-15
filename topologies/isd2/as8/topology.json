@@ -1,5 +1,7 @@
 {
-    "attributes": [],
+    "attributes": [
+        "core"
+    ],
     "isd_as": "17-ffaa:2:8",
     "dispatched_ports": "31000-32767",
     "mtu": 1472,
@@ -19,11 +21,11 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.2.8:50203",
-                        "remote": "10.100.2.3:50208"
+                        "local": "10.100.0.28:50202",
+                        "remote": "10.100.0.22:50208"
                     },
-                    "isd_as": "17-ffaa:2:3",
-                    "link_to": "parent",
+                    "isd_as": "17-ffaa:2:2",
+                    "link_to": "child",
                     "mtu": 1472
                 }
             }

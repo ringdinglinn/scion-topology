@@ -16,17 +16,7 @@
     "border_routers": {
         "br": {
             "internal_addr": "127.0.0.1:31002",
-            "interfaces": {
-                "1": {
-                    "underlay": {
-                        "local": "10.100.2.9:50203",
-                        "remote": "10.100.2.3:50209"
-                    },
-                    "isd_as": "17-ffaa:2:3",
-                    "link_to": "parent",
-                    "mtu": 1472
-                }
-            }
+            "interfaces": {}
         }
     }
 }

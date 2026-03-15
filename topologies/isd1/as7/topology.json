@@ -1,5 +1,7 @@
 {
-    "attributes": [],
+    "attributes": [
+        "core"
+    ],
     "isd_as": "16-ffaa:1:7",
     "dispatched_ports": "31000-32767",
     "mtu": 1472,
@@ -19,11 +21,38 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.1.7:50102",
-                        "remote": "10.100.1.2:50107"
+                        "local": "10.100.0.17:50407",
+                        "remote": "10.100.0.47:50107"
                     },
-                    "isd_as": "16-ffaa:1:2",
-                    "link_to": "parent",
+                    "isd_as": "19-ffaa:4:7",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "2": {
+                    "underlay": {
+                        "local": "10.100.0.17:50201",
+                        "remote": "10.100.0.21:50107"
+                    },
+                    "isd_as": "17-ffaa:2:1",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "3": {
+                    "underlay": {
+                        "local": "10.100.0.17:50109",
+                        "remote": "10.100.0.19:50107"
+                    },
+                    "isd_as": "16-ffaa:1:9",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "4": {
+                    "underlay": {
+                        "local": "10.100.0.17:50111",
+                        "remote": "10.100.0.111:50107"
+                    },
+                    "isd_as": "16-ffaa:1:11",
+                    "link_to": "child",
                     "mtu": 1472
                 }
             }

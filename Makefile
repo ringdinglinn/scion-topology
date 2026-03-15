@@ -1,5 +1,5 @@
 # ==== CONFIG ====
-CONFIG_PATH := configurations/topo1/topo1_it.yaml
+CONFIG_PATH := configurations/topo0/topo0_it0.yaml
 CONFIG_FOLDER := configurations
 RESULTS_PATH := configurations/results/results.csv
 TOPOLOGIES_PATH := topologies

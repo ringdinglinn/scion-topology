@@ -1,0 +1,70 @@
+{
+    "attributes": [
+        "core"
+    ],
+    "isd_as": "20-ffaa:5:2",
+    "dispatched_ports": "31000-32767",
+    "mtu": 1472,
+    "control_service": {
+        "cs": {
+            "addr": "127.0.0.1:31000"
+        }
+    },
+    "discovery_service": {
+        "cs": {
+            "addr": "127.0.0.1:31000"
+        }
+    },
+    "border_routers": {
+        "br": {
+            "internal_addr": "127.0.0.1:31002",
+            "interfaces": {
+                "1": {
+                    "underlay": {
+                        "local": "10.100.0.52:50101",
+                        "remote": "10.100.0.11:50502"
+                    },
+                    "isd_as": "16-ffaa:1:1",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "2": {
+                    "underlay": {
+                        "local": "10.100.0.52:50401",
+                        "remote": "10.100.0.41:50502"
+                    },
+                    "isd_as": "19-ffaa:4:1",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "3": {
+                    "underlay": {
+                        "local": "10.100.0.52:50505",
+                        "remote": "10.100.0.55:50502"
+                    },
+                    "isd_as": "20-ffaa:5:5",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "4": {
+                    "underlay": {
+                        "local": "10.100.0.52:50507",
+                        "remote": "10.100.0.57:50502"
+                    },
+                    "isd_as": "20-ffaa:5:7",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "5": {
+                    "underlay": {
+                        "local": "10.100.0.52:50501",
+                        "remote": "10.100.0.51:50502"
+                    },
+                    "isd_as": "20-ffaa:5:1",
+                    "link_to": "core",
+                    "mtu": 1472
+                }
+            }
+        }
+    }
+}
