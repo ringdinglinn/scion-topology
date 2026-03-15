@@ -67,7 +67,12 @@ def generate_isd_pki(isd_id: int, as_start: int, as_count: int, core: list[int])
                 f"{isd_num}-ffaa:{isd_id}:{as_num}",
                 f"{isd_num}-ffaa:{isd_id}:{as_num} cp root cert",
                 "cp-root.pem", "cp-root.key")
-        
+    
+    # create_cert(f"AS{as_start + core[0] - 1}", "sensitive-voting",
+    #         f"{ISD_NUM}-ffaa:{isd_id}:{core[0]}",
+    #         f"{ISD_NUM}-ffaa:{isd_id}:{core[0]} sensitive voting cert",
+    #         "sensitive-voting.pem", "sensitive-voting.key")
+    
     for core_as in core:
         create_core_certs(core_as, ISD_NUM, isd_id)
 

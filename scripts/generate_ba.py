@@ -11,24 +11,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     nr_isds = random.randint(2, 5)
-    nr_core_nodes = random.randint(5, 10)
 
-    n = random.randint(20, 40)
+    n = random.randint(20, 30)
+    nr_core_nodes = nr_isds * 3
 
     def isd_sizes(nr_isds, nr_nodes):
         fracs = [random.random() for isd in range(nr_isds)]
         sum_fracs = np.sum(np.array(fracs))
         ratio = nr_nodes / sum_fracs
-        nr_nodes_isds = [max(2, round(frac * ratio)) for frac in fracs]
+        nr_nodes_isds = [max(3, round(frac * ratio)) for frac in fracs]
 
         print(nr_nodes_isds)
         return nr_nodes_isds
     
     nr_nodes_isds = isd_sizes(nr_isds, n) 
-
-    # G = nx.erdos_renyi_graph(n, 0.3)
-    # largest_cc = max(nx.connected_components(G), key=len)
-    # G = G.subgraph(largest_cc).copy()
 
     G = nx.extended_barabasi_albert_graph(n, 2, 0.4, 0.4)
 
@@ -66,12 +62,14 @@ if __name__ == "__main__":
 
     core_nodes = []
 
+    print(f"nr core nodes: {nr_core_nodes}")
     while(len(core_nodes) < nr_core_nodes):
-        core_candidate = random.choice(list(G.nodes()))
-        if G.nodes[core_candidate]["is_core"]:
-            continue
-        G.nodes[core_candidate]["is_core"] = True
-        core_nodes.append(core_candidate)
+        for isd in nr_nodes_isds:
+            core_candidate = random.choice(list(G.nodes()))
+            if G.nodes[core_candidate]["is_core"]:
+                continue
+            G.nodes[core_candidate]["is_core"] = True
+            core_nodes.append(core_candidate)
 
     nodes_to_remove = [n for n in G.nodes() if "isd_n" not in G.nodes[n]]
     G.remove_nodes_from(nodes_to_remove)
@@ -82,19 +80,38 @@ if __name__ == "__main__":
     ]
     G.remove_edges_from(edges_to_remove)
 
-    for node, data in G.nodes(data=True):
-        G.nodes[node]['label'] = f"{data['isd_n']}-{data['as_n']}"
+    for i in range(nr_isds):
+        for j in range(i + 1, nr_isds):
+            isd_i_cores = [n for n in isds[i] if G.nodes[n]["is_core"]]
+            isd_j_cores = [n for n in isds[j] if G.nodes[n]["is_core"]]
+            if not any(G.has_edge(u, v) for u in isd_i_cores for v in isd_j_cores):
+                G.add_edge(random.choice(isd_i_cores), random.choice(isd_j_cores))
 
 
     # sparsify -------
 
     bridges = set(nx.bridges(G))
-    p = 0.4
+    p = 0.2
     for edge in list(G.edges()):
         if edge not in bridges and (edge[1], edge[0]) not in bridges:
             if random.random() < p:
                 G.remove_edge(*edge)
                 bridges = set(nx.bridges(G))
+
+    for isd in isds:
+        core_nodes = random.sample(isd, 2)
+        for core in core_nodes:
+            G.nodes[core]["is_core"] = True
+        isd_core = [node for node in isd if G.nodes[node]["is_core"]]
+        for node in isd:
+            if not any(G.has_edge(node, core) for core in isd_core):
+                candidates = [core for core in isd_core if core != node]
+                if candidates:
+                    G.add_edge(node, random.choice(candidates))
+
+
+    for node, data in G.nodes(data=True):
+        G.nodes[node]['label'] = f"{data['isd_n']}-{data['as_n']}"
 
     plot_graph(G)
 

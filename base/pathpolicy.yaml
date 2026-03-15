@@ -2,7 +2,7 @@ BestSetSize: 20
 CandidateSetSize: 100
 MaxExpTime: 0
 Filter:
-  MaxHopsLength: 10
+  MaxHopsLength: 100
   AsBlackList: []
   IsdBlackList: []
   AllowIsdLoop: true

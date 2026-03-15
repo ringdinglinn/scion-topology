@@ -19,10 +19,19 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.0.34:50302",
-                        "remote": "10.100.0.32:50304"
+                        "local": "10.100.3.4:50301",
+                        "remote": "10.100.3.1:50304"
                     },
-                    "isd_as": "18-ffaa:3:2",
+                    "isd_as": "18-ffaa:3:1",
+                    "link_to": "parent",
+                    "mtu": 1472
+                },
+                "2": {
+                    "underlay": {
+                        "local": "10.100.3.4:50303",
+                        "remote": "10.100.3.3:50304"
+                    },
+                    "isd_as": "18-ffaa:3:3",
                     "link_to": "parent",
                     "mtu": 1472
                 }
