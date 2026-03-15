@@ -10,10 +10,10 @@ if __name__ == "__main__":
     parser.add_argument("--topology-config", "-tc", required=True)
     args = parser.parse_args()
 
-    nr_isds = random.randint(2, 5)
+    nr_isds = random.randint(3, 6)
 
-    n = random.randint(20, 30)
-    nr_core_nodes = nr_isds * 3
+    n = random.randint(20, 50)
+    nr_core_nodes = min(random.randint(3, 15), nr_isds)
 
     def isd_sizes(nr_isds, nr_nodes):
         fracs = [random.random() for isd in range(nr_isds)]

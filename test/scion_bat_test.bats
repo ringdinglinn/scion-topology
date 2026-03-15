@@ -43,11 +43,6 @@ current_node=""
     [ "$status" -eq 0 ]
     [[ "$output" == *"Oh, hello!"* ]]
 }
-@test "bat request from scion1-5 to scion2-5" {
-    run docker exec scion1-5 scion-bat http://17-ffaa:2:5,127.0.0.1:32765/hello
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"Oh, hello!"* ]]
-}
 @test "bat request from scion2-1 to scion3-1" {
     run docker exec scion2-1 scion-bat http://18-ffaa:3:1,127.0.0.1:32765/hello
     [ "$status" -eq 0 ]
@@ -65,11 +60,6 @@ current_node=""
 }
 @test "bat request from scion2-4 to scion3-4" {
     run docker exec scion2-4 scion-bat http://18-ffaa:3:4,127.0.0.1:32765/hello
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"Oh, hello!"* ]]
-}
-@test "bat request from scion2-5 to scion3-5" {
-    run docker exec scion2-5 scion-bat http://18-ffaa:3:5,127.0.0.1:32765/hello
     [ "$status" -eq 0 ]
     [[ "$output" == *"Oh, hello!"* ]]
 }
@@ -98,6 +88,21 @@ current_node=""
     [ "$status" -eq 0 ]
     [[ "$output" == *"Oh, hello!"* ]]
 }
+@test "bat request from scion3-6 to scion4-6" {
+    run docker exec scion3-6 scion-bat http://19-ffaa:4:6,127.0.0.1:32765/hello
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Oh, hello!"* ]]
+}
+@test "bat request from scion3-7 to scion4-7" {
+    run docker exec scion3-7 scion-bat http://19-ffaa:4:7,127.0.0.1:32765/hello
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Oh, hello!"* ]]
+}
+@test "bat request from scion3-8 to scion4-8" {
+    run docker exec scion3-8 scion-bat http://19-ffaa:4:8,127.0.0.1:32765/hello
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Oh, hello!"* ]]
+}
 @test "bat request from scion4-1 to scion1-1" {
     run docker exec scion4-1 scion-bat http://16-ffaa:1:1,127.0.0.1:32765/hello
     [ "$status" -eq 0 ]
@@ -120,6 +125,31 @@ current_node=""
 }
 @test "bat request from scion4-5 to scion1-5" {
     run docker exec scion4-5 scion-bat http://16-ffaa:1:5,127.0.0.1:32765/hello
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Oh, hello!"* ]]
+}
+@test "bat request from scion4-6 to scion1-6" {
+    run docker exec scion4-6 scion-bat http://16-ffaa:1:6,127.0.0.1:32765/hello
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Oh, hello!"* ]]
+}
+@test "bat request from scion4-7 to scion1-7" {
+    run docker exec scion4-7 scion-bat http://16-ffaa:1:7,127.0.0.1:32765/hello
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Oh, hello!"* ]]
+}
+@test "bat request from scion4-8 to scion1-8" {
+    run docker exec scion4-8 scion-bat http://16-ffaa:1:8,127.0.0.1:32765/hello
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Oh, hello!"* ]]
+}
+@test "bat request from scion4-9 to scion1-9" {
+    run docker exec scion4-9 scion-bat http://16-ffaa:1:9,127.0.0.1:32765/hello
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Oh, hello!"* ]]
+}
+@test "bat request from scion4-10 to scion1-10" {
+    run docker exec scion4-10 scion-bat http://16-ffaa:1:10,127.0.0.1:32765/hello
     [ "$status" -eq 0 ]
     [[ "$output" == *"Oh, hello!"* ]]
 }

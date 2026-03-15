@@ -4,13 +4,14 @@ FROM scion-base:1.0
 ARG INDEX
 ARG ISD
 ARG AS
+ARG CONTAINER_TOPOLOGIES
 
 RUN cp /opt/tutorial-pki/AS${INDEX}/*.key /etc/scion/crypto/as/ && \
     cp /opt/tutorial-pki/AS${INDEX}/*.pem /etc/scion/crypto/as/ && \
     chown scion:scion /etc/scion/crypto/as/*.key && \
     chmod 600 /etc/scion/crypto/as/*.key
 
-COPY topologies/isd${ISD}/as${AS}/topology.json /etc/scion/topology.json
+COPY ${CONTAINER_TOPOLOGIES}/isd${ISD}/as${AS}/topology.json /etc/scion/topology.json
 RUN mkdir -p /etc/scion/certs && \
     cp /opt/tutorial-pki/*.trc /etc/scion/certs/
     

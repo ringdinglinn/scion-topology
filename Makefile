@@ -1,16 +1,16 @@
 # ==== CONFIG ====
-CONFIG_PATH := configurations/topo0/topo0_it0.yaml
-CONFIG_FOLDER := configurations
-RESULTS_PATH := configurations/results/results.csv
-TOPOLOGIES_PATH := topologies
-PLOTS_FOLDER := configurations/plots/
-SHOWPATHS_PATH := configurations/results/show_paths
+TOPOLOGY_FILE := topologies/topo0/topo0_it0.yaml
+TOPOLOGY_FOLDER := topologies
+RESULTS_PATH := topologies/results/results.csv
+CONTAINER_TOPOLOGIES_PATH := container-topolgies/
+PLOTS_FOLDER := topologies/plots/
+SHOWPATHS_PATH := topologies/results/show_paths
 
 CONFIG_MK := .isd-vars.mk
 
 .PHONY: $(CONFIG_MK)
 $(CONFIG_MK):
-	@python3 scripts/parse-isd-config.py $(CONFIG_PATH) > $(CONFIG_MK)
+	@python3 scripts/parse-isd-config.py $(TOPOLOGY_FILE) > $(CONFIG_MK)
 
 -include $(CONFIG_MK)
 
@@ -35,7 +35,7 @@ build-debian-base:
 
 build-base: build-debian-base
 	docker build -t scion-base:$(VERSION) \
-		--build-arg CONFIG_PATH=$(CONFIG_PATH) \
+		--build-arg TOPOLOGY_FILE=$(TOPOLOGY_FILE) \
 		-f ./base/Dockerfile \
 		.
 
@@ -49,6 +49,7 @@ build-scion:
 				--build-arg INDEX=$$i \
 				--build-arg ISD=$(isd) \
 				--build-arg AS=$(as) \
+				--build-arg CONTAINER_TOPOLOGIES=$(CONTAINER_TOPOLOGIES_PATH) \
 				-f ./template/Dockerfile .; \
 			i=$$((i+1)); \
 		) \
@@ -77,7 +78,7 @@ rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebui
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
 	docker build --no-cache -t scion-base:$(VERSION) \
-		--build-arg CONFIG_PATH=$(CONFIG_PATH) \
+		--build-arg TOPOLOGY_FILE=$(TOPOLOGY_FILE) \
 		-f ./base/Dockerfile \
 		.
 
@@ -91,6 +92,7 @@ rebuild-scion:
 				--build-arg INDEX=$$i \
 				--build-arg ISD=$(isd) \
 				--build-arg AS=$(as) \
+				--build-arg CONTAINER_TOPOLOGIES=$(CONTAINER_TOPOLOGIES_PATH) \
 				-f ./template/Dockerfile .; \
 			i=$$((i+1)); \
 		) \
@@ -104,23 +106,23 @@ rebuild-monitor: generate-nodeconfig generate-web-ui
 
 generate-compose:
 	python3 scripts/generate-compose.py \
-		--config $(CONFIG_PATH) \
+		--config $(TOPOLOGY_FILE) \
 		--version $(VERSION)
 
 generate-topologies:
 	python3 scripts/generate-topologies.py \
-		-tp $(CONFIG_PATH) \
-		--output-dir $(TOPOLOGIES_PATH)
+		-tp $(TOPOLOGY_FILE) \
+		--output-dir $(CONTAINER_TOPOLOGIES_PATH)
 
 generate-nodeconfig:
-	python3 scripts/generate-nodeconfig.py --config $(CONFIG_PATH)
+	python3 scripts/generate-nodeconfig.py --config $(TOPOLOGY_FILE)
 
 generate-tests:
-	python3 scripts/generate-tests.py --config $(CONFIG_PATH)
+	python3 scripts/generate-tests.py --config $(TOPOLOGY_FILE)
 
 generate-web-ui:
 	python3 scripts/generate-web-ui.py \
-		--config $(CONFIG_PATH) \
+		--config $(TOPOLOGY_FILE) \
 		--template monitor/index-template.html \
 		--output monitor/index.html
 
@@ -179,14 +181,14 @@ run-topology-optimizer: topo-optim topo-eval topo-plot
 # 	done
 
 topo-optim:
-	@for topo in $(CONFIG_FOLDER)/*/; do \
+	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
 		file=$$(ls $$topo*_it0.yaml) ; \
 		python3 scripts/rewire_spectral.py -tc $$file ; \
 		python3 scripts/rewire_np.py -tc $$file ; \
 	done
 
 topo-eval: 
-	python3 scripts/evaluate_topology.py -i $(CONFIG_FOLDER) -o $(RESULTS_PATH); \
+	python3 scripts/evaluate_topology.py -i $(TOPOLOGY_FOLDER) -o $(RESULTS_PATH); \
 
 topo-plot:
 	python3 scripts/plot_topology.py \
@@ -196,10 +198,22 @@ topo-plot:
 	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" \
 	-s topology \
 	-o $(PLOTS_FOLDER) \
-	-t $(CONFIG_FOLDER)
+	-t $(TOPOLOGY_FOLDER)
+
+run-path-evaluation:
+	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
+		for file in $$topo*_it*.yaml; do \
+			echo ">>> Running path evaluation for $$file"; \
+			$(MAKE) rebuild TOPOLOGY_FILE=$$file; \
+			$(MAKE) up TOPOLOGY_FILE=$$file; \
+			sleep 60; \
+			$(MAKE) show-paths TOPOLOGY_FILE=$$file; \
+			$(MAKE) down; \
+		done; \
+	done
 
 show-paths:
-	python3 scripts/show_paths.py --config $(CONFIG_PATH) --output-path $(SHOWPATHS_PATH); \
+	python3 scripts/show_paths.py --config $(TOPOLOGY_FILE) --output-path $(SHOWPATHS_PATH); \
 
 eval-paths:
-	python3 scripts/evaluate_paths.py --folder $(SHOWPATHS_PATH) --topologies $(CONFIG_FOLDER) --output $(RESULTS_PATH);  \
+	python3 scripts/evaluate_paths.py --folder $(SHOWPATHS_PATH) --topologies $(TOPOLOGY_FOLDER) --output $(RESULTS_PATH);  \

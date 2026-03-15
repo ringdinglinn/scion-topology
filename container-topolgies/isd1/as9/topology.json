@@ -1,0 +1,133 @@
+{
+    "attributes": [
+        "core"
+    ],
+    "isd_as": "16-ffaa:1:9",
+    "dispatched_ports": "31000-32767",
+    "mtu": 1472,
+    "control_service": {
+        "cs": {
+            "addr": "127.0.0.1:31000"
+        }
+    },
+    "discovery_service": {
+        "cs": {
+            "addr": "127.0.0.1:31000"
+        }
+    },
+    "border_routers": {
+        "br": {
+            "internal_addr": "127.0.0.1:31002",
+            "interfaces": {
+                "1": {
+                    "underlay": {
+                        "local": "10.100.1.9:50304",
+                        "remote": "10.100.3.4:50109"
+                    },
+                    "isd_as": "18-ffaa:3:4",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "2": {
+                    "underlay": {
+                        "local": "10.100.1.9:50305",
+                        "remote": "10.100.3.5:50109"
+                    },
+                    "isd_as": "18-ffaa:3:5",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "3": {
+                    "underlay": {
+                        "local": "10.100.1.9:50103",
+                        "remote": "10.100.1.3:50109"
+                    },
+                    "isd_as": "16-ffaa:1:3",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "4": {
+                    "underlay": {
+                        "local": "10.100.1.9:50107",
+                        "remote": "10.100.1.7:50109"
+                    },
+                    "isd_as": "16-ffaa:1:7",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "5": {
+                    "underlay": {
+                        "local": "10.100.1.9:50108",
+                        "remote": "10.100.1.8:50109"
+                    },
+                    "isd_as": "16-ffaa:1:8",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "6": {
+                    "underlay": {
+                        "local": "10.100.1.9:50101",
+                        "remote": "10.100.1.1:50109"
+                    },
+                    "isd_as": "16-ffaa:1:1",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "7": {
+                    "underlay": {
+                        "local": "10.100.1.9:50403",
+                        "remote": "10.100.4.3:50109"
+                    },
+                    "isd_as": "19-ffaa:4:3",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "8": {
+                    "underlay": {
+                        "local": "10.100.1.9:50202",
+                        "remote": "10.100.2.2:50109"
+                    },
+                    "isd_as": "17-ffaa:2:2",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "9": {
+                    "underlay": {
+                        "local": "10.100.1.9:50402",
+                        "remote": "10.100.4.2:50109"
+                    },
+                    "isd_as": "19-ffaa:4:2",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "10": {
+                    "underlay": {
+                        "local": "10.100.1.9:50303",
+                        "remote": "10.100.3.3:50109"
+                    },
+                    "isd_as": "18-ffaa:3:3",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "11": {
+                    "underlay": {
+                        "local": "10.100.1.9:50102",
+                        "remote": "10.100.1.2:50109"
+                    },
+                    "isd_as": "16-ffaa:1:2",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "12": {
+                    "underlay": {
+                        "local": "10.100.1.9:50110",
+                        "remote": "10.100.1.10:50109"
+                    },
+                    "isd_as": "16-ffaa:1:10",
+                    "link_to": "core",
+                    "mtu": 1472
+                }
+            }
+        }
+    }
+}

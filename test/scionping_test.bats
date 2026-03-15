@@ -115,20 +115,6 @@ current_node=""
 	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
 	[ "$packet_loss_value" = "0%" ]
 }
-@test "scion1-5 can scion-ping scion2-5" {
-	current_node="scion1-5"
-	run docker exec monitor scionctl scionping start scion1-5 scion2-5 --count 1
-	sleep 1
-	[ "$status" -eq 0 ]
-	[[ "$output" != *"Error"* ]]
-	run docker exec monitor scionctl scionping list scion1-5
-	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
-	run docker exec monitor scionctl scionping file scion1-5 $filename
-	ping_output="$output"
-	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
-	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
-	[ "$packet_loss_value" = "0%" ]
-}
 @test "scion2-1 can scion-ping scion3-1" {
 	current_node="scion2-1"
 	run docker exec monitor scionctl scionping start scion2-1 scion3-1 --count 1
@@ -180,20 +166,6 @@ current_node=""
 	run docker exec monitor scionctl scionping list scion2-4
 	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
 	run docker exec monitor scionctl scionping file scion2-4 $filename
-	ping_output="$output"
-	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
-	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
-	[ "$packet_loss_value" = "0%" ]
-}
-@test "scion2-5 can scion-ping scion3-5" {
-	current_node="scion2-5"
-	run docker exec monitor scionctl scionping start scion2-5 scion3-5 --count 1
-	sleep 1
-	[ "$status" -eq 0 ]
-	[[ "$output" != *"Error"* ]]
-	run docker exec monitor scionctl scionping list scion2-5
-	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
-	run docker exec monitor scionctl scionping file scion2-5 $filename
 	ping_output="$output"
 	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
 	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
@@ -269,6 +241,48 @@ current_node=""
 	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
 	[ "$packet_loss_value" = "0%" ]
 }
+@test "scion3-6 can scion-ping scion4-6" {
+	current_node="scion3-6"
+	run docker exec monitor scionctl scionping start scion3-6 scion4-6 --count 1
+	sleep 1
+	[ "$status" -eq 0 ]
+	[[ "$output" != *"Error"* ]]
+	run docker exec monitor scionctl scionping list scion3-6
+	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
+	run docker exec monitor scionctl scionping file scion3-6 $filename
+	ping_output="$output"
+	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
+	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
+	[ "$packet_loss_value" = "0%" ]
+}
+@test "scion3-7 can scion-ping scion4-7" {
+	current_node="scion3-7"
+	run docker exec monitor scionctl scionping start scion3-7 scion4-7 --count 1
+	sleep 1
+	[ "$status" -eq 0 ]
+	[[ "$output" != *"Error"* ]]
+	run docker exec monitor scionctl scionping list scion3-7
+	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
+	run docker exec monitor scionctl scionping file scion3-7 $filename
+	ping_output="$output"
+	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
+	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
+	[ "$packet_loss_value" = "0%" ]
+}
+@test "scion3-8 can scion-ping scion4-8" {
+	current_node="scion3-8"
+	run docker exec monitor scionctl scionping start scion3-8 scion4-8 --count 1
+	sleep 1
+	[ "$status" -eq 0 ]
+	[[ "$output" != *"Error"* ]]
+	run docker exec monitor scionctl scionping list scion3-8
+	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
+	run docker exec monitor scionctl scionping file scion3-8 $filename
+	ping_output="$output"
+	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
+	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
+	[ "$packet_loss_value" = "0%" ]
+}
 @test "scion4-1 can scion-ping scion1-1" {
 	current_node="scion4-1"
 	run docker exec monitor scionctl scionping start scion4-1 scion1-1 --count 1
@@ -334,6 +348,76 @@ current_node=""
 	run docker exec monitor scionctl scionping list scion4-5
 	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
 	run docker exec monitor scionctl scionping file scion4-5 $filename
+	ping_output="$output"
+	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
+	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
+	[ "$packet_loss_value" = "0%" ]
+}
+@test "scion4-6 can scion-ping scion1-6" {
+	current_node="scion4-6"
+	run docker exec monitor scionctl scionping start scion4-6 scion1-6 --count 1
+	sleep 1
+	[ "$status" -eq 0 ]
+	[[ "$output" != *"Error"* ]]
+	run docker exec monitor scionctl scionping list scion4-6
+	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
+	run docker exec monitor scionctl scionping file scion4-6 $filename
+	ping_output="$output"
+	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
+	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
+	[ "$packet_loss_value" = "0%" ]
+}
+@test "scion4-7 can scion-ping scion1-7" {
+	current_node="scion4-7"
+	run docker exec monitor scionctl scionping start scion4-7 scion1-7 --count 1
+	sleep 1
+	[ "$status" -eq 0 ]
+	[[ "$output" != *"Error"* ]]
+	run docker exec monitor scionctl scionping list scion4-7
+	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
+	run docker exec monitor scionctl scionping file scion4-7 $filename
+	ping_output="$output"
+	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
+	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
+	[ "$packet_loss_value" = "0%" ]
+}
+@test "scion4-8 can scion-ping scion1-8" {
+	current_node="scion4-8"
+	run docker exec monitor scionctl scionping start scion4-8 scion1-8 --count 1
+	sleep 1
+	[ "$status" -eq 0 ]
+	[[ "$output" != *"Error"* ]]
+	run docker exec monitor scionctl scionping list scion4-8
+	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
+	run docker exec monitor scionctl scionping file scion4-8 $filename
+	ping_output="$output"
+	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
+	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
+	[ "$packet_loss_value" = "0%" ]
+}
+@test "scion4-9 can scion-ping scion1-9" {
+	current_node="scion4-9"
+	run docker exec monitor scionctl scionping start scion4-9 scion1-9 --count 1
+	sleep 1
+	[ "$status" -eq 0 ]
+	[[ "$output" != *"Error"* ]]
+	run docker exec monitor scionctl scionping list scion4-9
+	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
+	run docker exec monitor scionctl scionping file scion4-9 $filename
+	ping_output="$output"
+	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
+	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')
+	[ "$packet_loss_value" = "0%" ]
+}
+@test "scion4-10 can scion-ping scion1-10" {
+	current_node="scion4-10"
+	run docker exec monitor scionctl scionping start scion4-10 scion1-10 --count 1
+	sleep 1
+	[ "$status" -eq 0 ]
+	[[ "$output" != *"Error"* ]]
+	run docker exec monitor scionctl scionping list scion4-10
+	filename=$(echo "$output" | awk -F'|' '/\.log/ {gsub(/ /, "", $3); fname=$3} END {sub(/\.log$/, "", fname); print fname}')
+	run docker exec monitor scionctl scionping file scion4-10 $filename
 	ping_output="$output"
 	packet_loss_line=$(echo "$ping_output" | grep "packet loss")
 	packet_loss_value=$(echo "$packet_loss_line" | awk '{print $6}')

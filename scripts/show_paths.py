@@ -8,7 +8,6 @@ from pathlib import Path
 
 # Get the single furthest pair
 def furthest_pair(G):
-    # Returns (distance, node1, node2)
     lengths = dict(nx.all_pairs_shortest_path_length(G))
     max_dist = 0
     pair = (None, None)
@@ -20,11 +19,6 @@ def furthest_pair(G):
     return max_dist, *pair
 
 def get_show_paths(src_name, dst_address):
-    # src_name = node_to_name(G.nodes[u])  # or however you get the container name
-    # dst_address = node_to_address(G.nodes[v])
-
-    # print(u, v, src_name, dst_address)
-
     result = subprocess.run(
             ["docker", "exec", src_name, "scion", "showpaths", dst_address, "-m", "1000"],
             capture_output=True,
@@ -44,10 +38,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     G = yaml_to_graph(args.config)
-    # dist, u, v = furthest_pair(G)
-    u = "scion1-5"
-    v = "scion3-5"
-    dst_address = name_to_address(v)
+    dist, u, v = furthest_pair(G)
+    u = node_to_name(u)
+    dst_address = node_to_address(v)
     result = get_show_paths(u, dst_address)
 
     config_name = Path(args.config).stem  
