@@ -1,10 +1,11 @@
 # ==== CONFIG ====
-TOPOLOGY_FILE := topologies/topo0/topo0_it0.yaml
+TOPOLOGY_FILE := topologies/topo7/topo7_it0.yaml
 TOPOLOGY_FOLDER := topologies
-RESULTS_PATH := topologies/results/results.csv
+RESULTS := topologies/results/results.csv
 CONTAINER_TOPOLOGIES_PATH := container-topolgies/
 PLOTS_FOLDER := topologies/plots/
-SHOWPATHS_PATH := topologies/results/show_paths
+SHOWPATHS_DATA := topologies/results/show_paths
+SHOWPATHS_RESULTS := topologies/results/results_paths.csv
 
 CONFIG_MK := .isd-vars.mk
 
@@ -188,32 +189,62 @@ topo-optim:
 	done
 
 topo-eval: 
-	python3 scripts/evaluate_topology.py -i $(TOPOLOGY_FOLDER) -o $(RESULTS_PATH); \
+	python3 scripts/evaluate_topology.py -i $(TOPOLOGY_FOLDER) -o $(RESULTS); \
 
 topo-plot:
 	python3 scripts/plot_topology.py \
-	-i $(RESULTS_PATH) \
+	-i $(RESULTS) \
 	-g "^([^_]+)" \
 	-sg "_([^_]+)_" \
 	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" \
 	-s topology \
 	-o $(PLOTS_FOLDER) \
-	-t $(TOPOLOGY_FOLDER)
+	-t $(TOPOLOGY_FOLDER) \
+	--border-breadth \
+	--graphs
 
 run-path-evaluation:
 	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
+		it0=$$(ls $$topo*_it0.yaml); \
+		$(MAKE) rebuild TOPOLOGY_FILE=$$it0; \
 		for file in $$topo*_it*.yaml; do \
-			echo ">>> Running path evaluation for $$file"; \
-			$(MAKE) rebuild TOPOLOGY_FILE=$$file; \
-			$(MAKE) up TOPOLOGY_FILE=$$file; \
-			sleep 60; \
-			$(MAKE) show-paths TOPOLOGY_FILE=$$file; \
-			$(MAKE) down; \
+			$(MAKE) path-test TOPOLOGY_FILE=$$file; \
 		done; \
-	done
+	done \
+	$(MAKE) eval-paths
+	$(MAKE) plot-paths
+
+path-test:
+	@echo ">>> Running path evaluation for $(TOPOLOGY_FILE)"; \
+	retries=3; \
+	until $(MAKE) up TOPOLOGY_FILE=$(TOPOLOGY_FILE); do \
+		echo ">>> up failed, retrying ($$retries left)..."; \
+		$(MAKE) down; \
+		retries=$$((retries - 1)); \
+		if [ $$retries -eq 0 ]; then \
+			echo ">>> up failed after retries, skipping $(TOPOLOGY_FILE)"; \
+			$(MAKE) down; \
+			exit 0; \
+		fi; \
+		sleep 5; \
+	done; \
+	sleep 30; \
+	$(MAKE) show-paths TOPOLOGY_FILE=$(TOPOLOGY_FILE) SHOWPATHS_DATA=$(SHOWPATHS_DATA); \
+	$(MAKE) down
+
 
 show-paths:
-	python3 scripts/show_paths.py --config $(TOPOLOGY_FILE) --output-path $(SHOWPATHS_PATH); \
+	python3 scripts/show_paths.py --config $(TOPOLOGY_FILE) --output-path $(SHOWPATHS_DATA); \
 
 eval-paths:
-	python3 scripts/evaluate_paths.py --folder $(SHOWPATHS_PATH) --topologies $(TOPOLOGY_FOLDER) --output $(RESULTS_PATH);  \
+	python3 scripts/evaluate_paths.py --folder $(SHOWPATHS_DATA) --topologies $(TOPOLOGY_FOLDER) --output $(SHOWPATHS_RESULTS);  \
+
+plot-paths:
+	python3 scripts/plot_topology.py \
+	-i $(SHOWPATHS_RESULTS) \
+	-g "^([^_]+)" \
+	-sg "_([^_]+)_" \
+	-m "intra_isd_paths_scion+inter_isd_paths_scion" \
+	-s topology \
+	-o $(PLOTS_FOLDER) \
+	-t $(TOPOLOGY_FOLDER)

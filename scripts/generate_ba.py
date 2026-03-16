@@ -4,6 +4,7 @@ from helpers.parse_topology import graph_to_yaml
 import random
 import numpy as np
 from plots.plot_graphs import plot_graph
+from collections import defaultdict
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -91,23 +92,46 @@ if __name__ == "__main__":
     # sparsify -------
 
     bridges = set(nx.bridges(G))
-    p = 0.2
+    p = 0.4
     for edge in list(G.edges()):
         if edge not in bridges and (edge[1], edge[0]) not in bridges:
             if random.random() < p:
                 G.remove_edge(*edge)
                 bridges = set(nx.bridges(G))
 
-    for isd in isds:
-        core_nodes = random.sample(isd, 2)
-        for core in core_nodes:
-            G.nodes[core]["is_core"] = True
-        isd_core = [node for node in isd if G.nodes[node]["is_core"]]
-        for node in isd:
-            if not any(G.has_edge(node, core) for core in isd_core):
-                candidates = [core for core in isd_core if core != node]
-                if candidates:
-                    G.add_edge(node, random.choice(candidates))
+    isd_cores = defaultdict(list)
+    for node in G.nodes:
+        if G.nodes[node].get("is_core"):
+            isd = G.nodes[node]["isd_n"]
+            isd_cores[isd].append(node)
+
+    isd_list = list(isd_cores.keys())
+
+    for i, isd in enumerate(isd_list):
+        cores = isd_cores[isd]
+
+        ## constraint 1: enforce that core nodes within isd are a connected subgraph
+        core_subgraph = G.subgraph(cores)
+        components = list(nx.connected_components(core_subgraph))
+
+        for j in range(len(components) - 1):
+            src = random.choice(list(components[j]))
+            dst = random.choice(list(components[j + 1]))
+            G.add_edge(src, dst)
+        
+        ## constraint 2: make sure isds are connected
+        has_inter_core_edge = any(
+            G.nodes[nb].get("is_core") and G.nodes[nb]["isd_n"] != isd
+            for core in cores
+            for nb in G.neighbors(core)
+        )
+        if not has_inter_core_edge:
+            # Pick a random core from any other ISD and connect
+            other_isds = [other for other in isd_list if other != isd]
+            if other_isds:
+                src = random.choice(cores)
+                dst = random.choice(isd_cores[random.choice(other_isds)])
+                G.add_edge(src, dst)
 
 
     for node, data in G.nodes(data=True):

@@ -19,47 +19,29 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.3.8:50307",
-                        "remote": "10.100.3.7:50308"
+                        "local": "10.100.3.8:50305",
+                        "remote": "10.100.3.5:50308"
                     },
-                    "isd_as": "18-ffaa:3:7",
-                    "link_to": "peer",
+                    "isd_as": "18-ffaa:3:5",
+                    "link_to": "child",
                     "mtu": 1472
                 },
                 "2": {
                     "underlay": {
-                        "local": "10.100.3.8:50304",
-                        "remote": "10.100.3.4:50308"
+                        "local": "10.100.3.8:50301",
+                        "remote": "10.100.3.1:50308"
                     },
-                    "isd_as": "18-ffaa:3:4",
+                    "isd_as": "18-ffaa:3:1",
                     "link_to": "parent",
                     "mtu": 1472
                 },
                 "3": {
                     "underlay": {
-                        "local": "10.100.3.8:50302",
-                        "remote": "10.100.3.2:50308"
+                        "local": "10.100.3.8:50303",
+                        "remote": "10.100.3.3:50308"
                     },
-                    "isd_as": "18-ffaa:3:2",
-                    "link_to": "parent",
-                    "mtu": 1472
-                },
-                "4": {
-                    "underlay": {
-                        "local": "10.100.3.8:50306",
-                        "remote": "10.100.3.6:50308"
-                    },
-                    "isd_as": "18-ffaa:3:6",
+                    "isd_as": "18-ffaa:3:3",
                     "link_to": "peer",
-                    "mtu": 1472
-                },
-                "5": {
-                    "underlay": {
-                        "local": "10.100.3.8:50305",
-                        "remote": "10.100.3.5:50308"
-                    },
-                    "isd_as": "18-ffaa:3:5",
-                    "link_to": "parent",
                     "mtu": 1472
                 }
             }

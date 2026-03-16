@@ -1,0 +1,32 @@
+{
+    "attributes": [],
+    "isd_as": "16-ffaa:1:17",
+    "dispatched_ports": "31000-32767",
+    "mtu": 1472,
+    "control_service": {
+        "cs": {
+            "addr": "127.0.0.1:31000"
+        }
+    },
+    "discovery_service": {
+        "cs": {
+            "addr": "127.0.0.1:31000"
+        }
+    },
+    "border_routers": {
+        "br": {
+            "internal_addr": "127.0.0.1:31002",
+            "interfaces": {
+                "1": {
+                    "underlay": {
+                        "local": "10.100.1.17:50112",
+                        "remote": "10.100.1.12:50117"
+                    },
+                    "isd_as": "16-ffaa:1:12",
+                    "link_to": "parent",
+                    "mtu": 1472
+                }
+            }
+        }
+    }
+}

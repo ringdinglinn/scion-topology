@@ -7,13 +7,13 @@ import os
 from pathlib import Path
 
 # Get the single furthest pair
-def furthest_pair(G):
+def furthest_pair(G, isd_1, isd_2):
     lengths = dict(nx.all_pairs_shortest_path_length(G))
     max_dist = 0
     pair = (None, None)
     for u in lengths:
         for v, d in lengths[u].items():
-            if d > max_dist:
+            if d > max_dist and G.nodes[u]["isd_n"] == isd_1 and G.nodes[v]["isd_n"] == isd_2:
                 max_dist = d
                 pair = (u, v)
     return max_dist, *pair
@@ -38,20 +38,26 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     G = yaml_to_graph(args.config)
-    dist, u, v = furthest_pair(G)
-    u = node_to_name(u)
-    dst_address = node_to_address(v)
-    result = get_show_paths(u, dst_address)
+    isds = {data["isd_n"] for _, data in G.nodes(data=True)}
+    isds = sorted(list(isds))
+    for i, isd_1 in enumerate(isds):
+        for j in range(i, len(isds)):
+            dist, u, v = furthest_pair(G, isd_1, isds[j])
+            src_name = node_to_name(G.nodes[u])
+            dst_address = node_to_address(G.nodes[v])
+            result = get_show_paths(src_name, dst_address)
 
-    config_name = Path(args.config).stem  
-    path = os.path.join(args.output_path, f"{config_name}_{u}_to_{v}.txt")
+            config_name = Path(args.config).stem  
+            path = os.path.join(args.output_path, f"{config_name}_{src_name}_to_{node_to_name(G.nodes[v])}.txt")
 
-    if result:
-        with open(path, "w") as f:
-            f.write(result)
-        print(f"Output saved to {args.output_path}")
-    else:
-        print("Failed to get paths")
+            os.makedirs(args.output_path, exist_ok=True)
+
+            if result:
+                with open(path, "w") as f:
+                    f.write(result)
+                print(f"Output saved to {args.output_path}")
+            else:
+                print("Failed to get paths")
 
 
 

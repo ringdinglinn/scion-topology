@@ -16,6 +16,7 @@ AVAILABLE_METRICS = [
     "avg_degree", "cheeger constant", "degree_entropy", "degree_std",
     "effective graph resistance", "natural connectivity", "sparsity",
     "spectral gap", "spectral radius", "transitivity", "|E|", "|V|",
+    "intra_isd_paths_scion","inter_isd_paths_scion"
 ]
 
 def parse_args():
@@ -24,10 +25,12 @@ def parse_args():
     )
     parser.add_argument("--input", "-i", required=True, help="Path to the CSV file.")
     parser.add_argument("--output-dir", "-o", default="plots", help="Directory to save plots.")
+    parser.add_argument("--border-breadth", action="store_true")
+    parser.add_argument("--graphs", action="store_true")
     parser.add_argument("--topologies-path", "-t", required=True, help="The path that contains all the topology configurations.")
     parser.add_argument(
         "--metrics", "-m", nargs="+", default=AVAILABLE_METRICS,
-        help=f"Metrics to plot. Available: {AVAILABLE_METRICS}"
+        help="Metrics to plot. Use '+' to overlay multiple on the same plot, e.g. 'intra_isd_paths_scion+inter_isd_paths_scion'"
     )
     parser.add_argument(
         "--group-by", "-g", required=True,
@@ -113,12 +116,15 @@ def main():
     graph_dict = {Path(topo_path).stem: yaml_to_graph(topo_path) for topo_path in topo_paths}
 
 
-    for metric in args.metrics:
-        plot_grid.plot_metric(metric, groups, args.output_dir, args.sort_by)
+    metric_groups = [m.split("+") for m in args.metrics]
+    for metric_group in metric_groups:
+        plot_grid.plot_metrics(metric_group, groups, args.output_dir, args.sort_by)
 
-    # plot_grid_bars.plot_metric("border_breadth", groups, args.output_dir, args.sort_by)
+    if (args.border_breadth):
+        plot_grid_bars.plot_metric_grid("border_breadth", groups, args.output_dir, args.sort_by)
 
-    plot_graph_grid(groups, graph_dict, args.output_dir + "/graphs")
+    if (args.graphs):
+        plot_graph_grid(groups, graph_dict, args.output_dir + "/graphs")
 
 
 if __name__ == "__main__":
