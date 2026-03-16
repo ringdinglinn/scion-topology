@@ -94,6 +94,17 @@ def build_validity_matrix(G, A):
 
 # -------- Eigenpairs updating -------
 
+def get_core_adj_mat(G):
+    core_nodes = []
+    core_indices = {}
+    for node in G.nodes():
+        if (G.nodes[node]["is_core"]):
+            core_indices[node] = len(core_nodes)
+            core_nodes.append(node)
+    C = G.subgraph(core_nodes)
+    A_core = nx.adjacency_matrix(C)
+    return A_core, core_indices
+
 def get_top_t_eigenpairs(A, t):
     eigenvalues, eigenvectors = eigsh(A, k=t, which='LM')
     idx = np.argsort(eigenvalues)[::-1]
@@ -121,17 +132,22 @@ def optimize(G, path, t=10, k=5):
     t = min(t, n-2)
     A = nx.adjacency_matrix(G).toarray().astype(float)
     L = nx.laplacian_matrix(G).toarray().astype(float)
+    A_core, core_indices = get_core_adj_mat(G)
+    print(core_indices)
+    L_core = np.diag(np.sum(A_core, axis=1)) - A_core
     mus, V = get_bottom_t_eigenpairs(L, t)
     for i in range(k):
         flag = False
         max_index = 0
         min_index = 0
 
+        # SCION constraint 1: only cores form inter-isd connections
         CC = build_validity_matrix(G, A)
         dR = delta_mu2_matrix(V[:, 1])
 
         flat_max = (dR * CC).ravel()
         dR_max_list = np.argsort(flat_max)[::-1]
+
 
         dR[A != 1] = math.inf
         flat_min = dR.ravel()
@@ -142,12 +158,32 @@ def optimize(G, path, t=10, k=5):
             new_edge = np.unravel_index(dR_max_list[max_index], (n, n))
             A[old_edge[0], old_edge[1]] = 0
             A[old_edge[1], old_edge[0]] = 0
+            A[new_edge[0], new_edge[1]] = 1
             A[new_edge[1], new_edge[0]] = 1
-            A[new_edge[1], new_edge[0]] = 1
+
+            u_, v_ = int(old_edge[0]), int(old_edge[1])
+            if (u_ in core_indices and v_ in core_indices):
+                u, v = core_indices[u_], core_indices[v_]
+                A_core[u, v] = 0
+                A_core[v, u] = 0
+            u_, v_ = int(new_edge[0]), int(new_edge[1])
+            if (new_edge[0] in core_indices and new_edge[1] in core_indices):
+                u, v = core_indices[u_], core_indices[v_]
+                A_core[u, v] = 1
+                A_core[v, u] = 1
 
             L = np.diag(np.sum(A, axis=1)) - A
             mus, V = get_bottom_t_eigenpairs(L, t)
-            if (mus[1] <= 0 or old_edge not in G.edges()):
+            # SCION constraint 2: cutting an edge may not disconnect the cores-subgraph
+            L_core = np.diag(np.sum(A_core, axis=1)) - A_core
+            mus_core, _ = get_bottom_t_eigenpairs(L_core, t)
+
+            if (mus_core[1] <= 0):
+                print(f"prevented disconnection of core by cutting edge {G.nodes[old_edge[0]]['label']} -- {G.nodes[old_edge[1]]['label']}")
+            else:
+                print(f"edge {G.nodes[old_edge[0]]['label']} -- {G.nodes[old_edge[1]]['label']} is not core disrupting")
+
+            if (mus[1] <= 0 or mus_core[1] <= 0 or old_edge not in G.edges()):
                 max_index += 1
             elif (new_edge in G.edges()):
                 min_index += 1

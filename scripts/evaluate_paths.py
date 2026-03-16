@@ -54,8 +54,8 @@ def parse_folder(folder_path, output_path, topo_path):
 
         intra_isd_paths_scion = []
         inter_isd_paths_scion = []
-        intra_isd_paths_nx = []
-        inter_isd_paths_nx = []
+        # intra_isd_paths_nx = []
+        # inter_isd_paths_nx = []
 
         for isd1, as1, isd2, as2, f in topo_file_list:
             label_to_node = get_label_to_node_dict(G)
@@ -68,17 +68,15 @@ def parse_folder(folder_path, output_path, topo_path):
             print(f"Computing all simple paths for {topo_name}, {isd1}-{as1}, {isd2}-{as2}")
             if (isd1 == isd2):
                 intra_isd_paths_scion.append(count_paths(f))
-                intra_isd_paths_nx.append(count_simple_paths(G, u, v))
+                # intra_isd_paths_nx.append(count_simple_paths(G, u, v))
             else:
                 inter_isd_paths_scion.append(count_paths(f))
-                inter_isd_paths_nx.append(count_simple_paths(G, u, v))
+                # inter_isd_paths_nx.append(count_simple_paths(G, u, v))
 
         rows.append({
             "topology": topo_name,
             "intra_isd_paths_scion": sum(intra_isd_paths_scion) / len(intra_isd_paths_scion) if len(intra_isd_paths_scion) > 0 else 0,
             "inter_isd_paths_scion": sum(inter_isd_paths_scion) / len(inter_isd_paths_scion) if len(inter_isd_paths_scion) > 0 else 0,
-            "intra_isd_paths_nx": sum(intra_isd_paths_nx) / len(intra_isd_paths_nx) if len(intra_isd_paths_nx) > 0 else 0,
-            "inter_isd_paths_nx": sum(inter_isd_paths_nx) / len(inter_isd_paths_nx) if len(inter_isd_paths_nx) > 0 else 0,
         })
 
     new_data = pd.DataFrame(rows)

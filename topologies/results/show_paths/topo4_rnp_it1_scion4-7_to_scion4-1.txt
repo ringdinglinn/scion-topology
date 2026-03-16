@@ -1,22 +1,3 @@
 Available paths to 19-ffaa:4:1
 5 Hops:
-[ 0] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 4>3 19-ffaa:4:2 2>4 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-7 Hops:
-[ 1] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 5>3 20-ffaa:5:5 2>2 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-8 Hops:
-[ 2] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 1>4 17-ffaa:2:1 2>1 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-9 Hops:
-[ 3] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 1>4 17-ffaa:2:1 1>1 17-ffaa:2:4 3>2 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-[ 4] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 1>4 17-ffaa:2:1 3>1 17-ffaa:2:3 3>4 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-10 Hops:
-[ 5] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 1>4 17-ffaa:2:1 1>1 17-ffaa:2:4 2>2 17-ffaa:2:3 3>4 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-[ 6] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 1>4 17-ffaa:2:1 3>1 17-ffaa:2:3 2>2 17-ffaa:2:4 3>2 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-[ 7] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 1>4 17-ffaa:2:1 5>1 18-ffaa:3:1 3>2 20-ffaa:5:1 1>4 20-ffaa:5:5 2>2 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-11 Hops:
-[ 8] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 5>3 20-ffaa:5:5 4>1 20-ffaa:5:1 2>3 18-ffaa:3:1 1>5 17-ffaa:2:1 2>1 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-12 Hops:
-[ 9] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 5>3 20-ffaa:5:5 4>1 20-ffaa:5:1 2>3 18-ffaa:3:1 1>5 17-ffaa:2:1 1>1 17-ffaa:2:4 3>2 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-[10] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 5>3 20-ffaa:5:5 4>1 20-ffaa:5:1 2>3 18-ffaa:3:1 1>5 17-ffaa:2:1 3>1 17-ffaa:2:3 3>4 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-13 Hops:
-[11] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 5>3 20-ffaa:5:5 4>1 20-ffaa:5:1 2>3 18-ffaa:3:1 1>5 17-ffaa:2:1 1>1 17-ffaa:2:4 2>2 17-ffaa:2:3 3>4 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-[12] Hops: [19-ffaa:4:7 1>2 19-ffaa:4:4 3>4 16-ffaa:1:8 3>7 16-ffaa:1:1 5>3 20-ffaa:5:5 4>1 20-ffaa:5:1 2>3 18-ffaa:3:1 1>5 17-ffaa:2:1 3>1 17-ffaa:2:3 2>2 17-ffaa:2:4 3>2 17-ffaa:2:2 3>1 19-ffaa:4:5 3>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[0] Hops: [19-ffaa:4:7 1>3 19-ffaa:4:4 4>2 19-ffaa:4:2 3>3 19-ffaa:4:5 4>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1

@@ -19,20 +19,20 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.5.3:50502",
-                        "remote": "10.100.5.2:50503"
+                        "local": "10.100.5.3:50501",
+                        "remote": "10.100.5.1:50503"
                     },
-                    "isd_as": "20-ffaa:5:2",
+                    "isd_as": "20-ffaa:5:1",
                     "link_to": "parent",
                     "mtu": 1472
                 },
                 "2": {
                     "underlay": {
-                        "local": "10.100.5.3:50504",
-                        "remote": "10.100.5.4:50503"
+                        "local": "10.100.5.3:50506",
+                        "remote": "10.100.5.6:50503"
                     },
-                    "isd_as": "20-ffaa:5:4",
-                    "link_to": "child",
+                    "isd_as": "20-ffaa:5:6",
+                    "link_to": "peer",
                     "mtu": 1472
                 }
             }

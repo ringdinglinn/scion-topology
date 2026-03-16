@@ -172,21 +172,21 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-# TOPO_OPTIM_FOLDERS := topo1
-
-# topo-optim:
-# 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
-# 		file=$$(ls configurations/$$topo/*_it0.yaml) ; \
-# 		python3 scripts/rewire_spectral.py -tc $$file ; \
-# 		python3 scripts/rewire_np.py -tc $$file ; \
-# 	done
+TOPO_OPTIM_FOLDERS := topo7
 
 topo-optim:
-	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
-		file=$$(ls $$topo*_it0.yaml) ; \
+	@for topo in $(TOPO_OPTIM_FOLDERS); do \
+		file=$$(ls topologies/$$topo/*_it0.yaml) ; \
 		python3 scripts/rewire_spectral.py -tc $$file ; \
 		python3 scripts/rewire_np.py -tc $$file ; \
 	done
+
+# topo-optim:
+# 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
+# 		file=$$(ls $$topo*_it0.yaml) ; \
+# 		python3 scripts/rewire_spectral.py -tc $$file ; \
+# 		python3 scripts/rewire_np.py -tc $$file ; \
+# 	done
 
 topo-eval: 
 	python3 scripts/evaluate_topology.py -i $(TOPOLOGY_FOLDER) -o $(RESULTS); \
@@ -210,9 +210,9 @@ run-path-evaluation:
 		for file in $$topo*_it*.yaml; do \
 			$(MAKE) path-test TOPOLOGY_FILE=$$file; \
 		done; \
-	done \
-	$(MAKE) eval-paths
-	$(MAKE) plot-paths
+	done
+	@$(MAKE) eval-paths
+	@$(MAKE) plot-paths
 
 path-test:
 	@echo ">>> Running path evaluation for $(TOPOLOGY_FILE)"; \

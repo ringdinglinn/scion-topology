@@ -15,30 +15,6 @@ hosts:
   address: 10.100.1.4
   isd: 16
   as: 4
-- name: scion1-5
-  address: 10.100.1.5
-  isd: 16
-  as: 5
-- name: scion1-6
-  address: 10.100.1.6
-  isd: 16
-  as: 6
-- name: scion1-7
-  address: 10.100.1.7
-  isd: 16
-  as: 7
-- name: scion1-8
-  address: 10.100.1.8
-  isd: 16
-  as: 8
-- name: scion1-9
-  address: 10.100.1.9
-  isd: 16
-  as: 9
-- name: scion1-10
-  address: 10.100.1.10
-  isd: 16
-  as: 10
 - name: scion2-1
   address: 10.100.2.1
   isd: 17
@@ -59,6 +35,10 @@ hosts:
   address: 10.100.2.5
   isd: 17
   as: 5
+- name: scion2-6
+  address: 10.100.2.6
+  isd: 17
+  as: 6
 - name: scion3-1
   address: 10.100.3.1
   isd: 18
@@ -83,26 +63,6 @@ hosts:
   address: 10.100.3.6
   isd: 18
   as: 6
-- name: scion3-7
-  address: 10.100.3.7
-  isd: 18
-  as: 7
-- name: scion3-8
-  address: 10.100.3.8
-  isd: 18
-  as: 8
-- name: scion3-9
-  address: 10.100.3.9
-  isd: 18
-  as: 9
-- name: scion3-10
-  address: 10.100.3.10
-  isd: 18
-  as: 10
-- name: scion3-11
-  address: 10.100.3.11
-  isd: 18
-  as: 11
 - name: scion4-1
   address: 10.100.4.1
   isd: 19
@@ -123,26 +83,6 @@ hosts:
   address: 10.100.4.5
   isd: 19
   as: 5
-- name: scion4-6
-  address: 10.100.4.6
-  isd: 19
-  as: 6
-- name: scion4-7
-  address: 10.100.4.7
-  isd: 19
-  as: 7
-- name: scion4-8
-  address: 10.100.4.8
-  isd: 19
-  as: 8
-- name: scion4-9
-  address: 10.100.4.9
-  isd: 19
-  as: 9
-- name: scion4-10
-  address: 10.100.4.10
-  isd: 19
-  as: 10
 - name: scion5-1
   address: 10.100.5.1
   isd: 20
@@ -163,5 +103,25 @@ hosts:
   address: 10.100.5.5
   isd: 20
   as: 5
+- name: scion5-6
+  address: 10.100.5.6
+  isd: 20
+  as: 6
+- name: scion6-1
+  address: 10.100.6.1
+  isd: 21
+  as: 1
+- name: scion6-2
+  address: 10.100.6.2
+  isd: 21
+  as: 2
+- name: scion6-3
+  address: 10.100.6.3
+  isd: 21
+  as: 3
+- name: scion6-4
+  address: 10.100.6.4
+  isd: 21
+  as: 4
 default_port: 8080
 default_sciond_address: 127.0.0.1

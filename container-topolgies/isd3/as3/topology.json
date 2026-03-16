@@ -28,20 +28,20 @@
                 },
                 "2": {
                     "underlay": {
-                        "local": "10.100.3.3:50308",
-                        "remote": "10.100.3.8:50303"
+                        "local": "10.100.3.3:50304",
+                        "remote": "10.100.3.4:50303"
                     },
-                    "isd_as": "18-ffaa:3:8",
-                    "link_to": "peer",
+                    "isd_as": "18-ffaa:3:4",
+                    "link_to": "parent",
                     "mtu": 1472
                 },
                 "3": {
                     "underlay": {
-                        "local": "10.100.3.3:50309",
-                        "remote": "10.100.3.9:50303"
+                        "local": "10.100.3.3:50305",
+                        "remote": "10.100.3.5:50303"
                     },
-                    "isd_as": "18-ffaa:3:9",
-                    "link_to": "child",
+                    "isd_as": "18-ffaa:3:5",
+                    "link_to": "peer",
                     "mtu": 1472
                 }
             }

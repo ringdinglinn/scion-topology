@@ -23,6 +23,15 @@
                         "remote": "10.100.6.2:50604"
                     },
                     "isd_as": "21-ffaa:6:2",
+                    "link_to": "peer",
+                    "mtu": 1472
+                },
+                "2": {
+                    "underlay": {
+                        "local": "10.100.6.4:50603",
+                        "remote": "10.100.6.3:50604"
+                    },
+                    "isd_as": "21-ffaa:6:3",
                     "link_to": "parent",
                     "mtu": 1472
                 }

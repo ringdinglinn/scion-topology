@@ -19,29 +19,20 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.1.7:50104",
-                        "remote": "10.100.1.4:50107"
+                        "local": "10.100.1.7:50108",
+                        "remote": "10.100.1.8:50107"
                     },
-                    "isd_as": "16-ffaa:1:4",
+                    "isd_as": "16-ffaa:1:8",
                     "link_to": "parent",
                     "mtu": 1472
                 },
                 "2": {
                     "underlay": {
-                        "local": "10.100.1.7:50108",
-                        "remote": "10.100.1.8:50107"
+                        "local": "10.100.1.7:50104",
+                        "remote": "10.100.1.4:50107"
                     },
-                    "isd_as": "16-ffaa:1:8",
-                    "link_to": "child",
-                    "mtu": 1472
-                },
-                "3": {
-                    "underlay": {
-                        "local": "10.100.1.7:50110",
-                        "remote": "10.100.1.10:50107"
-                    },
-                    "isd_as": "16-ffaa:1:10",
-                    "link_to": "child",
+                    "isd_as": "16-ffaa:1:4",
+                    "link_to": "parent",
                     "mtu": 1472
                 }
             }
