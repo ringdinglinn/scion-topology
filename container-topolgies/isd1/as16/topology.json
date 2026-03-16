@@ -1,5 +1,7 @@
 {
-    "attributes": [],
+    "attributes": [
+        "core"
+    ],
     "isd_as": "16-ffaa:1:16",
     "dispatched_ports": "31000-32767",
     "mtu": 1472,
@@ -19,37 +21,28 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.1.16:50102",
-                        "remote": "10.100.1.2:50116"
+                        "local": "10.100.1.16:50109",
+                        "remote": "10.100.1.9:50116"
                     },
-                    "isd_as": "16-ffaa:1:2",
-                    "link_to": "peer",
+                    "isd_as": "16-ffaa:1:9",
+                    "link_to": "core",
                     "mtu": 1472
                 },
                 "2": {
                     "underlay": {
-                        "local": "10.100.1.16:50104",
-                        "remote": "10.100.1.4:50116"
+                        "local": "10.100.1.16:50108",
+                        "remote": "10.100.1.8:50116"
                     },
-                    "isd_as": "16-ffaa:1:4",
-                    "link_to": "parent",
+                    "isd_as": "16-ffaa:1:8",
+                    "link_to": "core",
                     "mtu": 1472
                 },
                 "3": {
                     "underlay": {
-                        "local": "10.100.1.16:50112",
-                        "remote": "10.100.1.12:50116"
+                        "local": "10.100.1.16:50123",
+                        "remote": "10.100.1.23:50116"
                     },
-                    "isd_as": "16-ffaa:1:12",
-                    "link_to": "child",
-                    "mtu": 1472
-                },
-                "4": {
-                    "underlay": {
-                        "local": "10.100.1.16:50115",
-                        "remote": "10.100.1.15:50116"
-                    },
-                    "isd_as": "16-ffaa:1:15",
+                    "isd_as": "16-ffaa:1:23",
                     "link_to": "child",
                     "mtu": 1472
                 }

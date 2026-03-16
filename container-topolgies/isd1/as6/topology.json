@@ -19,19 +19,55 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.1.6:50101",
-                        "remote": "10.100.1.1:50106"
+                        "local": "10.100.1.6:50110",
+                        "remote": "10.100.1.10:50106"
                     },
-                    "isd_as": "16-ffaa:1:1",
+                    "isd_as": "16-ffaa:1:10",
                     "link_to": "parent",
                     "mtu": 1472
                 },
                 "2": {
                     "underlay": {
-                        "local": "10.100.1.6:50102",
-                        "remote": "10.100.1.2:50106"
+                        "local": "10.100.1.6:50104",
+                        "remote": "10.100.1.4:50106"
                     },
-                    "isd_as": "16-ffaa:1:2",
+                    "isd_as": "16-ffaa:1:4",
+                    "link_to": "parent",
+                    "mtu": 1472
+                },
+                "3": {
+                    "underlay": {
+                        "local": "10.100.1.6:50112",
+                        "remote": "10.100.1.12:50106"
+                    },
+                    "isd_as": "16-ffaa:1:12",
+                    "link_to": "peer",
+                    "mtu": 1472
+                },
+                "4": {
+                    "underlay": {
+                        "local": "10.100.1.6:50105",
+                        "remote": "10.100.1.5:50106"
+                    },
+                    "isd_as": "16-ffaa:1:5",
+                    "link_to": "peer",
+                    "mtu": 1472
+                },
+                "5": {
+                    "underlay": {
+                        "local": "10.100.1.6:50113",
+                        "remote": "10.100.1.13:50106"
+                    },
+                    "isd_as": "16-ffaa:1:13",
+                    "link_to": "peer",
+                    "mtu": 1472
+                },
+                "6": {
+                    "underlay": {
+                        "local": "10.100.1.6:50121",
+                        "remote": "10.100.1.21:50106"
+                    },
+                    "isd_as": "16-ffaa:1:21",
                     "link_to": "peer",
                     "mtu": 1472
                 }

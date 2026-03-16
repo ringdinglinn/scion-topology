@@ -214,19 +214,6 @@ def partition_pass(adj_sp, r, mode="min", mask_nodes=[], iteration=0):
 
     return opt_cut, edge_scores, edge_nrs
 
-# --- Aggregate Min Cut Edges ------------------------------------------------
-
-def get_cur_min_edges(min_cut_data):
-    return -np.minimum(min_cut_data, 0)
-
-def aggregate_min_edges(agg_min_edges, cur_min_edges):
-    if (agg_min_edges.shape[0] == 0):
-        agg_min_edges = cur_min_edges.copy()
-    else:
-        agg_min_edges = np.maximum(agg_min_edges, cur_min_edges)
-    return agg_min_edges
-
-
 # --- Top-level ---------------------------------------------------------------
 
 def run_network_partitioning(adj_mat, mode="min", mask_nodes=[], iteration=0):
@@ -278,9 +265,6 @@ def run_network_partitioning(adj_mat, mode="min", mask_nodes=[], iteration=0):
     return results[best_r]
 
 
-
-# --- get_global_max_cut ------------------------------------------------------
-
 def can_connect(G, u, v):
     return G.nodes[u]["isd_n"] == G.nodes[v]["isd_n"] or (G.nodes[u]["is_core"] and G.nodes[v]["is_core"])
 
@@ -312,15 +296,15 @@ def find_old_edge(G, min_res, adj_sp):
     degrees = np.array(adj_sp.sum(axis=1)).flatten()
 
     partition_a = min_res["partition"]
-    bridges = set(nx.bridges(G))
+    # bridges = set(nx.bridges(G))
 
-    def has_no_deg1_neighbors(node):
-        neighbors = adj_csr.getrow(node).indices
-        return not any(degrees[nb] == 1 for nb in neighbors)
+    # def has_no_deg1_neighbors(node):
+    #     neighbors = adj_csr.getrow(node).indices
+    #     return not any(degrees[nb] == 1 for nb in neighbors)
 
     finite_edges = {uv: score for uv, score in min_res["edge_nrs"].items() if score != math.inf}
     # finite_edges = {(u,v): score for (u,v), score in finite_edges.items() if G.degree(u) > 1 and G.degree(v) > 1}
-    finite_edges = {(u,v): score for (u,v), score in finite_edges.items() if (u, v) not in bridges and (v, u) not in bridges}
+    # finite_edges = {(u,v): score for (u,v), score in finite_edges.items() if (u, v) not in bridges and (v, u) not in bridges}
 
     if (len(finite_edges) == 0):
         print("No finite edges")
@@ -413,10 +397,10 @@ def get_max_cheeger(G):
 
     return min_max_isd_cheeger
 
-def iteration(G, max_cheeger, iteration, min_res):
+def iteration(G, max_cheeger, iteration, min_res, non_core_nodes):
     full_adj = nx.to_scipy_sparse_array(G).tocoo()
 
-    min_res = run_network_partitioning(full_adj)
+    min_res = run_network_partitioning(full_adj, iteration=iteration)
 
     # draw_partition(G, min_res["partition"])
     # show_edge_weights(G, min_res["edge_nrs"])
@@ -436,9 +420,10 @@ def iteration(G, max_cheeger, iteration, min_res):
         H.remove_edge(del_edge[0], del_edge[1])
 
         H_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), iteration=iteration)
+        core_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), mask_nodes=non_core_nodes)
 
-        print(f"H cheeger: {H_min_res['cheeger']}, G cheeger: {min_res['cheeger']}")
-        if (H_min_res["cheeger"] < min_res["cheeger"]):
+        print(f"H cheeger: {H_min_res['cheeger']}, G cheeger: {min_res['cheeger']}, core cheeger: {core_min_res['cheeger']}")
+        if (H_min_res["cheeger"] < min_res["cheeger"] or core_min_res["cheeger"] <= 0.0):
             return G, min_res
         
         return H, H_min_res
@@ -458,5 +443,6 @@ if __name__ == "__main__":
     max_cheeger = get_max_cheeger(G)
     for i in range(MAX_ITERATIONS):
         min_res = run_network_partitioning(nx.to_scipy_sparse_array(G).tocoo())
-        G, min_res = iteration(G, max_cheeger, i, min_res)
+        non_core_nodes = [node for node in G.nodes() if not G.nodes[node]["is_core"]]
+        G, min_res = iteration(G, max_cheeger, i, min_res, non_core_nodes)
         graph_to_yaml(G, path + f"_it{i+1}.yaml")

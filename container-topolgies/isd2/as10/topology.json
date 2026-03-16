@@ -23,6 +23,33 @@
                         "remote": "10.100.2.9:50210"
                     },
                     "isd_as": "17-ffaa:2:9",
+                    "link_to": "peer",
+                    "mtu": 1472
+                },
+                "2": {
+                    "underlay": {
+                        "local": "10.100.2.10:50205",
+                        "remote": "10.100.2.5:50210"
+                    },
+                    "isd_as": "17-ffaa:2:5",
+                    "link_to": "peer",
+                    "mtu": 1472
+                },
+                "3": {
+                    "underlay": {
+                        "local": "10.100.2.10:50208",
+                        "remote": "10.100.2.8:50210"
+                    },
+                    "isd_as": "17-ffaa:2:8",
+                    "link_to": "peer",
+                    "mtu": 1472
+                },
+                "4": {
+                    "underlay": {
+                        "local": "10.100.2.10:50213",
+                        "remote": "10.100.2.13:50210"
+                    },
+                    "isd_as": "17-ffaa:2:13",
                     "link_to": "parent",
                     "mtu": 1472
                 }

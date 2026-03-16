@@ -19,11 +19,20 @@
             "interfaces": {
                 "1": {
                     "underlay": {
+                        "local": "10.100.1.20:50101",
+                        "remote": "10.100.1.1:50120"
+                    },
+                    "isd_as": "16-ffaa:1:1",
+                    "link_to": "parent",
+                    "mtu": 1472
+                },
+                "2": {
+                    "underlay": {
                         "local": "10.100.1.20:50105",
                         "remote": "10.100.1.5:50120"
                     },
                     "isd_as": "16-ffaa:1:5",
-                    "link_to": "parent",
+                    "link_to": "peer",
                     "mtu": 1472
                 }
             }
