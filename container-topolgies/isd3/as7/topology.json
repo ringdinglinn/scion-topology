@@ -1,7 +1,5 @@
 {
-    "attributes": [
-        "core"
-    ],
+    "attributes": [],
     "isd_as": "18-ffaa:3:7",
     "dispatched_ports": "31000-32767",
     "mtu": 1472,
@@ -21,65 +19,11 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.3.7:50308",
-                        "remote": "10.100.3.8:50307"
-                    },
-                    "isd_as": "18-ffaa:3:8",
-                    "link_to": "child",
-                    "mtu": 1472
-                },
-                "2": {
-                    "underlay": {
-                        "local": "10.100.3.7:50302",
-                        "remote": "10.100.3.2:50307"
-                    },
-                    "isd_as": "18-ffaa:3:2",
-                    "link_to": "child",
-                    "mtu": 1472
-                },
-                "3": {
-                    "underlay": {
-                        "local": "10.100.3.7:50303",
-                        "remote": "10.100.3.3:50307"
-                    },
-                    "isd_as": "18-ffaa:3:3",
-                    "link_to": "child",
-                    "mtu": 1472
-                },
-                "4": {
-                    "underlay": {
-                        "local": "10.100.3.7:50306",
-                        "remote": "10.100.3.6:50307"
-                    },
-                    "isd_as": "18-ffaa:3:6",
-                    "link_to": "core",
-                    "mtu": 1472
-                },
-                "5": {
-                    "underlay": {
                         "local": "10.100.3.7:50304",
                         "remote": "10.100.3.4:50307"
                     },
                     "isd_as": "18-ffaa:3:4",
-                    "link_to": "child",
-                    "mtu": 1472
-                },
-                "6": {
-                    "underlay": {
-                        "local": "10.100.3.7:50309",
-                        "remote": "10.100.3.9:50307"
-                    },
-                    "isd_as": "18-ffaa:3:9",
-                    "link_to": "child",
-                    "mtu": 1472
-                },
-                "7": {
-                    "underlay": {
-                        "local": "10.100.3.7:50305",
-                        "remote": "10.100.3.5:50307"
-                    },
-                    "isd_as": "18-ffaa:3:5",
-                    "link_to": "core",
+                    "link_to": "parent",
                     "mtu": 1472
                 }
             }

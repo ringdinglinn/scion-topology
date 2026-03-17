@@ -133,29 +133,31 @@ def optimize(G, path, t=10, k=5):
     A = nx.adjacency_matrix(G).toarray().astype(float)
     L = nx.laplacian_matrix(G).toarray().astype(float)
     A_core, core_indices = get_core_adj_mat(G)
-    print(core_indices)
     L_core = np.diag(np.sum(A_core, axis=1)) - A_core
     mus, V = get_bottom_t_eigenpairs(L, t)
     for i in range(k):
         flag = False
-        max_index = 0
-        min_index = 0
 
         # SCION constraint 1: only cores form inter-isd connections
         CC = build_validity_matrix(G, A)
         dR = delta_mu2_matrix(V[:, 1])
 
-        flat_max = (dR * CC).ravel()
-        dR_max_list = np.argsort(flat_max)[::-1]
+        dR_max = dR * CC
 
-
-        dR[A != 1] = math.inf
-        flat_min = dR.ravel()
-        dR_min_list =  np.argsort(flat_min)
+        dR_min = dR_max.copy()
+        dR_min[A == 0] = math.inf
 
         while (not flag):
-            old_edge = np.unravel_index(dR_min_list[min_index], (n, n))
-            new_edge = np.unravel_index(dR_max_list[max_index], (n, n))
+            old_edge = np.unravel_index(np.argmin(dR_min), (n, n))
+            a_min = dR_min[old_edge]
+
+            new_edge = np.unravel_index(np.argmax(dR_max), (n,n))
+            a_max = dR_max[new_edge]
+
+            if (a_max - a_min <= 0):
+                print(f"negative impact!")
+                break
+
             A[old_edge[0], old_edge[1]] = 0
             A[old_edge[1], old_edge[0]] = 0
             A[new_edge[0], new_edge[1]] = 1
@@ -178,21 +180,19 @@ def optimize(G, path, t=10, k=5):
             L_core = np.diag(np.sum(A_core, axis=1)) - A_core
             mus_core, _ = get_bottom_t_eigenpairs(L_core, t)
 
-            if (mus_core[1] <= 0):
-                print(f"prevented disconnection of core by cutting edge {G.nodes[old_edge[0]]['label']} -- {G.nodes[old_edge[1]]['label']}")
-            else:
-                print(f"edge {G.nodes[old_edge[0]]['label']} -- {G.nodes[old_edge[1]]['label']} is not core disrupting")
-
             if (mus[1] <= 0 or mus_core[1] <= 0 or old_edge not in G.edges()):
-                max_index += 1
+                # min_index += 1
+                dR_min[*old_edge] = math.inf
             elif (new_edge in G.edges()):
-                min_index += 1
+                # max_index += 1
+                dR_max[*new_edge] = -math.inf
             else:
                 # highlight_edges(G, {old_edge})
                 G.remove_edge(*old_edge)
                 G.add_edge(*new_edge)
                 # highlight_edges(G, {new_edge}, color="limegreen")
                 graph_to_yaml(G, path + "_it" + str(i+1) + ".yaml")
+
                 flag = True
         
 if __name__ == "__main__":

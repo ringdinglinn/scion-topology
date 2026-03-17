@@ -45,6 +45,24 @@
                     "isd_as": "16-ffaa:1:23",
                     "link_to": "child",
                     "mtu": 1472
+                },
+                "4": {
+                    "underlay": {
+                        "local": "10.100.1.16:50304",
+                        "remote": "10.100.3.4:50116"
+                    },
+                    "isd_as": "18-ffaa:3:4",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "5": {
+                    "underlay": {
+                        "local": "10.100.1.16:50306",
+                        "remote": "10.100.3.6:50116"
+                    },
+                    "isd_as": "18-ffaa:3:6",
+                    "link_to": "core",
+                    "mtu": 1472
                 }
             }
         }

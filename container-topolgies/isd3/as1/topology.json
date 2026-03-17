@@ -21,32 +21,14 @@
             "interfaces": {
                 "1": {
                     "underlay": {
-                        "local": "10.100.3.1:50201",
-                        "remote": "10.100.2.1:50301"
+                        "local": "10.100.3.1:50308",
+                        "remote": "10.100.3.8:50301"
                     },
-                    "isd_as": "17-ffaa:2:1",
-                    "link_to": "core",
-                    "mtu": 1472
-                },
-                "2": {
-                    "underlay": {
-                        "local": "10.100.3.1:50115",
-                        "remote": "10.100.1.15:50301"
-                    },
-                    "isd_as": "16-ffaa:1:15",
-                    "link_to": "core",
-                    "mtu": 1472
-                },
-                "3": {
-                    "underlay": {
-                        "local": "10.100.3.1:50303",
-                        "remote": "10.100.3.3:50301"
-                    },
-                    "isd_as": "18-ffaa:3:3",
+                    "isd_as": "18-ffaa:3:8",
                     "link_to": "child",
                     "mtu": 1472
                 },
-                "4": {
+                "2": {
                     "underlay": {
                         "local": "10.100.3.1:50302",
                         "remote": "10.100.3.2:50301"
@@ -55,12 +37,57 @@
                     "link_to": "child",
                     "mtu": 1472
                 },
-                "5": {
+                "3": {
                     "underlay": {
                         "local": "10.100.3.1:50306",
                         "remote": "10.100.3.6:50301"
                     },
                     "isd_as": "18-ffaa:3:6",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "4": {
+                    "underlay": {
+                        "local": "10.100.3.1:50303",
+                        "remote": "10.100.3.3:50301"
+                    },
+                    "isd_as": "18-ffaa:3:3",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "5": {
+                    "underlay": {
+                        "local": "10.100.3.1:50304",
+                        "remote": "10.100.3.4:50301"
+                    },
+                    "isd_as": "18-ffaa:3:4",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "6": {
+                    "underlay": {
+                        "local": "10.100.3.1:50203",
+                        "remote": "10.100.2.3:50301"
+                    },
+                    "isd_as": "17-ffaa:2:3",
+                    "link_to": "core",
+                    "mtu": 1472
+                },
+                "7": {
+                    "underlay": {
+                        "local": "10.100.3.1:50311",
+                        "remote": "10.100.3.11:50301"
+                    },
+                    "isd_as": "18-ffaa:3:11",
+                    "link_to": "child",
+                    "mtu": 1472
+                },
+                "8": {
+                    "underlay": {
+                        "local": "10.100.3.1:50205",
+                        "remote": "10.100.2.5:50301"
+                    },
+                    "isd_as": "17-ffaa:2:5",
                     "link_to": "core",
                     "mtu": 1472
                 }
