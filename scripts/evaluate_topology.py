@@ -34,13 +34,5 @@ if __name__ == "__main__":
     new_data = pd.DataFrame([{"topology": name, **metrics} for name, metrics in results.items()])
 
     output_path = Path(args.output_path)
-    if output_path.exists():
-        existing = pd.read_csv(output_path)
-        cols_to_drop = [col for col in new_data.columns if col in existing.columns and col != "topology"]
-        existing = existing.drop(columns=cols_to_drop)
-        merged = existing.merge(new_data, on="topology", how="outer")
-        merged.to_csv(output_path, index=False)
-        print(f"Updated existing CSV at {output_path}")
-    else:
-        new_data.to_csv(output_path, index=False)
-        print(f"Created new CSV at {output_path}")
+    new_data.to_csv(output_path, index=False)
+    print(f"Created new CSV at {output_path}")

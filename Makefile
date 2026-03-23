@@ -172,21 +172,23 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-TOPO_OPTIM_FOLDERS := topo3
+TOPO_OPTIM_FOLDERS := topo0 topo3
+
+# topo-optim:
+# 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
+# 		file=$$(ls topologies/$$topo/*_it0.yaml) ; \
+# 		python3 scripts/rewire_spectral.py -tc $$file ; \
+# 		python3 scripts/rewire_np.py -tc $$file ; \
+# 		python3 scripts/rewire_spectral.py -tc $$file --add-only ; \
+# 		python3 scripts/rewire_np.py -tc $$file --add-only ; \
+# 	done
 
 topo-optim:
-	@for topo in $(TOPO_OPTIM_FOLDERS); do \
-		file=$$(ls topologies/$$topo/*_it0.yaml) ; \
+	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
+		file=$$(ls $$topo*_it0.yaml) ; \
 		python3 scripts/rewire_spectral.py -tc $$file ; \
 		python3 scripts/rewire_np.py -tc $$file ; \
 	done
-
-# topo-optim:
-# 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
-# 		file=$$(ls $$topo*_it0.yaml) ; \
-# 		python3 scripts/rewire_spectral.py -tc $$file ; \
-# 		python3 scripts/rewire_np.py -tc $$file ; \
-# 	done
 
 topo-eval: 
 	python3 scripts/evaluate_topology.py -i $(TOPOLOGY_FOLDER) -o $(RESULTS); \

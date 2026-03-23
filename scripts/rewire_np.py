@@ -397,19 +397,12 @@ def get_max_cheeger(G):
 
     return min_max_isd_cheeger
 
-def iteration(G, max_cheeger, iteration, min_res, non_core_nodes):
+def iteration(G, max_cheeger, iteration, min_res, non_core_nodes, delete=True):
     full_adj = nx.to_scipy_sparse_array(G).tocoo()
 
     min_res = run_network_partitioning(full_adj, iteration=iteration)
 
-    # draw_partition(G, min_res["partition"])
-    # show_edge_weights(G, min_res["edge_nrs"])
-
     print(f"max cheeger: {max_cheeger}")
-
-    if (max_cheeger <= min_res["cheeger"]):
-        print(f"reached maximum configuration in iteration {iteration}!")
-        return G, min_res
 
     del_edge = find_old_edge(G, min_res, full_adj)
     new_edge = find_new_edge(min_res, G.nodes(), full_adj)
@@ -417,7 +410,9 @@ def iteration(G, max_cheeger, iteration, min_res, non_core_nodes):
     if (del_edge != None and new_edge != None):    
         H = G.copy()
         H.add_edge(new_edge[0], new_edge[1])
-        H.remove_edge(del_edge[0], del_edge[1])
+        
+        if (delete):
+            H.remove_edge(del_edge[0], del_edge[1])
 
         H_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), iteration=iteration)
         core_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), mask_nodes=non_core_nodes)
@@ -435,14 +430,20 @@ MAX_ITERATIONS = 5
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--topology-config", "-tc", required=True)
+    parser.add_argument("--add-only", action="store_true")
     args = parser.parse_args()
     G = yaml_to_graph(args.topology_config)
     path = args.topology_config.split("_")[0]
-    path += "_rnp"
+
+    if args.add_only:
+        path += "_rnpa"
+    else:
+        path += "_rnp"
+
 
     max_cheeger = get_max_cheeger(G)
     for i in range(MAX_ITERATIONS):
         min_res = run_network_partitioning(nx.to_scipy_sparse_array(G).tocoo())
         non_core_nodes = [node for node in G.nodes() if not G.nodes[node]["is_core"]]
-        G, min_res = iteration(G, max_cheeger, i, min_res, non_core_nodes)
+        G, min_res = iteration(G, max_cheeger, i, min_res, non_core_nodes, delete=(not args.add_only))
         graph_to_yaml(G, path + f"_it{i+1}.yaml")
