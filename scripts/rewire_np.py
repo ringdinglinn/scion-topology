@@ -38,10 +38,13 @@ def row_sums_from_cut(adj_sp, cut_values, n):
     np.add.at(sums, adj_sp.row, cut_values)
     return torch.from_numpy(sums)
 
-def create_cut(adj_sp, cut_values, assignment):
-    n_cuts = int((cut_values == -1).sum()) // 2  # symmetric: each cut edge counted twice
+def create_cut(cut_values, assignment, degree_diff=None):
+    n_cuts = int((cut_values == -1).sum()) // 2
     a = int((assignment == -1).sum().item())
     b = int((assignment == 1).sum().item())
+    if degree_diff is not None:
+        a = degree_diff[assignment == -1].sum()
+        b = degree_diff[assignment == 1].sum()
     return n_cuts, a, b
 
 def cheeger(c, a, b):
@@ -73,6 +76,28 @@ def calculate_prospective_cut_sizes(assignment, mask_bool):
     num_pos[mask_bool] = 0
     return num_neg, num_pos, n
 
+def calculate_prospective_cut_sizes_weighted(assignment, mask_bool, degree_diff):
+    num_neg_total = (assignment == -1).sum().item()
+    num_pos_total = (assignment == 1).sum().item()
+    n = num_neg_total + num_pos_total
+
+    neg_diff_total = degree_diff[assignment.numpy() == -1].sum()
+    pos_diff_total = degree_diff[assignment.numpy() == 1].sum()
+
+    # prospective degree_diff sums after each node flips
+    # if node is -1, flipping removes it from neg and adds to pos
+    # if node is +1, flipping removes it from pos and adds to neg
+    num_neg = np.where(assignment.numpy() == -1,
+                       neg_diff_total - degree_diff,
+                       neg_diff_total + degree_diff)
+    num_pos = np.where(assignment.numpy() == 1,
+                       pos_diff_total - degree_diff,
+                       pos_diff_total + degree_diff)
+
+    num_neg[mask_bool] = 0
+    num_pos[mask_bool] = 0
+    return num_neg, num_pos, n
+
 def update_balanced(balanced, assignment, r, m, mask_bool):
     a, b, n = calculate_prospective_cut_sizes(assignment, mask_bool)
 
@@ -84,11 +109,16 @@ def update_balanced(balanced, assignment, r, m, mask_bool):
     non_empty_ok = (a > 0) & (b > 0)
     balanced[:] = balance_ok & non_empty_ok 
 
-def partition_pass(adj_sp, r, m, mode="min", mask_nodes=[], it=0):
+def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
     n = adj_sp.shape[0]
 
     mask_bool = np.zeros(n, dtype=bool)
     mask_bool[mask_nodes] = True
+
+    degree = np.zeros(n, dtype=np.float32)
+    np.add.at(degree, full_adj.row, 1)
+    max_degree = degree.max() + 1
+    degree_diff = max_degree - degree
 
     assignment = initial_partition(n, r, mask_nodes, it=it)
 
@@ -102,15 +132,21 @@ def partition_pass(adj_sp, r, m, mode="min", mask_nodes=[], it=0):
 
     gains = np.zeros(n, dtype=float)
 
-    cut = create_cut(adj_sp, cut_values, assignment)
+    if (mode=="dc"):
+        cut = create_cut(cut_values, assignment, degree_diff=degree_diff)
+    else:
+        cut = create_cut(cut_values, assignment)
     opt_cut = (cheeger(*cut), np.where(assignment == -1)[0].tolist(), cut_values, gains)
 
     while (moveable & balanced).any().item():
-        num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
+        if (mode=="dc"):
+            num_neg, num_pos, _ = calculate_prospective_cut_sizes_weighted(assignment, mask_bool, degree_diff)
+        else:
+            num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
         min_size = np.minimum(num_neg, num_pos)
     
         row_sums = row_sums_from_cut(adj_sp, cut_values, n)
-        gains[moveable] = (-row_sums / min_size)[moveable] if mode == "min" else (row_sums / min_size)[moveable]
+        gains[moveable] = (-row_sums / min_size)[moveable]
 
         candidates = np.where(moveable & balanced)[0]
 
@@ -124,31 +160,31 @@ def partition_pass(adj_sp, r, m, mode="min", mask_nodes=[], it=0):
         update_balanced(balanced, assignment, r, m, mask_bool)
         moveable[max_vertex] = False
 
-        cut = create_cut(adj_sp, cut_values, assignment)
+        if (mode=="dc"):
+            cut = create_cut(cut_values, assignment, degree_diff=degree_diff)
+        else:
+            cut = create_cut(cut_values, assignment)
         ch = cheeger(*cut)
 
-        if (mode == "min" and ch < opt_cut[0]) or (mode == "max" and ch > opt_cut[0]):
+        if (ch < opt_cut[0]):
             opt_cut = (ch, np.where(assignment == -1)[0].tolist(), cut_values, gains)
 
     return opt_cut
 
 # --- Top-level ---------------------------------------------------------------
 
-def run_network_partitioning(adj_mat, r_values, m, mode="min", mask_nodes=[], it=0):
+def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[], it=0):
     results = {}
-    opt = (lambda x, y: x < y) if mode == "min" else (lambda x, y: x > y)
-
+    opt = (lambda x, y: x < y)
     masked_adj = initialize_adj_matrix(adj_mat, mask_nodes, adj_mat.shape[0])
 
     for r in r_values:
-        best_cheeger = math.inf if mode == "min" else -math.inf
+        best_cheeger = math.inf
         best_partition = None
         updates = 0
 
         for i in range(NR_PASSES):
-            res = partition_pass(masked_adj, r, m, mode=mode, mask_nodes=mask_nodes, it=(it*NR_PASSES + i))
-            if res is None:
-                continue
+            res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=(it*NR_PASSES + i))
 
             ch, part_a, cut_vals, gains = res
             if opt(ch, best_cheeger):
@@ -166,7 +202,7 @@ def run_network_partitioning(adj_mat, r_values, m, mode="min", mask_nodes=[], it
     results = {k: v for k, v in results.items() if v is not None}
     if not results:
         return None
-    best_r = max(results.keys(), key=lambda k: results[k]["cheeger"] if mode == "max" else -results[k]["cheeger"])
+    best_r = min(results.keys(), key=lambda k: results[k]["cheeger"])
     return results[best_r]
 
 def can_connect(G, u, v):
@@ -293,9 +329,9 @@ def iteration(G, it, min_res, non_core_nodes, delete=True, add=True):
         if (delete):
             H.remove_edge(del_edge[0], del_edge[1])
 
-        H_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, it=it)
+        H_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, mode="global", it=it)
         print(f"it: {i}, new cheeger: {H_min_res['cheeger']}, old cheeger: {min_res['cheeger']}")
-        core_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, mask_nodes=non_core_nodes)
+        core_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, mode="global", mask_nodes=non_core_nodes)
 
         if (add and H_min_res["cheeger"] < min_res["cheeger"]):
             return G, min_res
@@ -326,7 +362,7 @@ if __name__ == "__main__":
         path += "_rnp"
 
 
-    min_res = run_network_partitioning(nx.to_scipy_sparse_array(G).tocoo(), R_VALUES, M)
+    min_res = run_network_partitioning(nx.to_scipy_sparse_array(G).tocoo(), R_VALUES, M, mode="global")
     for i in range(MAX_ITERATIONS):
         non_core_nodes = [node for node in G.nodes() if not G.nodes[node]["is_core"]]
         G, min_res = iteration(G, i, min_res, non_core_nodes, delete=(not args.add_only), add=(not args.delete_only))
