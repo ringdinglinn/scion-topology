@@ -52,10 +52,10 @@ def get_bottom_t_eigenpairs(L, t):
     return eigenvalues[idx], eigenvectors[:, idx]
 
 def delta_mu2_matrix(v2):
-    ones = np.ones(v2.shape[0])
-    return np.abs(v2 @ ones.T - ones @ v2.T)
+    v2 = v2.reshape(-1, 1)
+    return np.abs(v2 - v2.T)
 
-def optimize(G, path, t=10, k=5, delete=True):
+def optimize(G, path, t=10, k=5, delete=True, add=True):
     n = len(G.nodes())
     t = min(t, n-2)
     A = nx.adjacency_matrix(G).toarray()
@@ -117,7 +117,8 @@ def optimize(G, path, t=10, k=5, delete=True):
                 # highlight_edges(G, {old_edge})
                 if delete:
                     G.remove_edge(*old_edge)
-                G.add_edge(*new_edge)
+                if add:
+                    G.add_edge(*new_edge)
                 # highlight_edges(G, {new_edge}, color="limegreen")
                 graph_to_yaml(G, path + "_it" + str(i+1) + ".yaml")
 
@@ -127,16 +128,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--topology-config", "-tc", required=True)
     parser.add_argument("--add-only", action="store_true")
+    parser.add_argument("--delete-only", action="store_true")
     args = parser.parse_args()
     G = yaml_to_graph(args.topology_config)
     path = args.topology_config.split("_")[0]
 
     if args.add_only:
         path += "_raca"
-        optimize(G, path, delete=False)
+    elif args.delete_only:
+        path += "_racd"
     else:
         path += "_rac"
-        optimize(G, path, delete=True)
+
+
+    optimize(G, path, delete=(not args.add_only), add=(not args.delete_only))
 
 
 
