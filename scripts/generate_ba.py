@@ -14,7 +14,9 @@ if __name__ == "__main__":
     nr_isds = random.randint(3, 6)
 
     n = random.randint(20, 50)
-    nr_core_nodes = min(random.randint(3, 15), nr_isds)
+    nr_core_nodes = max(random.randint(6, 20), nr_isds)
+    nr_core_nodes = min(n, nr_core_nodes)
+    print(f"nr core nodes: {nr_core_nodes}")
 
     def isd_sizes(nr_isds, nr_nodes):
         fracs = [random.random() for isd in range(nr_isds)]
@@ -92,7 +94,7 @@ if __name__ == "__main__":
     # sparsify -------
 
     bridges = set(nx.bridges(G))
-    p = 0.4
+    p = 0.2
     for edge in list(G.edges()):
         if edge not in bridges and (edge[1], edge[0]) not in bridges:
             if random.random() < p:

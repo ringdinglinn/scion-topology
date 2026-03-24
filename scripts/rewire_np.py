@@ -25,27 +25,21 @@ def initialize_adj_matrix(adj_sp, mask_nodes, n):
     )
 
 def compute_cut_values(adj_sp, assignment):
-    """
-    For each edge (i,j): cut_value = w_ij * s[i] * s[j]
-    Returns numpy array of values (same indices as adj_sp.row/col).
-    """
     s = assignment.numpy()
     return adj_sp.data * s[adj_sp.row] * s[adj_sp.col]
 
 def row_sums_from_cut(adj_sp, cut_values, n):
-    """Scatter-add cut_values by row index. Returns torch tensor."""
     sums = np.zeros(n, dtype=np.float32)
     np.add.at(sums, adj_sp.row, cut_values)
     return torch.from_numpy(sums)
 
-def create_cut(cut_values, assignment, degree_diff=None):
+def create_cut(cut_values, assignment, degree):
     n_cuts = int((cut_values == -1).sum()) // 2
     a = int((assignment == -1).sum().item())
     b = int((assignment == 1).sum().item())
-    if degree_diff is not None:
-        a = degree_diff[assignment == -1].sum()
-        b = degree_diff[assignment == 1].sum()
-    return n_cuts, a, b
+    smaller = assignment == (-1 if a < b else 1)
+    deg_sum = degree[smaller].sum()
+    return n_cuts, a, b, deg_sum
 
 def cheeger(c, a, b):
     return c / min(a, b)
@@ -76,28 +70,6 @@ def calculate_prospective_cut_sizes(assignment, mask_bool):
     num_pos[mask_bool] = 0
     return num_neg, num_pos, n
 
-def calculate_prospective_cut_sizes_weighted(assignment, mask_bool, degree_diff):
-    num_neg_total = (assignment == -1).sum().item()
-    num_pos_total = (assignment == 1).sum().item()
-    n = num_neg_total + num_pos_total
-
-    neg_diff_total = degree_diff[assignment.numpy() == -1].sum()
-    pos_diff_total = degree_diff[assignment.numpy() == 1].sum()
-
-    # prospective degree_diff sums after each node flips
-    # if node is -1, flipping removes it from neg and adds to pos
-    # if node is +1, flipping removes it from pos and adds to neg
-    num_neg = np.where(assignment.numpy() == -1,
-                       neg_diff_total - degree_diff,
-                       neg_diff_total + degree_diff)
-    num_pos = np.where(assignment.numpy() == 1,
-                       pos_diff_total - degree_diff,
-                       pos_diff_total + degree_diff)
-
-    num_neg[mask_bool] = 0
-    num_pos[mask_bool] = 0
-    return num_neg, num_pos, n
-
 def update_balanced(balanced, assignment, r, m, mask_bool):
     a, b, n = calculate_prospective_cut_sizes(assignment, mask_bool)
 
@@ -117,8 +89,6 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
 
     degree = np.zeros(n, dtype=np.float32)
     np.add.at(degree, full_adj.row, 1)
-    max_degree = degree.max() + 1
-    degree_diff = max_degree - degree
 
     assignment = initial_partition(n, r, mask_nodes, it=it)
 
@@ -132,17 +102,11 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
 
     gains = np.zeros(n, dtype=float)
 
-    if (mode=="dc"):
-        cut = create_cut(cut_values, assignment, degree_diff=degree_diff)
-    else:
-        cut = create_cut(cut_values, assignment)
-    opt_cut = (cheeger(*cut), np.where(assignment == -1)[0].tolist(), cut_values, gains)
+    cut = create_cut(cut_values, assignment, degree)
+    opt_cut = (cheeger(cut[0], cut[1], cut[2]), np.where(assignment == -1)[0].tolist(), cut[3])
 
     while (moveable & balanced).any().item():
-        if (mode=="dc"):
-            num_neg, num_pos, _ = calculate_prospective_cut_sizes_weighted(assignment, mask_bool, degree_diff)
-        else:
-            num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
+        num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
         min_size = np.minimum(num_neg, num_pos)
     
         row_sums = row_sums_from_cut(adj_sp, cut_values, n)
@@ -160,14 +124,13 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
         update_balanced(balanced, assignment, r, m, mask_bool)
         moveable[max_vertex] = False
 
-        if (mode=="dc"):
-            cut = create_cut(cut_values, assignment, degree_diff=degree_diff)
-        else:
-            cut = create_cut(cut_values, assignment)
-        ch = cheeger(*cut)
-
+        cut = create_cut(cut_values, assignment, degree)
+        ch = cheeger(cut[0], cut[1], cut[2])
         if (ch < opt_cut[0]):
-            opt_cut = (ch, np.where(assignment == -1)[0].tolist(), cut_values, gains)
+            opt_cut = (ch, np.where(assignment == -1)[0].tolist(), cut[3])
+        elif (ch == opt_cut[0]):
+            if (cut[3] <= opt_cut[2]):
+                opt_cut = (ch, np.where(assignment == -1)[0].tolist(), cut[3])
 
     return opt_cut
 
@@ -186,17 +149,17 @@ def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[], it=
         for i in range(NR_PASSES):
             res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=(it*NR_PASSES + i))
 
-            ch, part_a, cut_vals, gains = res
+            ch, part_a, degrees = res
             if opt(ch, best_cheeger):
                 best_cheeger = ch
-                best_partition = (ch, part_a, cut_vals, gains)
+                best_partition = (ch, part_a, degrees)
                 updates += 1
 
         if best_partition is None:
             results[str(r)] = None
         else:
-            ch, part_a, cut_vals, gains = best_partition
-            results[str(r)] = {"cheeger": ch, "partition": part_a, "cut_values": cut_vals, "gains": gains}
+            ch, part_a, degrees = best_partition
+            results[str(r)] = {"cheeger": ch, "partition": part_a}
 
     
     results = {k: v for k, v in results.items() if v is not None}
