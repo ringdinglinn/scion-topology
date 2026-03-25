@@ -25,7 +25,7 @@ def initialize_adj_matrix(adj_sp, mask_nodes, n):
     )
 
 def compute_cut_values(adj_sp, assignment):
-    s = assignment.numpy()
+    s = assignment
     return adj_sp.data * s[adj_sp.row] * s[adj_sp.col]
 
 def row_sums_from_cut(adj_sp, cut_values, n):
@@ -46,14 +46,27 @@ def cheeger(c, a, b):
 
 # --- NETWORK PARTITIONING ---------------------------------------------------------------
 
+# def initial_partition(n, r, mask_nodes, it=0):
+#     keep_mask = torch.ones(n, dtype=torch.bool)
+#     keep_mask[mask_nodes] = False
+#     perm = torch.arange(n)[keep_mask][torch.randperm(keep_mask.sum())]
+#     r = min(1 - r, r)
+#     k = max(1, round(len(perm) * r))
+#     A_idx = perm[:k]
+#     assignment = torch.ones(n, dtype=torch.int32)
+#     assignment[A_idx] = -1
+#     assignment[mask_nodes] = 0
+#     return assignment
+
 def initial_partition(n, r, mask_nodes, it=0):
-    keep_mask = torch.ones(n, dtype=torch.bool)
+    keep_mask = np.ones(n, dtype=bool)
     keep_mask[mask_nodes] = False
-    perm = torch.arange(n)[keep_mask][torch.randperm(keep_mask.sum())]
+    rng = np.random.default_rng(it)
+    perm = rng.permutation(np.arange(n)[keep_mask])
     r = min(1 - r, r)
     k = max(1, round(len(perm) * r))
     A_idx = perm[:k]
-    assignment = torch.ones(n, dtype=torch.int32)
+    assignment = np.ones(n, dtype=np.int32)
     assignment[A_idx] = -1
     assignment[mask_nodes] = 0
     return assignment
@@ -137,36 +150,36 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
 # --- Top-level ---------------------------------------------------------------
 
 def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[], it=0):
-    results = {}
-    opt = (lambda x, y: x < y)
+    # results = {}
+    # opt = (lambda x, y: x < y)
     masked_adj = initialize_adj_matrix(adj_mat, mask_nodes, adj_mat.shape[0])
 
+    best_cheeger = math.inf
+    best_partition = None
+    updates = 0
     for r in r_values:
-        best_cheeger = math.inf
-        best_partition = None
-        updates = 0
 
         for i in range(NR_PASSES):
-            res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=(it*NR_PASSES + i))
+            res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=i)
 
             ch, part_a, degrees = res
-            if opt(ch, best_cheeger):
+            if (ch < best_cheeger or (ch == best_cheeger and best_partition[2] > degrees)):
                 best_cheeger = ch
                 best_partition = (ch, part_a, degrees)
                 updates += 1
 
-        if best_partition is None:
-            results[str(r)] = None
-        else:
-            ch, part_a, degrees = best_partition
-            results[str(r)] = {"cheeger": ch, "partition": part_a}
+        # if best_partition is None:
+        #     results[str(r)] = None
+        # else:
+        #     ch, part_a, degrees = best_partition
+        #     results[str(r)] = {"cheeger": ch, "partition": part_a}
 
     
-    results = {k: v for k, v in results.items() if v is not None}
-    if not results:
-        return None
-    best_r = min(results.keys(), key=lambda k: results[k]["cheeger"])
-    return results[best_r]
+    # results = {k: v for k, v in results.items() if v is not None}
+    # if not results:
+    #     return None
+    # best_r = min(results.keys(), key=lambda k: results[k]["cheeger"])
+    return {"cheeger": best_partition[0], "partition": best_partition[1]}
 
 def can_connect(G, u, v):
     return G.nodes[u]["isd_n"] == G.nodes[v]["isd_n"] or (G.nodes[u]["is_core"] and G.nodes[v]["is_core"])
@@ -283,6 +296,9 @@ def iteration(G, it, min_res, non_core_nodes, delete=True, add=True):
 
     node_scores = get_new_edge_scores(full_adj, min_res, it)
     new_edge = find_new_edge(min_res, G.nodes(), full_adj, node_scores)
+    # degrees = np.array([G.degree(n) for n in G.nodes()])
+    # degree_diff = degrees.max() - degrees
+    # new_edge = find_new_edge(min_res, G.nodes(), full_adj, degree_diff)
 
     if (del_edge != None and new_edge != None):    
         H = G.copy()
