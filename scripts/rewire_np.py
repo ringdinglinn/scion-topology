@@ -8,7 +8,7 @@ from helpers.parse_topology import yaml_to_graph, graph_to_yaml
 import argparse
 import matplotlib.pyplot as plt
 
-NR_PASSES = 5
+NR_PASSES = 6
 R_VALUES_DC = [0.4575, 0.37524]
 R_VALUES = [0.05, 0.15, 0.25, 0.35, 0.45]
 M_DC = 0.0425
@@ -49,12 +49,14 @@ def cheeger(c, a, b):
 def initial_partition(n, r, mask_nodes, it=0):
     keep_mask = np.ones(n, dtype=bool)
     keep_mask[mask_nodes] = False
-    perm = np.random.permutation(np.arange(n)[keep_mask])
+    rng = np.random.default_rng(it)
+    perm = rng.permutation(np.arange(n)[keep_mask])
     r = min(1 - r, r)
     k = max(1, round(len(perm) * r))
-    A_idx = perm[:k]
+    # Rotate perm by it so each iteration picks a different slice
+    perm = np.roll(perm, it)
     assignment = np.ones(n, dtype=np.int32)
-    assignment[A_idx] = -1
+    assignment[perm[:k]] = -1
     assignment[mask_nodes] = 0
     return assignment
 
@@ -108,7 +110,7 @@ def update_balanced(balanced, assignment, r, m, mask_bool):
     non_empty_ok = (a > 0) & (b > 0)
     balanced[:] = balance_ok & non_empty_ok 
 
-def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0, prev_cheeger=math.inf):
+def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0, deg_bias=False):
     n = adj_sp.shape[0]
 
     mask_bool = np.zeros(n, dtype=bool)
@@ -117,11 +119,10 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0, prev_
     degree = np.zeros(n, dtype=np.float32)
     np.add.at(degree, full_adj.row, 1)
 
-    print(prev_cheeger)
-    # if (prev_cheeger != math.inf and prev_cheeger > 1):
-    #     assignment = initial_partition_deg_bias(n, r, mask_nodes, degree, it=it)
-    # else:
-    assignment = initial_partition(n, r, mask_nodes, it=it)
+    if (deg_bias):
+        assignment = initial_partition_deg_bias(n, r, mask_nodes, degree, it=it)
+    else:
+        assignment = initial_partition(n, r, mask_nodes, it=it)
 
     moveable = np.ones(n, dtype=bool)
     moveable[mask_nodes] = False
@@ -178,7 +179,15 @@ def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[], it=
     for r in r_values:
 
         for i in range(NR_PASSES):
-            res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=i, prev_cheeger=best_cheeger)
+            res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=i)
+
+            ch, part_a, degrees = res
+            if (ch < best_cheeger or (ch == best_cheeger and best_partition[2] > degrees)):
+                best_cheeger = ch
+                best_partition = (ch, part_a, degrees)
+                updates += 1
+
+            res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=i, deg_bias=True)
 
             ch, part_a, degrees = res
             if (ch < best_cheeger or (ch == best_cheeger and best_partition[2] > degrees)):
