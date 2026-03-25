@@ -46,46 +46,26 @@ def cheeger(c, a, b):
 
 # --- NETWORK PARTITIONING ---------------------------------------------------------------
 
-def initial_partition(n, r, mask_nodes, it=0):
+def initial_partition(n, r, mask_nodes, it=0, rng=None):
+    if rng is None:
+        rng = np.random.default_rng()  # fresh random generator
+
     keep_mask = np.ones(n, dtype=bool)
     keep_mask[mask_nodes] = False
-    rng = np.random.default_rng(it)
+
     perm = rng.permutation(np.arange(n)[keep_mask])
+
     r = min(1 - r, r)
     k = max(1, round(len(perm) * r))
-    # Rotate perm by it so each iteration picks a different slice
+
     perm = np.roll(perm, it)
+
     assignment = np.ones(n, dtype=np.int32)
     assignment[perm[:k]] = -1
     assignment[mask_nodes] = 0
-    return assignment
-
-def initial_partition_deg_bias(n, r, mask_nodes, degrees, it=0):
-    keep_mask = np.ones(n, dtype=bool)
-    keep_mask[mask_nodes] = False
-    unmasked = np.arange(n)[keep_mask]
-
-    # Sort unmasked nodes by degree, A gets the lowest
-    sorted_by_degree = unmasked[np.argsort(degrees[unmasked])]
-    r = min(1 - r, r)
-    k = max(1, round(len(sorted_by_degree) * r))
-
-    assignment = np.ones(n, dtype=np.int32)
-    assignment[sorted_by_degree[:k]] = -1  # A = low degree
-    assignment[mask_nodes] = 0
-
-    # Each iteration swaps the highest-degree A with the lowest-degree B
-    for _ in range(it):
-        A_nodes = np.where(assignment == -1)[0]
-        B_nodes = np.where(assignment == 1)[0]
-        if len(A_nodes) == 0 or len(B_nodes) == 0:
-            break
-        top_A = A_nodes[np.argmax(degrees[A_nodes])]
-        bot_B = B_nodes[np.argmin(degrees[B_nodes])]
-        assignment[top_A] = 1
-        assignment[bot_B] = -1
 
     return assignment
+
 
 def calculate_prospective_cut_sizes(assignment, mask_bool):
     num_neg_total = (assignment == -1).sum().item()
@@ -110,7 +90,7 @@ def update_balanced(balanced, assignment, r, m, mask_bool):
     non_empty_ok = (a > 0) & (b > 0)
     balanced[:] = balance_ok & non_empty_ok 
 
-def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0, deg_bias=False):
+def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
     n = adj_sp.shape[0]
 
     mask_bool = np.zeros(n, dtype=bool)
@@ -119,10 +99,7 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0, deg_b
     degree = np.zeros(n, dtype=np.float32)
     np.add.at(degree, full_adj.row, 1)
 
-    if (deg_bias):
-        assignment = initial_partition_deg_bias(n, r, mask_nodes, degree, it=it)
-    else:
-        assignment = initial_partition(n, r, mask_nodes, it=it)
+    assignment = initial_partition(n, r, mask_nodes, it=it)
 
     moveable = np.ones(n, dtype=bool)
     moveable[mask_nodes] = False
@@ -180,14 +157,6 @@ def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[], it=
 
         for i in range(NR_PASSES):
             res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=i)
-
-            ch, part_a, degrees = res
-            if (ch < best_cheeger or (ch == best_cheeger and best_partition[2] > degrees)):
-                best_cheeger = ch
-                best_partition = (ch, part_a, degrees)
-                updates += 1
-
-            res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=i, deg_bias=True)
 
             ch, part_a, degrees = res
             if (ch < best_cheeger or (ch == best_cheeger and best_partition[2] > degrees)):
