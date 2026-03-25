@@ -8,7 +8,7 @@ from helpers.parse_topology import yaml_to_graph, graph_to_yaml
 import argparse
 import matplotlib.pyplot as plt
 
-NR_PASSES = 10
+NR_PASSES = 20
 R_VALUES_DC = [0.37524, 0.4575]
 R_VALUES = [0.05, 0.15, 0.25, 0.35, 0.45]
 M_DC = 0.0425
@@ -46,23 +46,10 @@ def cheeger(c, a, b):
 
 # --- NETWORK PARTITIONING ---------------------------------------------------------------
 
-# def initial_partition(n, r, mask_nodes, it=0):
-#     keep_mask = torch.ones(n, dtype=torch.bool)
-#     keep_mask[mask_nodes] = False
-#     perm = torch.arange(n)[keep_mask][torch.randperm(keep_mask.sum())]
-#     r = min(1 - r, r)
-#     k = max(1, round(len(perm) * r))
-#     A_idx = perm[:k]
-#     assignment = torch.ones(n, dtype=torch.int32)
-#     assignment[A_idx] = -1
-#     assignment[mask_nodes] = 0
-#     return assignment
-
 def initial_partition(n, r, mask_nodes, it=0):
     keep_mask = np.ones(n, dtype=bool)
     keep_mask[mask_nodes] = False
-    rng = np.random.default_rng(it)
-    perm = rng.permutation(np.arange(n)[keep_mask])
+    perm = np.random.permutation(np.arange(n)[keep_mask])
     r = min(1 - r, r)
     k = max(1, round(len(perm) * r))
     A_idx = perm[:k]
@@ -70,6 +57,8 @@ def initial_partition(n, r, mask_nodes, it=0):
     assignment[A_idx] = -1
     assignment[mask_nodes] = 0
     return assignment
+
+
 
 def calculate_prospective_cut_sizes(assignment, mask_bool):
     num_neg_total = (assignment == -1).sum().item()
@@ -119,11 +108,11 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
     opt_cut = (cheeger(cut[0], cut[1], cut[2]), np.where(assignment == -1)[0].tolist(), cut[3])
 
     while (moveable & balanced).any().item():
-        num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
-        min_size = np.minimum(num_neg, num_pos)
+        # num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
+        # min_size = np.minimum(num_neg, num_pos)
     
         row_sums = row_sums_from_cut(adj_sp, cut_values, n)
-        gains[moveable] = (-row_sums / min_size)[moveable]
+        gains[moveable] = (-row_sums)[moveable]
 
         candidates = np.where(moveable & balanced)[0]
 

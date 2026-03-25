@@ -2,7 +2,7 @@
 TOPOLOGY_FILE := topologies/topo7/topo7_it0.yaml
 TOPOLOGY_FOLDER := topologies
 RESULTS := topologies/results/results.csv
-CONTAINER_TOPOLOGIES_PATH := container-topolgies/
+CONTAINER_TOPOLOGIES_PATH := container-topologies/
 PLOTS_FOLDER := topologies/plots/
 SHOWPATHS_DATA := topologies/results/show_paths
 SHOWPATHS_RESULTS := topologies/results/results_paths.csv
@@ -172,21 +172,21 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-TOPO_OPTIM_FOLDERS := topo15
-
-topo-optim:
-	@for topo in $(TOPO_OPTIM_FOLDERS); do \
-		file=$$(ls topologies/$$topo/*_it0.yaml); \
-		python3 scripts/rewire_spectral.py -tc $$file; \
-		python3 scripts/rewire_np.py -tc $$file; \
-	done
+TOPO_OPTIM_FOLDERS := topo17
 
 # topo-optim:
-# 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
-# 		file=$$(ls $$topo*_it0.yaml) ; \
-# 		python3 scripts/rewire_spectral.py -tc $$file ; \
-# 		python3 scripts/rewire_np.py -tc $$file ; \
+# 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
+# 		file=$$(ls topologies/$$topo/*_it0.yaml); \
+# 		python3 scripts/rewire_spectral.py -tc $$file; \
+# 		python3 scripts/rewire_np.py -tc $$file; \
 # 	done
+
+topo-optim:
+	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
+		file=$$(ls $$topo*_it0.yaml) ; \
+		python3 scripts/rewire_spectral.py -tc $$file ; \
+		python3 scripts/rewire_np.py -tc $$file ; \
+	done
 
 topo-eval: 
 	python3 scripts/evaluate_topology.py -i $(TOPOLOGY_FOLDER) -o $(RESULTS); \
