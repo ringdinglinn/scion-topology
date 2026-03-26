@@ -1,4 +1,0 @@
-Available paths to 17-ffaa:2:3
-3 Hops:
-[0] Hops: [17-ffaa:2:2 6>1 17-ffaa:2:4 2>1 17-ffaa:2:3] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-[1] Hops: [17-ffaa:2:2 7>1 17-ffaa:2:1 2>2 17-ffaa:2:3] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1

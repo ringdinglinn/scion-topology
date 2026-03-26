@@ -5,8 +5,8 @@ import argparse
 from collections import defaultdict
 import yaml
 import os
-from helpers.parse_topology import yaml_to_graph
-from helpers.node_addresses import isd_as_to_label, label_to_idx
+from scripts.helpers.parse_topology import yaml_to_graph
+from scripts.helpers.node_addresses import isd_as_to_label, label_to_idx
 from collections import deque
 
 def parse_edge(edge_str):

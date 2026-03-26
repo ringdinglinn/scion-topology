@@ -28,14 +28,13 @@ STATIC_NETWORKS = {
 }
 
 def generate_scion_service(isd, as_num, version):
-    """Generate a single scion service configuration"""
     name = f"scion{isd}-{as_num}"
     return {
         'image': f'{name}:{version}',
         'container_name': name,
         'hostname': name,
         'networks': {
-            f'as_net_{isd}-{as_num}': {} if name != "scion1-5" else {"ipv4_address": "10.1.5.100"},
+            f'as_net_{isd}-{as_num}': {},
             'transit_net': {
                 'ipv4_address': f'10.100.{isd}.{as_num}'
             }
@@ -48,7 +47,6 @@ def generate_scion_service(isd, as_num, version):
     }
 
 def generate_mac_volume_override(isd, as_num):
-    """Generate Mac-specific volume override for a scion service"""
     name = f"scion{isd}-{as_num}"
     return {
         name: {
@@ -60,7 +58,6 @@ def generate_mac_volume_override(isd, as_num):
     }
 
 def generate_network(isd, as_num):
-    """Generate a single as_net network configuration"""
     return {
         f'as_net_{isd}-{as_num}': {
             'ipam': {

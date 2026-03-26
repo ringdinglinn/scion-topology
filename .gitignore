@@ -1,6 +1,8 @@
 captures/
 bats-core/
-configurations/results/
+topology_optimization/data/
+container-topologies/
+tmp/
 
 .DS_Store
 __pycache__/

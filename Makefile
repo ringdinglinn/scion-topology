@@ -1,17 +1,17 @@
 # ==== CONFIG ====
-TOPOLOGY_FILE := topologies/topo7/topo7_it0.yaml
-TOPOLOGY_FOLDER := topologies
-RESULTS := topologies/results/results.csv
-CONTAINER_TOPOLOGIES_PATH := container-topologies/
-PLOTS_FOLDER := topologies/plots/
-SHOWPATHS_DATA := topologies/results/show_paths
-SHOWPATHS_RESULTS := topologies/results/results_paths.csv
+NETWORK_CONFIG := topology_optimization/topologies/topo7/topo7_it0.yaml
+TOPOLOGY_FOLDER := topology_optimization/topologies
+RESULTS := topology_optimization/results/results.csv
+CONTAINER_TOPOLOGIES_PATH := tmp/container-topologies/
+PLOTS_FOLDER := topology_optimization/plots/
+SHOWPATHS_DATA := topology_optimization/data/show_paths
+SHOWPATHS_RESULTS := topology_optimization/results/results_paths.csv
 
 CONFIG_MK := .isd-vars.mk
 
 .PHONY: $(CONFIG_MK)
 $(CONFIG_MK):
-	@python3 scripts/parse-isd-config.py $(TOPOLOGY_FILE) > $(CONFIG_MK)
+	@python3 -m scripts.parse-isd-config $(NETWORK_CONFIG) > $(CONFIG_MK)
 
 -include $(CONFIG_MK)
 
@@ -36,7 +36,7 @@ build-debian-base:
 
 build-base: build-debian-base
 	docker build -t scion-base:$(VERSION) \
-		--build-arg TOPOLOGY_FILE=$(TOPOLOGY_FILE) \
+		--build-arg NETWORK_CONFIG=$(NETWORK_CONFIG) \
 		-f ./base/Dockerfile \
 		.
 
@@ -79,7 +79,7 @@ rebuild: generate-compose generate-topologies rebuild-base rebuild-monitor rebui
 rebuild-base:
 	docker build --no-cache -t debian-systemd:$(VERSION) .
 	docker build --no-cache -t scion-base:$(VERSION) \
-		--build-arg TOPOLOGY_FILE=$(TOPOLOGY_FILE) \
+		--build-arg NETWORK_CONFIG=$(NETWORK_CONFIG) \
 		-f ./base/Dockerfile \
 		.
 
@@ -106,24 +106,24 @@ rebuild-monitor: generate-nodeconfig generate-web-ui
 		./monitor
 
 generate-compose:
-	python3 scripts/generate-compose.py \
-		--config $(TOPOLOGY_FILE) \
+	python3 -m scripts.generate-compose \
+		--config $(NETWORK_CONFIG) \
 		--version $(VERSION)
 
 generate-topologies:
-	python3 scripts/generate-topologies.py \
-		-tp $(TOPOLOGY_FILE) \
+	python3 -m scripts.generate-topologies \
+		-tp $(NETWORK_CONFIG) \
 		--output-dir $(CONTAINER_TOPOLOGIES_PATH)
 
 generate-nodeconfig:
-	python3 scripts/generate-nodeconfig.py --config $(TOPOLOGY_FILE)
+	python3 -m scripts.generate-nodeconfig --config $(NETWORK_CONFIG)
 
 generate-tests:
-	python3 scripts/generate-tests.py --config $(TOPOLOGY_FILE)
+	python3 -m scripts.generate-tests --config $(NETWORK_CONFIG)
 
 generate-web-ui:
-	python3 scripts/generate-web-ui.py \
-		--config $(TOPOLOGY_FILE) \
+	python3 -m scripts.generate-web-ui \
+		--config $(NETWORK_CONFIG) \
 		--template monitor/index-template.html \
 		--output monitor/index.html
 
@@ -177,22 +177,22 @@ TOPO_OPTIM_FOLDERS := topo0
 # topo-optim:
 # 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
 # 		file=$$(ls topologies/$$topo/*_it0.yaml); \
-# 		python3 scripts/rewire_spectral.py -tc $$file; \
-# 		python3 scripts/rewire_np.py -tc $$file; \
+# 		python3 -m scripts.rewiring.rewire_spectral -tc $$file; \
+# 		python3 -m scripts.rewiring.rewire_np -tc $$file; \
 # 	done
 
 topo-optim:
 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
 		file=$$(ls $$topo*_it0.yaml) ; \
-		python3 scripts/rewire_spectral.py -tc $$file ; \
-		python3 scripts/rewire_np.py -tc $$file ; \
+		python3 -m scripts.rewiring.rewire_spectral -tc $$file -o $$topo -k 5; \
+		python3 -m scripts.rewiring.rewire_np -tc $$file -o $$topo -k 5; \
 	done
 
 topo-eval: 
-	python3 scripts/evaluate_topology.py -i $(TOPOLOGY_FOLDER) -o $(RESULTS); \
+	python3 -m scripts.rewiring.evaluate_topology -i $(TOPOLOGY_FOLDER) -o $(RESULTS); \
 
 topo-plot:
-	python3 scripts/plot_topology.py \
+	python3 -m scripts.rewiring.plot_topology \
 	-i $(RESULTS) \
 	-g "^([^_]+)" \
 	-sg "_([^_]+)_" \
@@ -206,41 +206,41 @@ topo-plot:
 run-path-evaluation:
 	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
 		it0=$$(ls $$topo*_it0.yaml); \
-		$(MAKE) rebuild TOPOLOGY_FILE=$$it0; \
+		$(MAKE) rebuild NETWORK_CONFIG=$$it0; \
 		for file in $$topo*_it*.yaml; do \
-			$(MAKE) path-test TOPOLOGY_FILE=$$file; \
+			$(MAKE) path-test NETWORK_CONFIG=$$file; \
 		done; \
 	done
 	@$(MAKE) eval-paths
 	@$(MAKE) plot-paths
 
 path-test:
-	@echo ">>> Running path evaluation for $(TOPOLOGY_FILE)"; \
+	@echo ">>> Running path evaluation for $(NETWORK_CONFIG)"; \
 	retries=3; \
-	until $(MAKE) up TOPOLOGY_FILE=$(TOPOLOGY_FILE); do \
+	until $(MAKE) up NETWORK_CONFIG=$(NETWORK_CONFIG); do \
 		echo ">>> up failed, retrying ($$retries left)..."; \
 		$(MAKE) down; \
 		retries=$$((retries - 1)); \
 		if [ $$retries -eq 0 ]; then \
-			echo ">>> up failed after retries, skipping $(TOPOLOGY_FILE)"; \
+			echo ">>> up failed after retries, skipping $(NETWORK_CONFIG)"; \
 			$(MAKE) down; \
 			exit 0; \
 		fi; \
 		sleep 5; \
 	done; \
 	sleep 30; \
-	$(MAKE) show-paths TOPOLOGY_FILE=$(TOPOLOGY_FILE) SHOWPATHS_DATA=$(SHOWPATHS_DATA); \
+	$(MAKE) show-paths NETWORK_CONFIG=$(NETWORK_CONFIG) SHOWPATHS_DATA=$(SHOWPATHS_DATA); \
 	$(MAKE) down
 
 
 show-paths:
-	python3 scripts/show_paths.py --config $(TOPOLOGY_FILE) --output-path $(SHOWPATHS_DATA); \
+	python3 -m scripts.rewiring.show_paths --config $(NETWORK_CONFIG) --output-path $(SHOWPATHS_DATA); \
 
 eval-paths:
-	python3 scripts/evaluate_paths.py --folder $(SHOWPATHS_DATA) --topologies $(TOPOLOGY_FOLDER) --output $(SHOWPATHS_RESULTS);  \
+	python3 -m scripts.rewiring.evaluate_paths --folder $(SHOWPATHS_DATA) --topologies $(TOPOLOGY_FOLDER) --output $(SHOWPATHS_RESULTS);  \
 
 plot-paths:
-	python3 scripts/plot_topology.py \
+	python3 -m scripts.rewiring.plot_topology \
 	-i $(SHOWPATHS_RESULTS) \
 	-g "^([^_]+)" \
 	-sg "_([^_]+)_" \

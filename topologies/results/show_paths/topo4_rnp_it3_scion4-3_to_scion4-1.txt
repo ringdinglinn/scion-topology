@@ -1,5 +1,0 @@
-Available paths to 19-ffaa:4:1
-4 Hops:
-[0] Hops: [19-ffaa:4:3 2>1 19-ffaa:4:2 3>3 19-ffaa:4:5 4>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-5 Hops:
-[1] Hops: [19-ffaa:4:3 1>2 19-ffaa:4:4 4>2 19-ffaa:4:2 3>3 19-ffaa:4:5 4>1 19-ffaa:4:1] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1

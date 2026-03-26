@@ -9,10 +9,6 @@ from datetime import datetime
 CONFIG_PATH = "/tmp/isds.yaml"
 
 def generate_isd_pki(isd_id: int, as_start: int, as_count: int, core: list[int]):
-    """
-    Generates PKI for a single ISD.
-    This function contains the full logic you already implemented.
-    """
     print(f"Generating PKI for ISD {isd_id}, start={as_start}, count={as_count}")
 
     ISD_NUM = 15 + isd_id
@@ -143,11 +139,9 @@ def generate_isd_pki(isd_id: int, as_start: int, as_count: int, core: list[int])
     ])
     shutil.rmtree(tmp_dir)
 
-    # Create CA certs
     for as_num in core:
         create_cert(f"AS{as_start + as_num - 1}", "cp-ca", f"{ISD_NUM}-ffaa:{isd_id}:{as_num}", f"{ISD_NUM}-ffaa:{isd_id}:{as_num} CA cert", "cp-ca.pem", "cp-ca.key", ca="cp-root.pem", ca_key="cp-root.key")
 
-    # Generate AS certificates
     for as_num in range(as_start, as_start + as_count):
         as_idx = as_num - as_start + 1
         ca_as = as_start + core[as_idx % len(core)] - 1
@@ -164,10 +158,8 @@ def generate_isd_pki(isd_id: int, as_start: int, as_count: int, core: list[int])
             run_from_base=True
         )
         
-    # Ensure /opt/tutorial-pki exists
     os.makedirs("/opt/tutorial-pki", exist_ok=True)
 
-    # Copy the ISD PKI into /opt/tutorial-pki/
     shutil.copytree(base_dir, f"/opt/tutorial-pki/", dirs_exist_ok=True)
     print(f"PKI generation complete for ISD {isd_id}, copied to /opt/tutorial-pki/")
 

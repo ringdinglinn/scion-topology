@@ -1,3 +1,0 @@
-Available paths to 21-ffaa:6:4
-3 Hops:
-[0] Hops: [21-ffaa:6:1 6>3 21-ffaa:6:3 1>2 21-ffaa:6:4] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1

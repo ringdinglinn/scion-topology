@@ -1,5 +1,0 @@
-Available paths to 16-ffaa:1:4
-4 Hops:
-[0] Hops: [16-ffaa:1:2 1>4 16-ffaa:1:1 7>1 16-ffaa:1:8 5>1 16-ffaa:1:4] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
-8 Hops:
-[1] Hops: [16-ffaa:1:2 1>4 16-ffaa:1:1 5>1 20-ffaa:5:5 3>2 19-ffaa:4:5 3>3 19-ffaa:4:2 2>4 19-ffaa:4:4 1>4 16-ffaa:1:8 5>1 16-ffaa:1:4] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
