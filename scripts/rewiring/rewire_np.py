@@ -9,7 +9,7 @@ import argparse
 import matplotlib.pyplot as plt
 
 NR_PASSES = 6
-R_VALUES_DC = [0.4575, 0.37524]
+R_VALUES_DC = [0.4575, 0.3725]
 R_VALUES = [0.05, 0.15, 0.25, 0.35, 0.45]
 M_DC = 0.0425
 M = 0.5
@@ -112,7 +112,7 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
     gains = np.zeros(n, dtype=float)
 
     cut = create_cut(cut_values, assignment, degree)
-    opt_cut = (cheeger(cut[0], cut[1], cut[2]), np.where(assignment == -1)[0].tolist(), cut[3])
+    opt_cut = (cheeger(cut[0], cut[1], cut[2]), cut[0], np.where(assignment == -1)[0].tolist(), cut[3])
 
     while (moveable & balanced).any().item():
         # num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
@@ -135,11 +135,12 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
 
         cut = create_cut(cut_values, assignment, degree)
         ch = cheeger(cut[0], cut[1], cut[2])
-        if (ch < opt_cut[0]):
-            opt_cut = (ch, np.where(assignment == -1)[0].tolist(), cut[3])
-        elif (ch == opt_cut[0]):
-            if (cut[3] < opt_cut[2]):
-                opt_cut = (ch, np.where(assignment == -1)[0].tolist(), cut[3])
+        if (mode!="dc"):
+            if (ch < opt_cut[0]):
+                opt_cut = (ch, cut[0], np.where(assignment == -1)[0].tolist(), cut[3])
+            # elif (ch == opt_cut[0]):
+            #     if (cut[3] < opt_cut[2]):
+            #         opt_cut = (ch, np.where(assignment == -1)[0].tolist(), cut[3])
 
     return opt_cut
 
@@ -151,18 +152,22 @@ def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[], it=
     masked_adj = initialize_adj_matrix(adj_mat, mask_nodes, adj_mat.shape[0])
 
     best_cheeger = math.inf
-    best_partition = None
+    best_partition = (math.inf, math.inf, None, math.inf)
     updates = 0
     for r in r_values:
 
         for i in range(NR_PASSES):
             res = partition_pass(masked_adj, adj_mat, r, m, mode=mode, mask_nodes=mask_nodes, it=i)
 
-            ch, part_a, degrees = res
-            if (ch < best_cheeger or (ch == best_cheeger and best_partition[2] > degrees)):
-                best_cheeger = ch
-                best_partition = (ch, part_a, degrees)
-                updates += 1
+            ch, cut_edges, part_a, degrees = res
+            if (mode=="dc"):
+                if (best_partition[1] > cut_edges or (best_partition[1] == cut_edges and best_partition[3] > degrees)):
+                    best_partition = (ch, cut_edges, part_a, degrees)
+            else:
+                if (ch < best_cheeger or (ch == best_cheeger and best_partition[3] > degrees)):
+                    best_cheeger = ch
+                    best_partition = (ch, cut_edges, part_a, degrees)
+                    updates += 1
 
         # if best_partition is None:
         #     results[str(r)] = None
@@ -175,7 +180,7 @@ def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[], it=
     # if not results:
     #     return None
     # best_r = min(results.keys(), key=lambda k: results[k]["cheeger"])
-    return {"cheeger": best_partition[0], "partition": best_partition[1]}
+    return {"cheeger": best_partition[0], "partition": best_partition[2]}
 
 def can_connect(G, u, v):
     return G.nodes[u]["isd_n"] == G.nodes[v]["isd_n"] or (G.nodes[u]["is_core"] and G.nodes[v]["is_core"])
@@ -325,7 +330,7 @@ def iteration(G, it, min_res, non_core_nodes, delete=True, add=True):
         print(f"it: {i}, new cheeger: {H_min_res['cheeger']}, old cheeger: {min_res['cheeger']}")
         core_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, mode="global", mask_nodes=non_core_nodes)
 
-        if (add and H_min_res["cheeger"] < min_res["cheeger"]):
+        if (add and (H_min_res["cheeger"] < min_res["cheeger"] or H_min_res["cheeger"] <= 0)):
             return G, min_res
 
         if (core_min_res["cheeger"] <= 0.0 or H_min_res["cheeger"] <= 0):
@@ -349,6 +354,8 @@ if __name__ == "__main__":
     topo_name = args.topology_config.split('/')[-1]
     topo_name = topo_name.split('_')[0]
     path = args.output_dir + topo_name
+
+    print(f"optimizing topology {topo_name}")
 
     if args.add_only:
         path += "_rnpa"

@@ -172,13 +172,13 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-TOPO_OPTIM_FOLDERS := topo0
-
+# TOPO_OPTIM_FOLDERS := topo11
 # topo-optim:
 # 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
-# 		file=$$(ls topologies/$$topo/*_it0.yaml); \
-# 		python3 -m scripts.rewiring.rewire_spectral -tc $$file; \
-# 		python3 -m scripts.rewiring.rewire_np -tc $$file; \
+# 		for file in $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml; do \
+# 			python3 -m scripts.rewiring.rewire_spectral -tc $$file -o $(TOPOLOGY_FOLDER)/$$topo/ -k 5; \
+# 			python3 -m scripts.rewiring.rewire_np -tc $$file -o $(TOPOLOGY_FOLDER)/$$topo/ -k 5; \
+# 		done \
 # 	done
 
 topo-optim:
@@ -196,8 +196,7 @@ topo-plot:
 	-i $(RESULTS) \
 	-g "^([^_]+)" \
 	-sg "_([^_]+)_" \
-	-m "cheeger_constant" "spectral_gap" "algebraic_connectivity" \
-	-s topology \
+	-m "cheeger_constant" "algebraic_connectivity" \
 	-o $(PLOTS_FOLDER) \
 	-t $(TOPOLOGY_FOLDER) \
 	--border-breadth \

@@ -9,6 +9,7 @@ from scripts.helpers.parse_topology import yaml_to_graph, graph_to_yaml
 from scipy.sparse.linalg import ArpackError
 from scipy.sparse import diags, csr_matrix
 
+TOLERANCE = 1e-8
 def can_connect(G, u, v):
     return G.nodes[u]["isd_n"] == G.nodes[v]["isd_n"] or (G.nodes[u]["is_core"] and G.nodes[v]["is_core"])
 
@@ -46,14 +47,38 @@ def get_top_t_eigenpairs(A, t):
     return eigenvalues[idx], eigenvectors[:, idx]
 
 def get_bottom_t_eigenpairs(L, t):
-    t = min(L.shape[0]-1, t)
-    eigenvalues, eigenvectors = eigsh(L, k=t, which='SM')
+    n = L.shape[0]
+    t = min(n - 1, t)
+    
+    eigenvalues, eigenvectors = eigsh(L, k=t, sigma=1e-6, which='LM')
+    
     idx = np.argsort(eigenvalues)
     return eigenvalues[idx], eigenvectors[:, idx]
 
 def delta_mu2_matrix(v2):
     v2 = v2.reshape(-1, 1)
     return np.abs(v2 - v2.T)
+
+def update_adjacencies(A, A_core, core_indices, old_edge, new_edge, delete=True):
+    if delete:
+        A[old_edge[0], old_edge[1]] = 0
+        A[old_edge[1], old_edge[0]] = 0
+    A[new_edge[0], new_edge[1]] = 1
+    A[new_edge[1], new_edge[0]] = 1
+
+    u_, v_ = int(old_edge[0]), int(old_edge[1])
+    if (u_ in core_indices and v_ in core_indices and delete):
+        u, v = core_indices[u_], core_indices[v_]
+        A_core[u, v] = 0
+        A_core[v, u] = 0
+    u_, v_ = int(new_edge[0]), int(new_edge[1])
+    if (u_ in core_indices and v_ in core_indices):
+        u, v = core_indices[u_], core_indices[v_]
+        A_core[u, v] = 1
+        A_core[v, u] = 1
+
+    return A, A_core
+
 
 def optimize(G, path, t=10, k=5, delete=True, add=True):
     n = len(G.nodes())
@@ -86,34 +111,22 @@ def optimize(G, path, t=10, k=5, delete=True, add=True):
                 print(f"negative impact!")
                 break
 
-            if delete:
-                A[old_edge[0], old_edge[1]] = 0
-                A[old_edge[1], old_edge[0]] = 0
-            A[new_edge[0], new_edge[1]] = 1
-            A[new_edge[1], new_edge[0]] = 1
-
-            u_, v_ = int(old_edge[0]), int(old_edge[1])
-            if (u_ in core_indices and v_ in core_indices and delete):
-                u, v = core_indices[u_], core_indices[v_]
-                A_core[u, v] = 0
-                A_core[v, u] = 0
-            u_, v_ = int(new_edge[0]), int(new_edge[1])
-            if (u_ in core_indices and v_ in core_indices):
-                u, v = core_indices[u_], core_indices[v_]
-                A_core[u, v] = 1
-                A_core[v, u] = 1
+            A, A_core = update_adjacencies(A, A_core, core_indices, old_edge, new_edge, delete=delete)
 
             L = diags(np.sum(A, axis=1)) - csr_matrix(A)
-            mus, V = get_bottom_t_eigenpairs(L, 2)
+            new_mus, new_V = get_bottom_t_eigenpairs(L, 2)
             # SCION constraint 2: cutting an edge may not disconnect the cores-subgraph
             L_core = diags(np.sum(A_core, axis=1)) - csr_matrix(A_core)
-            mus_core, _ = get_bottom_t_eigenpairs(L_core, 2)
+            new_mus_core, _ = get_bottom_t_eigenpairs(L_core, 2)
 
-            if (mus[1] <= 0 or mus_core[1] <= 0 or old_edge not in G.edges()):
+            if (new_mus_core[1] <= TOLERANCE or new_mus[1] <= TOLERANCE or old_edge not in G.edges() or new_edge in G.edges()):
+                A, A_core = update_adjacencies(A, A_core, core_indices, new_edge, old_edge, delete=delete)
                 dR_min[*old_edge] = math.inf
             elif (new_edge in G.edges()):
+                A, A_core = update_adjacencies(A, A_core, core_indices, new_edge, old_edge, delete=delete)
                 dR_max[*new_edge] = -math.inf
             else:
+                mus, V, mus_core = new_mus, new_V, new_mus_core
                 # highlight_edges(G, {old_edge})
                 if delete:
                     G.remove_edge(*old_edge)

@@ -4,8 +4,9 @@ import re
 import os
 import matplotlib.pyplot as plt
 from collections import defaultdict
-from plots import plot_grid, plot_grid_bars
-from plots.plot_graphs import plot_graph_grid
+from scripts.rewiring.draw_plots import plot_grid
+from scripts.rewiring.draw_plots import plot_grid_bars
+from scripts.rewiring.draw_plots.plot_graphs import plot_graph_grid
 from scripts.helpers.parse_topology import yaml_to_graph
 from pathlib import Path
 import pprint
@@ -16,8 +17,10 @@ AVAILABLE_METRICS = [
     "avg_degree", "cheeger constant", "degree_entropy", "degree_std",
     "effective graph resistance", "natural connectivity", "sparsity",
     "spectral gap", "spectral radius", "transitivity", "|E|", "|V|",
-    "intra_isd_paths_scion","inter_isd_paths_scion"
+    "intra_isd_paths_scion","inter_isd_paths_scion", "nr_connected_components"
 ]
+
+SUBGROUP_LABELS = {"rac" : "$R_{AC}$", "rnp" : "$R_{NP}$"}
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -36,10 +39,6 @@ def parse_args():
         "--group-by", "-g", required=True,
         help="Regex with a capture group to extract the group label from the 'topology' column. "
              "E.g. 'configurations/([^/]+)/' groups by top-level folder."
-    )
-    parser.add_argument(
-        "--sort-by", "-s", required=True,
-        help="Column to sort rows within each group (e.g. 'topology')."
     )
     parser.add_argument(
         "--subgroup-by", "-sg",
@@ -103,6 +102,17 @@ def main():
     args = parse_args()
     rows = load_csv(args.input)
     groups = group_rows(rows, args.group_by, args.subgroup_by)
+    groups = dict(sorted(groups.items(), key=lambda kv: int(re.search(r'\d+', kv[0]).group())))
+
+    for topo, algos in groups.items():
+        for old_key, new_key in SUBGROUP_LABELS.items():
+            if old_key in algos:
+                algos[new_key] = algos.pop(old_key)
+
+    for topo, algos in groups.items():
+        for algo, algo_rows in algos.items():
+            algos[algo] = sorted(algo_rows, key=lambda r: int(re.search(r'_it(\d+)', r["topology"]).group(1)))
+
     for topo, algos in groups.items():
         baseline_rows = algos.pop("default", [])
         for algo, alg_rows in algos.items():
@@ -118,10 +128,10 @@ def main():
 
     metric_groups = [m.split("+") for m in args.metrics]
     for metric_group in metric_groups:
-        plot_grid.plot_metrics(metric_group, groups, args.output_dir, args.sort_by)
+        plot_grid.plot_metrics(metric_group, groups, args.output_dir, title="Optimization with $R_{AC} and R_{NP}$")
 
     if (args.border_breadth):
-        plot_grid_bars.plot_metric_grid("border_breadth", groups, args.output_dir, args.sort_by)
+        plot_grid_bars.plot_metric_grid("border_breadth", groups, args.output_dir, title="Effect of Optimization Procedures $R_{AC}$ and $R_{NP}$ on Border Breadth")
 
     if (args.graphs):
         print(f"plot topo output dir: {args.output_dir}")
