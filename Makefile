@@ -181,6 +181,13 @@ run-topology-optimizer: topo-optim topo-eval topo-plot
 # 		done \
 # 	done
 
+# topo-optim:
+# 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
+# 		file=$$(ls $$topo*_it0.yaml) ; \
+# 		python3 -m scripts.rewiring.rewire_spectral -tc $$file -o $$topo -k 5 --add-only; \
+# 		python3 -m scripts.rewiring.rewire_np -tc $$file -o $$topo -k 5 --add-only; \
+# 	done
+
 topo-optim:
 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
 		file=$$(ls $$topo*_it0.yaml) ; \

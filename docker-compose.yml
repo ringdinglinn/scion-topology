@@ -155,434 +155,238 @@ services:
     tmpfs:
     - /run
     - /run/lock
-  scion2-1:
-    image: scion2-1:1.0
-    container_name: scion2-1
-    hostname: scion2-1
+  scion1-11:
+    image: scion1-11:1.0
+    container_name: scion1-11
+    hostname: scion1-11
     networks:
-      as_net_2-1: {}
+      as_net_1-11: {}
       transit_net:
-        ipv4_address: 10.100.2.1
+        ipv4_address: 10.100.1.11
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion2-2:
-    image: scion2-2:1.0
-    container_name: scion2-2
-    hostname: scion2-2
+  scion1-12:
+    image: scion1-12:1.0
+    container_name: scion1-12
+    hostname: scion1-12
     networks:
-      as_net_2-2: {}
+      as_net_1-12: {}
       transit_net:
-        ipv4_address: 10.100.2.2
+        ipv4_address: 10.100.1.12
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion2-3:
-    image: scion2-3:1.0
-    container_name: scion2-3
-    hostname: scion2-3
+  scion1-13:
+    image: scion1-13:1.0
+    container_name: scion1-13
+    hostname: scion1-13
     networks:
-      as_net_2-3: {}
+      as_net_1-13: {}
       transit_net:
-        ipv4_address: 10.100.2.3
+        ipv4_address: 10.100.1.13
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion2-4:
-    image: scion2-4:1.0
-    container_name: scion2-4
-    hostname: scion2-4
+  scion1-14:
+    image: scion1-14:1.0
+    container_name: scion1-14
+    hostname: scion1-14
     networks:
-      as_net_2-4: {}
+      as_net_1-14: {}
       transit_net:
-        ipv4_address: 10.100.2.4
+        ipv4_address: 10.100.1.14
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion2-5:
-    image: scion2-5:1.0
-    container_name: scion2-5
-    hostname: scion2-5
+  scion1-15:
+    image: scion1-15:1.0
+    container_name: scion1-15
+    hostname: scion1-15
     networks:
-      as_net_2-5: {}
+      as_net_1-15: {}
       transit_net:
-        ipv4_address: 10.100.2.5
+        ipv4_address: 10.100.1.15
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-1:
-    image: scion3-1:1.0
-    container_name: scion3-1
-    hostname: scion3-1
+  scion1-16:
+    image: scion1-16:1.0
+    container_name: scion1-16
+    hostname: scion1-16
     networks:
-      as_net_3-1: {}
+      as_net_1-16: {}
       transit_net:
-        ipv4_address: 10.100.3.1
+        ipv4_address: 10.100.1.16
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-2:
-    image: scion3-2:1.0
-    container_name: scion3-2
-    hostname: scion3-2
+  scion1-17:
+    image: scion1-17:1.0
+    container_name: scion1-17
+    hostname: scion1-17
     networks:
-      as_net_3-2: {}
+      as_net_1-17: {}
       transit_net:
-        ipv4_address: 10.100.3.2
+        ipv4_address: 10.100.1.17
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-3:
-    image: scion3-3:1.0
-    container_name: scion3-3
-    hostname: scion3-3
+  scion1-18:
+    image: scion1-18:1.0
+    container_name: scion1-18
+    hostname: scion1-18
     networks:
-      as_net_3-3: {}
+      as_net_1-18: {}
       transit_net:
-        ipv4_address: 10.100.3.3
+        ipv4_address: 10.100.1.18
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-4:
-    image: scion3-4:1.0
-    container_name: scion3-4
-    hostname: scion3-4
+  scion1-19:
+    image: scion1-19:1.0
+    container_name: scion1-19
+    hostname: scion1-19
     networks:
-      as_net_3-4: {}
+      as_net_1-19: {}
       transit_net:
-        ipv4_address: 10.100.3.4
+        ipv4_address: 10.100.1.19
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-5:
-    image: scion3-5:1.0
-    container_name: scion3-5
-    hostname: scion3-5
+  scion1-20:
+    image: scion1-20:1.0
+    container_name: scion1-20
+    hostname: scion1-20
     networks:
-      as_net_3-5: {}
+      as_net_1-20: {}
       transit_net:
-        ipv4_address: 10.100.3.5
+        ipv4_address: 10.100.1.20
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-6:
-    image: scion3-6:1.0
-    container_name: scion3-6
-    hostname: scion3-6
+  scion1-21:
+    image: scion1-21:1.0
+    container_name: scion1-21
+    hostname: scion1-21
     networks:
-      as_net_3-6: {}
+      as_net_1-21: {}
       transit_net:
-        ipv4_address: 10.100.3.6
+        ipv4_address: 10.100.1.21
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-7:
-    image: scion3-7:1.0
-    container_name: scion3-7
-    hostname: scion3-7
+  scion1-22:
+    image: scion1-22:1.0
+    container_name: scion1-22
+    hostname: scion1-22
     networks:
-      as_net_3-7: {}
+      as_net_1-22: {}
       transit_net:
-        ipv4_address: 10.100.3.7
+        ipv4_address: 10.100.1.22
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-8:
-    image: scion3-8:1.0
-    container_name: scion3-8
-    hostname: scion3-8
+  scion1-23:
+    image: scion1-23:1.0
+    container_name: scion1-23
+    hostname: scion1-23
     networks:
-      as_net_3-8: {}
+      as_net_1-23: {}
       transit_net:
-        ipv4_address: 10.100.3.8
+        ipv4_address: 10.100.1.23
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-9:
-    image: scion3-9:1.0
-    container_name: scion3-9
-    hostname: scion3-9
+  scion1-24:
+    image: scion1-24:1.0
+    container_name: scion1-24
+    hostname: scion1-24
     networks:
-      as_net_3-9: {}
+      as_net_1-24: {}
       transit_net:
-        ipv4_address: 10.100.3.9
+        ipv4_address: 10.100.1.24
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-10:
-    image: scion3-10:1.0
-    container_name: scion3-10
-    hostname: scion3-10
+  scion1-25:
+    image: scion1-25:1.0
+    container_name: scion1-25
+    hostname: scion1-25
     networks:
-      as_net_3-10: {}
+      as_net_1-25: {}
       transit_net:
-        ipv4_address: 10.100.3.10
+        ipv4_address: 10.100.1.25
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion3-11:
-    image: scion3-11:1.0
-    container_name: scion3-11
-    hostname: scion3-11
+  scion1-26:
+    image: scion1-26:1.0
+    container_name: scion1-26
+    hostname: scion1-26
     networks:
-      as_net_3-11: {}
+      as_net_1-26: {}
       transit_net:
-        ipv4_address: 10.100.3.11
+        ipv4_address: 10.100.1.26
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
     tmpfs:
     - /run
     - /run/lock
-  scion4-1:
-    image: scion4-1:1.0
-    container_name: scion4-1
-    hostname: scion4-1
+  scion1-27:
+    image: scion1-27:1.0
+    container_name: scion1-27
+    hostname: scion1-27
     networks:
-      as_net_4-1: {}
+      as_net_1-27: {}
       transit_net:
-        ipv4_address: 10.100.4.1
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion4-2:
-    image: scion4-2:1.0
-    container_name: scion4-2
-    hostname: scion4-2
-    networks:
-      as_net_4-2: {}
-      transit_net:
-        ipv4_address: 10.100.4.2
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion4-3:
-    image: scion4-3:1.0
-    container_name: scion4-3
-    hostname: scion4-3
-    networks:
-      as_net_4-3: {}
-      transit_net:
-        ipv4_address: 10.100.4.3
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion4-4:
-    image: scion4-4:1.0
-    container_name: scion4-4
-    hostname: scion4-4
-    networks:
-      as_net_4-4: {}
-      transit_net:
-        ipv4_address: 10.100.4.4
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion4-5:
-    image: scion4-5:1.0
-    container_name: scion4-5
-    hostname: scion4-5
-    networks:
-      as_net_4-5: {}
-      transit_net:
-        ipv4_address: 10.100.4.5
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion4-6:
-    image: scion4-6:1.0
-    container_name: scion4-6
-    hostname: scion4-6
-    networks:
-      as_net_4-6: {}
-      transit_net:
-        ipv4_address: 10.100.4.6
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion4-7:
-    image: scion4-7:1.0
-    container_name: scion4-7
-    hostname: scion4-7
-    networks:
-      as_net_4-7: {}
-      transit_net:
-        ipv4_address: 10.100.4.7
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion4-8:
-    image: scion4-8:1.0
-    container_name: scion4-8
-    hostname: scion4-8
-    networks:
-      as_net_4-8: {}
-      transit_net:
-        ipv4_address: 10.100.4.8
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion4-9:
-    image: scion4-9:1.0
-    container_name: scion4-9
-    hostname: scion4-9
-    networks:
-      as_net_4-9: {}
-      transit_net:
-        ipv4_address: 10.100.4.9
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion4-10:
-    image: scion4-10:1.0
-    container_name: scion4-10
-    hostname: scion4-10
-    networks:
-      as_net_4-10: {}
-      transit_net:
-        ipv4_address: 10.100.4.10
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion5-1:
-    image: scion5-1:1.0
-    container_name: scion5-1
-    hostname: scion5-1
-    networks:
-      as_net_5-1: {}
-      transit_net:
-        ipv4_address: 10.100.5.1
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion5-2:
-    image: scion5-2:1.0
-    container_name: scion5-2
-    hostname: scion5-2
-    networks:
-      as_net_5-2: {}
-      transit_net:
-        ipv4_address: 10.100.5.2
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion5-3:
-    image: scion5-3:1.0
-    container_name: scion5-3
-    hostname: scion5-3
-    networks:
-      as_net_5-3: {}
-      transit_net:
-        ipv4_address: 10.100.5.3
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion5-4:
-    image: scion5-4:1.0
-    container_name: scion5-4
-    hostname: scion5-4
-    networks:
-      as_net_5-4: {}
-      transit_net:
-        ipv4_address: 10.100.5.4
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /home/shared:/shared
-    tmpfs:
-    - /run
-    - /run/lock
-  scion5-5:
-    image: scion5-5:1.0
-    container_name: scion5-5
-    hostname: scion5-5
-    networks:
-      as_net_5-5: {}
-      transit_net:
-        ipv4_address: 10.100.5.5
+        ipv4_address: 10.100.1.27
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /home/shared:/shared
@@ -630,130 +434,74 @@ networks:
     ipam:
       config:
       - subnet: 10.1.10.0/24
-  as_net_2-1:
+  as_net_1-11:
     ipam:
       config:
-      - subnet: 10.2.1.0/24
-  as_net_2-2:
+      - subnet: 10.1.11.0/24
+  as_net_1-12:
     ipam:
       config:
-      - subnet: 10.2.2.0/24
-  as_net_2-3:
+      - subnet: 10.1.12.0/24
+  as_net_1-13:
     ipam:
       config:
-      - subnet: 10.2.3.0/24
-  as_net_2-4:
+      - subnet: 10.1.13.0/24
+  as_net_1-14:
     ipam:
       config:
-      - subnet: 10.2.4.0/24
-  as_net_2-5:
+      - subnet: 10.1.14.0/24
+  as_net_1-15:
     ipam:
       config:
-      - subnet: 10.2.5.0/24
-  as_net_3-1:
+      - subnet: 10.1.15.0/24
+  as_net_1-16:
     ipam:
       config:
-      - subnet: 10.3.1.0/24
-  as_net_3-2:
+      - subnet: 10.1.16.0/24
+  as_net_1-17:
     ipam:
       config:
-      - subnet: 10.3.2.0/24
-  as_net_3-3:
+      - subnet: 10.1.17.0/24
+  as_net_1-18:
     ipam:
       config:
-      - subnet: 10.3.3.0/24
-  as_net_3-4:
+      - subnet: 10.1.18.0/24
+  as_net_1-19:
     ipam:
       config:
-      - subnet: 10.3.4.0/24
-  as_net_3-5:
+      - subnet: 10.1.19.0/24
+  as_net_1-20:
     ipam:
       config:
-      - subnet: 10.3.5.0/24
-  as_net_3-6:
+      - subnet: 10.1.20.0/24
+  as_net_1-21:
     ipam:
       config:
-      - subnet: 10.3.6.0/24
-  as_net_3-7:
+      - subnet: 10.1.21.0/24
+  as_net_1-22:
     ipam:
       config:
-      - subnet: 10.3.7.0/24
-  as_net_3-8:
+      - subnet: 10.1.22.0/24
+  as_net_1-23:
     ipam:
       config:
-      - subnet: 10.3.8.0/24
-  as_net_3-9:
+      - subnet: 10.1.23.0/24
+  as_net_1-24:
     ipam:
       config:
-      - subnet: 10.3.9.0/24
-  as_net_3-10:
+      - subnet: 10.1.24.0/24
+  as_net_1-25:
     ipam:
       config:
-      - subnet: 10.3.10.0/24
-  as_net_3-11:
+      - subnet: 10.1.25.0/24
+  as_net_1-26:
     ipam:
       config:
-      - subnet: 10.3.11.0/24
-  as_net_4-1:
+      - subnet: 10.1.26.0/24
+  as_net_1-27:
     ipam:
       config:
-      - subnet: 10.4.1.0/24
-  as_net_4-2:
-    ipam:
-      config:
-      - subnet: 10.4.2.0/24
-  as_net_4-3:
-    ipam:
-      config:
-      - subnet: 10.4.3.0/24
-  as_net_4-4:
-    ipam:
-      config:
-      - subnet: 10.4.4.0/24
-  as_net_4-5:
-    ipam:
-      config:
-      - subnet: 10.4.5.0/24
-  as_net_4-6:
-    ipam:
-      config:
-      - subnet: 10.4.6.0/24
-  as_net_4-7:
-    ipam:
-      config:
-      - subnet: 10.4.7.0/24
-  as_net_4-8:
-    ipam:
-      config:
-      - subnet: 10.4.8.0/24
-  as_net_4-9:
-    ipam:
-      config:
-      - subnet: 10.4.9.0/24
-  as_net_4-10:
-    ipam:
-      config:
-      - subnet: 10.4.10.0/24
-  as_net_5-1:
-    ipam:
-      config:
-      - subnet: 10.5.1.0/24
-  as_net_5-2:
-    ipam:
-      config:
-      - subnet: 10.5.2.0/24
-  as_net_5-3:
-    ipam:
-      config:
-      - subnet: 10.5.3.0/24
-  as_net_5-4:
-    ipam:
-      config:
-      - subnet: 10.5.4.0/24
-  as_net_5-5:
-    ipam:
-      config:
-      - subnet: 10.5.5.0/24
+      - subnet: 10.1.27.0/24
   transit_net:
     driver: bridge
     ipam:

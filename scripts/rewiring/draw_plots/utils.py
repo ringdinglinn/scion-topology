@@ -14,8 +14,8 @@ def apply_styling():
 
         "axes.prop_cycle": cycler(color=[
         "#3F77D2",
-        "#4EB130", 
         "#D23C37",
+        "#4EB130", 
         "#FFB330",
         "#774CB5",
     ]),

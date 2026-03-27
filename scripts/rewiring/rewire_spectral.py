@@ -119,14 +119,14 @@ def optimize(G, path, t=10, k=5, delete=True, add=True):
             L_core = diags(np.sum(A_core, axis=1)) - csr_matrix(A_core)
             new_mus_core, _ = get_bottom_t_eigenpairs(L_core, 2)
 
-            if (new_mus_core[1] <= TOLERANCE or new_mus[1] <= TOLERANCE or old_edge not in G.edges() or new_edge in G.edges()):
+            if ((add and (new_mus_core[1] <= TOLERANCE or new_mus[1] <= TOLERANCE)) or old_edge not in G.edges()):
                 A, A_core = update_adjacencies(A, A_core, core_indices, new_edge, old_edge, delete=delete)
                 dR_min[*old_edge] = math.inf
             elif (new_edge in G.edges()):
                 A, A_core = update_adjacencies(A, A_core, core_indices, new_edge, old_edge, delete=delete)
                 dR_max[*new_edge] = -math.inf
             else:
-                mus, V, mus_core = new_mus, new_V, new_mus_core
+                V = new_V
                 # highlight_edges(G, {old_edge})
                 if delete:
                     G.remove_edge(*old_edge)

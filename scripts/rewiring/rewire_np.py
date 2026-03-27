@@ -72,7 +72,6 @@ def initial_partition(n, r, mask_nodes, it=0):
     eligible = np.arange(n)[keep_mask]
     r = min(1 - r, r)
     k = max(1, round(len(eligible) * r))
-    # deterministic: just roll by `it`
     rolled = np.roll(eligible, it)
     assignment = np.ones(n, dtype=np.int32)
     assignment[rolled[:k]] = -1
@@ -346,7 +345,7 @@ def iteration(G, it, min_res, non_core_nodes, delete=True, add=True):
         if (add and (H_min_res["cheeger"] < min_res["cheeger"] or H_min_res["cheeger"] <= 0)):
             return G, min_res
 
-        if (core_min_res["cheeger"] <= 0.0 or H_min_res["cheeger"] <= 0):
+        if (add and core_min_res["cheeger"] <= 0.0):
             return G, min_res
         
         return H, H_min_res
