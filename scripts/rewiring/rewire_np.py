@@ -46,24 +46,37 @@ def cheeger(c, a, b):
 
 # --- NETWORK PARTITIONING ---------------------------------------------------------------
 
-def initial_partition(n, r, mask_nodes, it=0, rng=None):
-    if rng is None:
-        rng = np.random.default_rng()  # fresh random generator
+# def initial_partition(n, r, mask_nodes, it=0, rng=None):
+#     if rng is None:
+#         rng = np.random.default_rng()
 
+#     keep_mask = np.ones(n, dtype=bool)
+#     keep_mask[mask_nodes] = False
+
+#     perm = rng.permutation(np.arange(n)[keep_mask])
+
+#     r = min(1 - r, r)
+#     k = max(1, round(len(perm) * r))
+
+#     perm = np.roll(perm, it)
+
+#     assignment = np.ones(n, dtype=np.int32)
+#     assignment[perm[:k]] = -1
+#     assignment[mask_nodes] = 0
+
+#     return assignment
+
+def initial_partition(n, r, mask_nodes, it=0):
     keep_mask = np.ones(n, dtype=bool)
     keep_mask[mask_nodes] = False
-
-    perm = rng.permutation(np.arange(n)[keep_mask])
-
+    eligible = np.arange(n)[keep_mask]
     r = min(1 - r, r)
-    k = max(1, round(len(perm) * r))
-
-    perm = np.roll(perm, it)
-
+    k = max(1, round(len(eligible) * r))
+    # deterministic: just roll by `it`
+    rolled = np.roll(eligible, it)
     assignment = np.ones(n, dtype=np.int32)
-    assignment[perm[:k]] = -1
+    assignment[rolled[:k]] = -1
     assignment[mask_nodes] = 0
-
     return assignment
 
 

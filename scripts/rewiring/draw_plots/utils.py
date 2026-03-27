@@ -24,8 +24,8 @@ def apply_styling():
 METRIC_NAMES = {
     "avg_degree" : r"Average Degree, $\langle k \rangle$",
     "algebraic_connectivity" : "Algebraic Connectivity",
-    "|V|" : "Number of Nodes, $|N|$",
-    "|E|" : "Number of Edges, $|E|$",
+    "|V|" : "Number of Nodes",
+    "|E|" : "Number of Edges",
     "assortativity": "Assortativity Coefficient",
     "transitivity": "Transitivity $C\delta$",
     "degree_std" : "Degree Standard Deviation",
@@ -37,8 +37,8 @@ METRIC_NAMES = {
 METRIC_LABELS = {
     "avg_degree" : r"Average Degree, $\langle k \rangle$",
     "algebraic_connectivity" : "$a(G)$",
-    "|V|" : "Number of Nodes, $|N|$",
-    "|E|" : "Number of Edges, $|E|$",
+    "|V|" : "$|N|$",
+    "|E|" : "$|E|$",
     "assortativity": "Assortativity Coefficient",
     "transitivity": "Transitivity $C\delta$",
     "degree_std" : "Degree Standard Deviation",

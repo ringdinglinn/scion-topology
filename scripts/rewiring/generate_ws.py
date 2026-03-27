@@ -1,7 +1,7 @@
 import networkx as nx
 import numpy as np
-from community import best_partition  # python-louvain
-from plots.plot_graphs import plot_graph
+from community import best_partition
+from scripts.rewiring.draw_plots.plot_graphs import plot_graph
 import argparse
 from scripts.helpers.parse_topology import graph_to_yaml
 import random
@@ -19,7 +19,6 @@ def watts_strogatz_communities(sizes, k=4, p=0.1, p_inter=0.01, seed=42):
         G = nx.compose(G, ws)
         offset += size
 
-    # per ISD, pick 1-3 connector nodes and link to 1-3 connectors in other ISDs
     isd_nodes = {}
     for node in G.nodes():
         isd = G.nodes[node]["isd_n"]
