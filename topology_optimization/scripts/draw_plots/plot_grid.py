@@ -8,7 +8,7 @@ apply_styling()
 
 def plot_metrics(metrics, groups, output_dir, title=None):
     linestyles = ["-", ":", "--", "-:"]
-    markerstyles = ["o", "x", "d", "s"]
+    markerstyles = [".", "x", "d", "s"]
     group_names = list(groups.keys())
     n_groups = len(group_names)
     n_cols = min(4, n_groups)

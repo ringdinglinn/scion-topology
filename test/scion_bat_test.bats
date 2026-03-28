@@ -53,6 +53,11 @@ current_node=""
     [ "$status" -eq 0 ]
     [[ "$output" == *"Oh, hello!"* ]]
 }
+@test "bat request from scion1-8 to scion2-8" {
+    run docker exec scion1-8 scion-bat http://17-ffaa:2:8,127.0.0.1:32765/hello
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Oh, hello!"* ]]
+}
 @test "bat request from scion2-1 to scion3-1" {
     run docker exec scion2-1 scion-bat http://18-ffaa:3:1,127.0.0.1:32765/hello
     [ "$status" -eq 0 ]

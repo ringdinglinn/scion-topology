@@ -27,6 +27,26 @@ hosts:
   address: 10.100.1.7
   isd: 16
   as: 7
+- name: scion1-8
+  address: 10.100.1.8
+  isd: 16
+  as: 8
+- name: scion1-9
+  address: 10.100.1.9
+  isd: 16
+  as: 9
+- name: scion1-10
+  address: 10.100.1.10
+  isd: 16
+  as: 10
+- name: scion1-11
+  address: 10.100.1.11
+  isd: 16
+  as: 11
+- name: scion1-12
+  address: 10.100.1.12
+  isd: 16
+  as: 12
 - name: scion2-1
   address: 10.100.2.1
   isd: 17
@@ -59,86 +79,6 @@ hosts:
   address: 10.100.2.8
   isd: 17
   as: 8
-- name: scion2-9
-  address: 10.100.2.9
-  isd: 17
-  as: 9
-- name: scion2-10
-  address: 10.100.2.10
-  isd: 17
-  as: 10
-- name: scion2-11
-  address: 10.100.2.11
-  isd: 17
-  as: 11
-- name: scion2-12
-  address: 10.100.2.12
-  isd: 17
-  as: 12
-- name: scion2-13
-  address: 10.100.2.13
-  isd: 17
-  as: 13
-- name: scion2-14
-  address: 10.100.2.14
-  isd: 17
-  as: 14
-- name: scion2-15
-  address: 10.100.2.15
-  isd: 17
-  as: 15
-- name: scion2-16
-  address: 10.100.2.16
-  isd: 17
-  as: 16
-- name: scion2-17
-  address: 10.100.2.17
-  isd: 17
-  as: 17
-- name: scion2-18
-  address: 10.100.2.18
-  isd: 17
-  as: 18
-- name: scion2-19
-  address: 10.100.2.19
-  isd: 17
-  as: 19
-- name: scion2-20
-  address: 10.100.2.20
-  isd: 17
-  as: 20
-- name: scion2-21
-  address: 10.100.2.21
-  isd: 17
-  as: 21
-- name: scion2-22
-  address: 10.100.2.22
-  isd: 17
-  as: 22
-- name: scion2-23
-  address: 10.100.2.23
-  isd: 17
-  as: 23
-- name: scion2-24
-  address: 10.100.2.24
-  isd: 17
-  as: 24
-- name: scion2-25
-  address: 10.100.2.25
-  isd: 17
-  as: 25
-- name: scion2-26
-  address: 10.100.2.26
-  isd: 17
-  as: 26
-- name: scion2-27
-  address: 10.100.2.27
-  isd: 17
-  as: 27
-- name: scion2-28
-  address: 10.100.2.28
-  isd: 17
-  as: 28
 - name: scion3-1
   address: 10.100.3.1
   isd: 18

@@ -48,41 +48,56 @@ def save(args, results):
             f.write("\n")
     print(f"Output saved to {path}")
 
+def eval_pair(G, u, v, conn_type):
+    src_name = node_to_name(G.nodes[u])
+    dst_name = node_to_name(G.nodes[v])
+    dst_address = node_to_address(G.nodes[v])
+    result = get_show_paths(src_name, dst_address)
+    return src_name, dst_name, conn_type, result or ""
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate the number of paths in this topology and save the output.")
     parser.add_argument("--config", "-i", required=True, help="Path to the isd config")
     parser.add_argument("--output-path", "-o", required=True, help="")
+    parser.add_argument("--exhaustive", "-X", action="store_true")
     args = parser.parse_args()
 
     G = yaml_to_graph(args.config)
     isds = {data["isd_n"] for _, data in G.nodes(data=True)}
     isds = sorted(list(isds))
 
-    lengths = dict(nx.all_pairs_shortest_path_length(G))
 
-    all_results = []
-    for i, isd_1 in enumerate(isds):
-        for j in range(i, len(isds)):
-            dist, pairs = furthest_pairs_isds(G, lengths, isd_1, isds[j])
-            conn_type = "intra" if isd_1 == isds[j] else "inter"
-            for u, v in pairs:
-                src_name = node_to_name(G.nodes[u])
-                dst_name = node_to_name(G.nodes[v])
-                dst_address = node_to_address(G.nodes[v])
-                result = get_show_paths(src_name, dst_address)
-                all_results.append((src_name, dst_name, conn_type, result or ""))
+    if (not args.exhaustive):
+        lengths = dict(nx.all_pairs_shortest_path_length(G))
+
+        all_results = []
+        for i, isd_1 in enumerate(isds):
+            for j in range(i, len(isds)):
+                dist, pairs = furthest_pairs_isds(G, lengths, isd_1, isds[j])
+                conn_type = "intra" if isd_1 == isds[j] else "inter"
+                for u, v in pairs:
+                    all_results.append(eval_pair(G, u, v, conn_type))
 
 
-    all_candidates = [(d, u, v) for u in lengths for v, d in lengths[u].items()]
-    dist, total_pairs = furthest_pairs(all_candidates)   
-    for u, v in total_pairs:
-        src_name = node_to_name(G.nodes[u])
-        dst_name = node_to_name(G.nodes[v])
-        dst_address = node_to_address(G.nodes[v])
-        result = get_show_paths(src_name, dst_address)
-        all_results.append((src_name, dst_name, "total", result or ""))
 
-    save(args, all_results)
+        all_candidates = [(d, u, v) for u in lengths for v, d in lengths[u].items()]
+        dist, total_pairs = furthest_pairs(all_candidates)   
+        for u, v in total_pairs:
+            all_results.append(eval_pair(G, u, v, "total"))
+
+        save(args, all_results)
+
+    else:
+        all_results = []
+        for u in G.nodes():
+            for v in G.nodes():
+                if (u != v):
+                    all_results.append(eval_pair(G, u, v, "total"))
+
+        save(args, all_results)
+
+
 
 
 

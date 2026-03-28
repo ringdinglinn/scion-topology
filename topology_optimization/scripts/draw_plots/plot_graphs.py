@@ -2,7 +2,7 @@ import os
 import matplotlib.pyplot as plt
 import networkx as nx
 import colorsys
-from topology_optimization.scripts.draw_plots.utils import apply_styling
+from topology_optimization.scripts.draw_plots.utils import apply_styling, TOPO_NAMES
 
 def get_node_colors(G):
     isds = sorted(set(data["isd_n"] for _, data in G.nodes(data=True)))
@@ -62,7 +62,11 @@ def plot_graph_grid(groups, graphs, output_dir=None, sort_by=None, save=True, sh
                 labels = {node: data["label"] for node, data in G.nodes(data=True)}
                 nx.draw(G, pos, ax=ax, labels=labels, node_color=node_colors,
                         node_size=300, font_size=7, edge_color="gray")
-                ax.set_title(f"{sub_name}\n{name}", fontsize=8)
+                
+                topo_name = TOPO_NAMES[name.split('_')[0]]
+                iteration = name.split('_')[-1].replace('it', '')
+
+                ax.set_title(f"{sub_name}\n{topo_name}, Iteration {iteration}", fontsize=8)
             for extra_row in range(len(rows), n_rows):
                 ax = axes[extra_row][col_idx] if n_rows > 1 else axes[0][col_idx]
                 ax.axis("off")

@@ -10,51 +10,56 @@ SUBGROUP_LABELS = {"rac" : "$R_{AC}$", "rnp" : "$R_{NP}$"}
 
 def paths_to_latex_table(groups) -> str:
     algo_order = ["$R_{AC}$", "$R_{NP}$"]
-    metric_types = [
-        ("Intra-ISD", "intra_isd_paths_avg"),
-        ("Inter-ISD", "inter_isd_paths_avg"),
-        ("Total",     "total_paths_avg"),
-    ]
+    avg_col = "total_paths_avg"
+
+    # Pre-collect all deltas to normalise colour intensity
+    all_deltas = []
+    for topo, algos in groups.items():
+        for algo in algo_order:
+            algo_rows = algos.get(algo, [])
+            if algo_rows:
+                d = float(algo_rows[-1].get(avg_col, 0)) - float(algo_rows[0].get(avg_col, 0))
+                all_deltas.append(d)
+    max_abs = max((abs(d) for d in all_deltas), default=1) or 1
+
+    def delta_cell(d: float) -> str:
+        intensity = int(round(abs(d) / max_abs * 100))
+        color = "green" if d >= 0 else "red"
+        return f"\\cellcolor{{{color}!{intensity}}}{d:+.2f}"
 
     lines = []
     lines.append(r"\begin{table}[h]")
     lines.append(r"    \centering")
     lines.append(r"    \resizebox{\textwidth}{!}{")
-    lines.append(r"    \begin{tabular}{ll" + "rrr" * len(algo_order) + "}")
+    lines.append(r"    \begin{tabular}{l" + "rrr" * len(algo_order) + "}")
     lines.append(r"        \toprule")
 
-    # Level 1: algo names, each spanning 3 cols
-    lines.append("        & & " + " & ".join(
+    lines.append("        & " + " & ".join(
         f"\\multicolumn{{3}}{{c}}{{{algo}}}" for algo in algo_order
     ) + r" \\")
     lines.append("        " + "".join(
-        f"\\cmidrule(lr){{{3 + i*3}-{5 + i*3}}}" for i in range(len(algo_order))
+        f"\\cmidrule(lr){{{2 + i*3}-{4 + i*3}}}" for i in range(len(algo_order))
     ))
-
-    # Level 2: Start / End / Delta
-    lines.append("        Topology & Path Type & " + " & ".join(
+    lines.append("        Topology & " + " & ".join(
         r"Start & End & $\Delta$" for _ in algo_order
     ) + r" \\")
     lines.append(r"        \midrule")
 
-    # Data rows
-    for topo, algos in groups.items():
+    for topo, algos in sorted(groups.items(), key=lambda item: int(re.search(r'\d+', item[0]).group())):
         topo_label = TOPO_NAMES.get(topo, topo)
-        for m_idx, (metric_label, avg_col) in enumerate(metric_types):
-            row = [f"\\multirow{{3}}{{*}}{{{topo_label}}}" if m_idx == 0 else "", metric_label]
-            for algo in algo_order:
-                algo_rows = algos.get(algo, [])
-                if algo_rows:
-                    s_avg = float(algo_rows[0].get(avg_col, 0))
-                    e_avg = float(algo_rows[-1].get(avg_col, 0))
-                    d_avg = e_avg - s_avg
-                    row += [f"{s_avg:.2f}", f"{e_avg:.2f}", f"{d_avg:+.2f}"]
-                else:
-                    row += ["--", "--", "--"]
-            lines.append("        " + " & ".join(row) + r" \\")
-        lines.append(r"        \midrule")
+        row = [topo_label]
+        for algo in algo_order:
+            algo_rows = algos.get(algo, [])
+            if algo_rows:
+                s_avg = float(algo_rows[0].get(avg_col, 0))
+                e_avg = float(algo_rows[-1].get(avg_col, 0))
+                d_avg = e_avg - s_avg
+                row += [f"{s_avg:.2f}", f"{e_avg:.2f}", delta_cell(d_avg)]
+            else:
+                row += ["--", "--", "--"]
+        lines.append("        " + " & ".join(row) + r" \\")
 
-    lines[-1] = r"        \bottomrule"
+    lines.append(r"        \bottomrule")
     lines.append(r"    \end{tabular}}")
     lines.append(r"    \caption{Path statistics}")
     lines.append(r"    \label{tab:path_stats}")

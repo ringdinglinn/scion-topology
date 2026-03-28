@@ -4,8 +4,8 @@ TOPOLOGY_FOLDER := topology_optimization/topologies
 RESULTS := topology_optimization/results/results.csv
 CONTAINER_TOPOLOGIES_PATH := tmp/container-topologies/
 PLOTS_FOLDER := topology_optimization/plots/
-SHOWPATHS_DATA := topology_optimization/data/show_paths
-SHOWPATHS_RESULTS := topology_optimization/results/results_paths.csv
+SHOWPATHS_DATA := topology_optimization/data/show_paths_exhaustive
+SHOWPATHS_RESULTS := topology_optimization/results/results_paths_exhaustive.csv
 
 CONFIG_MK := .isd-vars.mk
 
@@ -213,28 +213,27 @@ topo-plot: topo-graph-table
 topo-graph-table:
 	python3 -m topology_optimization.scripts.draw_plots.create_graph_table -i $(TOPOLOGY_FOLDER) -o $(PLOTS_FOLDER)
 
-run-path-evaluation:
-	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
-		it0=$$(ls $$topo*_it0.yaml); \
-		$(MAKE) rebuild NETWORK_CONFIG=$$it0; \
-		for file in $$topo*_it*.yaml; do \
-			$(MAKE) path-test NETWORK_CONFIG=$$file; \
-		done; \
-	done
-	@$(MAKE) eval-paths
-	@$(MAKE) plot-paths
-
 # run-path-evaluation:
 # 	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
 # 		it0=$$(ls $$topo*_it0.yaml); \
-# 		it5_rac = $$(ls $$topo_rac_it5.yaml)
-# 		it5_rnp = $$(ls $$topo_rnp_it5.yaml)
-# 		$(MAKE) path-test NETWORK_CONFIG=$$it0; \
-# 		$(MAKE) path-test NETWORK_CONFIG=$$it5_rac; \
-# 		$(MAKE) path-test NETWORK_CONFIG=$$it5_rnp; \
+# 		$(MAKE) rebuild NETWORK_CONFIG=$$it0; \
+# 		for file in $$topo*_it*.yaml; do \
+# 			$(MAKE) path-test NETWORK_CONFIG=$$file; \
+# 		done; \
 # 	done
 # 	@$(MAKE) eval-paths
 # 	@$(MAKE) plot-paths
+
+run-path-evaluation:
+	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
+		it5_rac=$$(ls $$topo*_rac_it5.yaml); \
+		it5_rnp=$$(ls $$topo*_rnp_it5.yaml); \
+		echo ">>> Testing $$it5_rac and $$it5_rnp"; \
+		$(MAKE) path-test NETWORK_CONFIG=$$it5_rac; \
+		$(MAKE) path-test NETWORK_CONFIG=$$it5_rnp; \
+	done
+	@$(MAKE) eval-paths
+	@$(MAKE) plot-paths
 
 # run-path-evaluation:
 # 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
@@ -262,14 +261,14 @@ path-test:
 		fi; \
 		sleep 5; \
 	done; \
-	sleep 100; \
+	sleep 30; \
 	$(MAKE) show-paths NETWORK_CONFIG=$(NETWORK_CONFIG) SHOWPATHS_DATA=$(SHOWPATHS_DATA); \
 	sleep 5;
 	$(MAKE) down
 
 
 show-paths:
-	python3 -m topology_optimization.scripts.show_paths --config $(NETWORK_CONFIG) --output-path $(SHOWPATHS_DATA); \
+	python3 -m topology_optimization.scripts.show_paths --config $(NETWORK_CONFIG) --output-path $(SHOWPATHS_DATA) -X; \
 
 eval-paths:
 	python3 -m topology_optimization.scripts.evaluate_paths -f $(SHOWPATHS_DATA) -o $(SHOWPATHS_RESULTS);  \
