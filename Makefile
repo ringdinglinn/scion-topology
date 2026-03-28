@@ -172,7 +172,8 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-TOPO_OPTIM_FOLDERS := topo1 topo4 topo6 topo10
+# TOPO_OPTIM_FOLDERS := topo1 topo4 topo6 topo10
+TOPO_OPTIM_FOLDERS := topo1
 topo-optim:
 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
 		for file in $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml; do \
