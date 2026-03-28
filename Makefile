@@ -1,5 +1,5 @@
 # ==== CONFIG ====
-NETWORK_CONFIG := topology_optimization/topologies/topo7/topo7_it0.yaml
+NETWORK_CONFIG := topology_optimization/topologies/topo1/topo1_rac_it1.yaml
 TOPOLOGY_FOLDER := topology_optimization/topologies
 RESULTS := topology_optimization/results/results.csv
 CONTAINER_TOPOLOGIES_PATH := tmp/container-topologies/
@@ -172,42 +172,45 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-# TOPO_OPTIM_FOLDERS := topo11
+TOPO_OPTIM_FOLDERS := topo1 topo4 topo6 topo10
+topo-optim:
+	@for topo in $(TOPO_OPTIM_FOLDERS); do \
+		for file in $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml; do \
+			python3 -m topology_optimization.scripts.rewire_spectral -tc $$file -o $(TOPOLOGY_FOLDER)/$$topo/ -k 5 --add-only; \
+			python3 -m topology_optimization.scripts.rewire_np -tc $$file -o $(TOPOLOGY_FOLDER)/$$topo/ -k 5 --add-only; \
+		done \
+	done
+
 # topo-optim:
-# 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
-# 		for file in $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml; do \
-# 			python3 -m scripts.rewiring.rewire_spectral -tc $$file -o $(TOPOLOGY_FOLDER)/$$topo/ -k 5; \
-# 			python3 -m scripts.rewiring.rewire_np -tc $$file -o $(TOPOLOGY_FOLDER)/$$topo/ -k 5; \
-# 		done \
+# 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
+# 		file=$$(ls $$topo*_it0.yaml) ; \
+# 		python3 -m topology_optimization.scripts.rewire_spectral -tc $$file -o $$topo -k 5 --add-only; \
+# 		python3 -m topology_optimization.scripts.rewire_np -tc $$file -o $$topo -k 5 --add-only; \
 # 	done
 
 # topo-optim:
 # 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
 # 		file=$$(ls $$topo*_it0.yaml) ; \
-# 		python3 -m scripts.rewiring.rewire_spectral -tc $$file -o $$topo -k 5 --add-only; \
-# 		python3 -m scripts.rewiring.rewire_np -tc $$file -o $$topo -k 5 --add-only; \
+# 		python3 -m topology_optimization.scripts.rewire_spectral -tc $$file -o $$topo -k 5; \
+# 		python3 -m topology_optimization.scripts.rewire_np -tc $$file -o $$topo -k 5; \
 # 	done
 
-topo-optim:
-	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
-		file=$$(ls $$topo*_it0.yaml) ; \
-		python3 -m scripts.rewiring.rewire_spectral -tc $$file -o $$topo -k 5; \
-		python3 -m scripts.rewiring.rewire_np -tc $$file -o $$topo -k 5; \
-	done
-
 topo-eval: 
-	python3 -m scripts.rewiring.evaluate_topology -i $(TOPOLOGY_FOLDER) -o $(RESULTS); \
+	python3 -m topology_optimization.scripts.evaluate_topology -i $(TOPOLOGY_FOLDER) -o $(RESULTS); \
 
-topo-plot:
-	python3 -m scripts.rewiring.plot_topology \
+topo-plot: topo-graph-table
+	python3 -m topology_optimization.scripts.plot_topology \
 	-i $(RESULTS) \
 	-g "^([^_]+)" \
 	-sg "_([^_]+)_" \
-	-m "cheeger_constant" "algebraic_connectivity" \
+	-m "cheeger_constant" "algebraic_connectivity" "border_breadth_avg" \
 	-o $(PLOTS_FOLDER) \
 	-t $(TOPOLOGY_FOLDER) \
 	--border-breadth \
 	--graphs
+
+topo-graph-table:
+	python3 -m topology_optimization.scripts.draw_plots.create_graph_table -i $(TOPOLOGY_FOLDER) -o $(PLOTS_FOLDER)
 
 run-path-evaluation:
 	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
@@ -219,6 +222,18 @@ run-path-evaluation:
 	done
 	@$(MAKE) eval-paths
 	@$(MAKE) plot-paths
+
+# run-path-evaluation:
+# 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
+# 		it0=$$(echo $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml); \
+# 		$(MAKE) rebuild NETWORK_CONFIG="$$it0"; \
+# 		for file in $(TOPOLOGY_FOLDER)/$$topo/$${topo}_*_it*.yaml; do \
+# 			[ -e "$$file" ] || continue; \
+# 			$(MAKE) path-test NETWORK_CONFIG="$$file"; \
+# 		done; \
+# 	done
+# 	@$(MAKE) eval-paths -f $(SHOWPATHS_DATA) -o $(RESULTS)
+# 	@$(MAKE) plot-paths
 
 path-test:
 	@echo ">>> Running path evaluation for $(NETWORK_CONFIG)"; \
@@ -234,23 +249,28 @@ path-test:
 		fi; \
 		sleep 5; \
 	done; \
-	sleep 30; \
+	sleep 100; \
 	$(MAKE) show-paths NETWORK_CONFIG=$(NETWORK_CONFIG) SHOWPATHS_DATA=$(SHOWPATHS_DATA); \
+	sleep 5;
 	$(MAKE) down
 
 
 show-paths:
-	python3 -m scripts.rewiring.show_paths --config $(NETWORK_CONFIG) --output-path $(SHOWPATHS_DATA); \
+	python3 -m topology_optimization.scripts.show_paths --config $(NETWORK_CONFIG) --output-path $(SHOWPATHS_DATA); \
 
 eval-paths:
-	python3 -m scripts.rewiring.evaluate_paths --folder $(SHOWPATHS_DATA) --topologies $(TOPOLOGY_FOLDER) --output $(SHOWPATHS_RESULTS);  \
+	python3 -m topology_optimization.scripts.evaluate_paths -f $(SHOWPATHS_DATA) -o $(SHOWPATHS_RESULTS);  \
 
 plot-paths:
-	python3 -m scripts.rewiring.plot_topology \
+	python3 -m topology_optimization.scripts.plot_topology \
 	-i $(SHOWPATHS_RESULTS) \
 	-g "^([^_]+)" \
 	-sg "_([^_]+)_" \
-	-m "intra_isd_paths_scion+inter_isd_paths_scion" \
-	-s topology \
+	-m "inter_isd_paths_avg+intra_isd_paths_avg" \
 	-o $(PLOTS_FOLDER) \
 	-t $(TOPOLOGY_FOLDER)
+	python3 -m topology_optimization.scripts.draw_plots.create_paths_table \
+	-i $(SHOWPATHS_RESULTS) \
+	-o $(PLOTS_FOLDER) \
+	-g "^([^_]+)" \
+	-sg "_([^_]+)_" \

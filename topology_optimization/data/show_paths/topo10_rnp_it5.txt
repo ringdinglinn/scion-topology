@@ -1,0 +1,248 @@
+=== scion1-5_to_scion1-6 [intra] ===
+
+=== scion1-6_to_scion1-5 [intra] ===
+
+=== scion1-6_to_scion2-19 [inter] ===
+
+=== scion1-6_to_scion2-27 [inter] ===
+
+=== scion1-6_to_scion2-28 [inter] ===
+
+=== scion1-4_to_scion2-1 [inter] ===
+
+=== scion1-4_to_scion2-22 [inter] ===
+
+=== scion1-4_to_scion2-4 [inter] ===
+
+=== scion1-4_to_scion2-7 [inter] ===
+
+=== scion1-4_to_scion2-12 [inter] ===
+
+=== scion1-4_to_scion2-10 [inter] ===
+
+=== scion1-4_to_scion2-15 [inter] ===
+
+=== scion1-4_to_scion2-21 [inter] ===
+
+=== scion1-4_to_scion2-14 [inter] ===
+
+=== scion1-4_to_scion2-18 [inter] ===
+
+=== scion1-4_to_scion2-24 [inter] ===
+
+=== scion1-4_to_scion2-25 [inter] ===
+
+=== scion1-4_to_scion2-19 [inter] ===
+
+=== scion1-4_to_scion2-27 [inter] ===
+
+=== scion1-4_to_scion2-28 [inter] ===
+
+=== scion1-7_to_scion2-21 [inter] ===
+
+=== scion1-3_to_scion2-21 [inter] ===
+
+=== scion1-6_to_scion3-2 [inter] ===
+
+=== scion1-4_to_scion3-1 [inter] ===
+
+=== scion1-4_to_scion3-2 [inter] ===
+
+=== scion2-11_to_scion2-19 [intra] ===
+Available paths to 17-ffaa:2:19
+5 Hops:
+[0] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 1>1 17-ffaa:2:2 2>1 17-ffaa:2:16 7>1 17-ffaa:2:19] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[1] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 3>1 18-ffaa:3:3 2>3 17-ffaa:2:16 7>1 17-ffaa:2:19] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[2] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 6>1 17-ffaa:2:6 3>5 17-ffaa:2:16 7>1 17-ffaa:2:19] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[3] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 2>1 17-ffaa:2:16 7>1 17-ffaa:2:19] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+7 Hops:
+[4] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 3>1 18-ffaa:3:3 3>1 18-ffaa:3:1 2>2 18-ffaa:3:2 1>9 17-ffaa:2:16 7>1 17-ffaa:2:19] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[5] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 1>1 17-ffaa:2:3 3>1 18-ffaa:3:3 2>3 17-ffaa:2:16 7>1 17-ffaa:2:19] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[6] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 1>1 17-ffaa:2:3 6>1 17-ffaa:2:6 3>5 17-ffaa:2:16 7>1 17-ffaa:2:19] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+9 Hops:
+[7] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 1>1 17-ffaa:2:3 3>1 18-ffaa:3:3 3>1 18-ffaa:3:1 2>2 18-ffaa:3:2 1>9 17-ffaa:2:16 7>1 17-ffaa:2:19] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+
+=== scion2-11_to_scion2-27 [intra] ===
+Available paths to 17-ffaa:2:27
+5 Hops:
+[0] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 1>1 17-ffaa:2:2 2>1 17-ffaa:2:16 10>1 17-ffaa:2:27] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[1] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 3>1 18-ffaa:3:3 2>3 17-ffaa:2:16 10>1 17-ffaa:2:27] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[2] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 6>1 17-ffaa:2:6 3>5 17-ffaa:2:16 10>1 17-ffaa:2:27] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[3] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 2>1 17-ffaa:2:16 10>1 17-ffaa:2:27] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+7 Hops:
+[4] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 3>1 18-ffaa:3:3 3>1 18-ffaa:3:1 2>2 18-ffaa:3:2 1>9 17-ffaa:2:16 10>1 17-ffaa:2:27] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[5] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 1>1 17-ffaa:2:3 3>1 18-ffaa:3:3 2>3 17-ffaa:2:16 10>1 17-ffaa:2:27] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[6] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 1>1 17-ffaa:2:3 6>1 17-ffaa:2:6 3>5 17-ffaa:2:16 10>1 17-ffaa:2:27] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+9 Hops:
+[7] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 1>1 17-ffaa:2:3 3>1 18-ffaa:3:3 3>1 18-ffaa:3:1 2>2 18-ffaa:3:2 1>9 17-ffaa:2:16 10>1 17-ffaa:2:27] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+
+=== scion2-11_to_scion2-28 [intra] ===
+Available paths to 17-ffaa:2:28
+5 Hops:
+[0] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 1>1 17-ffaa:2:2 2>1 17-ffaa:2:16 11>1 17-ffaa:2:28] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[1] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 3>1 18-ffaa:3:3 2>3 17-ffaa:2:16 11>1 17-ffaa:2:28] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[2] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 6>1 17-ffaa:2:6 3>5 17-ffaa:2:16 11>1 17-ffaa:2:28] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[3] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 2>1 17-ffaa:2:16 11>1 17-ffaa:2:28] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+7 Hops:
+[4] Hops: [17-ffaa:2:11 1>12 17-ffaa:2:3 3>1 18-ffaa:3:3 3>1 18-ffaa:3:1 2>2 18-ffaa:3:2 1>9 17-ffaa:2:16 11>1 17-ffaa:2:28] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[5] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 1>1 17-ffaa:2:3 3>1 18-ffaa:3:3 2>3 17-ffaa:2:16 11>1 17-ffaa:2:28] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[6] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 1>1 17-ffaa:2:3 6>1 17-ffaa:2:6 3>5 17-ffaa:2:16 11>1 17-ffaa:2:28] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+9 Hops:
+[7] Hops: [17-ffaa:2:11 2>3 17-ffaa:2:1 1>3 17-ffaa:2:2 1>1 17-ffaa:2:3 3>1 18-ffaa:3:3 3>1 18-ffaa:3:1 2>2 18-ffaa:3:2 1>9 17-ffaa:2:16 11>1 17-ffaa:2:28] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+
+=== scion2-4_to_scion2-10 [intra] ===
+Available paths to 17-ffaa:2:10
+5 Hops:
+[0] Hops: [17-ffaa:2:4 1>5 17-ffaa:2:2 1>1 17-ffaa:2:3 10>1 17-ffaa:2:17 3>2 17-ffaa:2:10] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+6 Hops:
+[1] Hops: [17-ffaa:2:4 4>3 17-ffaa:2:21 1>4 17-ffaa:2:20 1>5 17-ffaa:2:3 10>1 17-ffaa:2:17 3>2 17-ffaa:2:10] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[2] Hops: [17-ffaa:2:4 4>3 17-ffaa:2:21 2>4 17-ffaa:2:23 1>11 17-ffaa:2:3 10>1 17-ffaa:2:17 3>2 17-ffaa:2:10] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+7 Hops:
+[3] Hops: [17-ffaa:2:4 1>5 17-ffaa:2:2 2>1 17-ffaa:2:16 3>2 18-ffaa:3:3 1>3 17-ffaa:2:3 10>1 17-ffaa:2:17 3>2 17-ffaa:2:10] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[4] Hops: [17-ffaa:2:4 1>5 17-ffaa:2:2 2>1 17-ffaa:2:16 5>3 17-ffaa:2:6 1>6 17-ffaa:2:3 10>1 17-ffaa:2:17 3>2 17-ffaa:2:10] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+[5] Hops: [17-ffaa:2:4 1>5 17-ffaa:2:2 3>1 17-ffaa:2:1 3>2 17-ffaa:2:11 1>12 17-ffaa:2:3 10>1 17-ffaa:2:17 3>2 17-ffaa:2:10] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+9 Hops:
+[6] Hops: [17-ffaa:2:4 1>5 17-ffaa:2:2 2>1 17-ffaa:2:16 9>1 18-ffaa:3:2 2>2 18-ffaa:3:1 1>3 18-ffaa:3:3 1>3 17-ffaa:2:3 10>1 17-ffaa:2:17 3>2 17-ffaa:2:10] MTU: 1472 NextHop: 127.0.0.1:31002 Status: alive LocalIP: 127.0.0.1
+
+=== scion2-10_to_scion2-4 [intra] ===
+
+=== scion2-10_to_scion2-14 [intra] ===
+
+=== scion2-21_to_scion2-14 [intra] ===
+
+=== scion2-21_to_scion2-24 [intra] ===
+
+=== scion2-21_to_scion2-27 [intra] ===
+
+=== scion2-21_to_scion2-28 [intra] ===
+
+=== scion2-14_to_scion2-10 [intra] ===
+
+=== scion2-14_to_scion2-21 [intra] ===
+
+=== scion2-24_to_scion2-21 [intra] ===
+
+=== scion2-19_to_scion2-11 [intra] ===
+
+=== scion2-27_to_scion2-11 [intra] ===
+
+=== scion2-27_to_scion2-21 [intra] ===
+
+=== scion2-28_to_scion2-11 [intra] ===
+
+=== scion2-28_to_scion2-21 [intra] ===
+
+=== scion2-11_to_scion3-2 [inter] ===
+
+=== scion2-1_to_scion3-1 [inter] ===
+
+=== scion2-4_to_scion3-1 [inter] ===
+
+=== scion2-7_to_scion3-1 [inter] ===
+
+=== scion2-10_to_scion3-1 [inter] ===
+
+=== scion2-15_to_scion3-1 [inter] ===
+
+=== scion2-21_to_scion3-1 [inter] ===
+
+=== scion2-21_to_scion3-2 [inter] ===
+
+=== scion2-14_to_scion3-1 [inter] ===
+
+=== scion3-3_to_scion3-2 [intra] ===
+
+=== scion3-2_to_scion3-3 [intra] ===
+
+=== scion2-1_to_scion1-4 [total] ===
+
+=== scion2-22_to_scion1-4 [total] ===
+
+=== scion2-4_to_scion1-4 [total] ===
+
+=== scion2-7_to_scion1-4 [total] ===
+
+=== scion2-12_to_scion1-4 [total] ===
+
+=== scion2-10_to_scion1-4 [total] ===
+
+=== scion3-1_to_scion1-4 [total] ===
+
+=== scion2-15_to_scion1-4 [total] ===
+
+=== scion2-21_to_scion1-7 [total] ===
+
+=== scion2-21_to_scion1-3 [total] ===
+
+=== scion2-21_to_scion1-4 [total] ===
+
+=== scion2-14_to_scion1-4 [total] ===
+
+=== scion2-18_to_scion1-4 [total] ===
+
+=== scion2-24_to_scion1-4 [total] ===
+
+=== scion2-25_to_scion1-4 [total] ===
+
+=== scion1-6_to_scion2-19 [total] ===
+
+=== scion1-6_to_scion3-2 [total] ===
+
+=== scion1-6_to_scion2-27 [total] ===
+
+=== scion1-6_to_scion2-28 [total] ===
+
+=== scion2-19_to_scion1-6 [total] ===
+
+=== scion2-19_to_scion1-4 [total] ===
+
+=== scion3-2_to_scion1-6 [total] ===
+
+=== scion3-2_to_scion1-4 [total] ===
+
+=== scion2-27_to_scion1-6 [total] ===
+
+=== scion2-27_to_scion1-4 [total] ===
+
+=== scion2-28_to_scion1-6 [total] ===
+
+=== scion2-28_to_scion1-4 [total] ===
+
+=== scion1-4_to_scion2-1 [total] ===
+
+=== scion1-4_to_scion2-22 [total] ===
+
+=== scion1-4_to_scion2-4 [total] ===
+
+=== scion1-4_to_scion2-7 [total] ===
+
+=== scion1-4_to_scion2-12 [total] ===
+
+=== scion1-4_to_scion2-10 [total] ===
+
+=== scion1-4_to_scion3-1 [total] ===
+
+=== scion1-4_to_scion2-15 [total] ===
+
+=== scion1-4_to_scion2-21 [total] ===
+
+=== scion1-4_to_scion2-14 [total] ===
+
+=== scion1-4_to_scion2-18 [total] ===
+
+=== scion1-4_to_scion2-24 [total] ===
+
+=== scion1-4_to_scion2-25 [total] ===
+
+=== scion1-4_to_scion2-19 [total] ===
+
+=== scion1-4_to_scion3-2 [total] ===
+
+=== scion1-4_to_scion2-27 [total] ===
+
+=== scion1-4_to_scion2-28 [total] ===
+
+=== scion1-7_to_scion2-21 [total] ===
+
+=== scion1-3_to_scion2-21 [total] ===
+

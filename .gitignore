@@ -1,7 +1,5 @@
 captures/
 bats-core/
-topology_optimization/data/
-container-topologies/
 tmp/
 
 .DS_Store

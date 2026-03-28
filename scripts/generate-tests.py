@@ -18,14 +18,14 @@ def generate_test_combinations(config, test_generator):
     
     # Diagonal cases
     tests.append('# Diagonal ISD-to_ISD\n')
-    for i, src_isd in enumerate(isd_list):
-        src_max = isds[src_isd]['n']
-        dst_isd = isd_list[(i + 1) % len(isd_list)]
-        dst_max = isds[dst_isd]['n']
-        
-        for src_as in range(1, src_max+1):
-            if (src_as <= dst_max):
-                tests.append(test_generator(src_isd, src_as, dst_isd, src_as))
+    if len(isd_list) >= 2:
+        for i, src_isd in enumerate(isd_list):
+            src_max = isds[src_isd]['n']
+            dst_isd = isd_list[(i + 1) % len(isd_list)]
+            dst_max = isds[dst_isd]['n']
+            for src_as in range(1, src_max + 1):
+                if src_as <= dst_max:
+                    tests.append(test_generator(src_isd, src_as, dst_isd, src_as))
     
     return tests
 
