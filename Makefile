@@ -1,11 +1,12 @@
 # ==== CONFIG ====
-NETWORK_CONFIG := topology_optimization/topologies/topo1/topo1_rac_it1.yaml
+NETWORK_CONFIG := topology_optimization/topologies/topo6/topo6_it0.yaml
 TOPOLOGY_FOLDER := topology_optimization/topologies
 RESULTS := topology_optimization/results/results.csv
 CONTAINER_TOPOLOGIES_PATH := tmp/container-topologies/
 PLOTS_FOLDER := topology_optimization/plots/
-SHOWPATHS_DATA := topology_optimization/data/show_paths_exhaustive
-SHOWPATHS_RESULTS := topology_optimization/results/results_paths_exhaustive.csv
+SHOWPATHS_DATA := topology_optimization/data/show_paths_total
+SHOWPATHS_RESULTS := topology_optimization/results/results_paths_total.csv
+CORRELATION_RESULTS := topology_optimization/results/results_correlations.csv
 
 CONFIG_MK := .isd-vars.mk
 
@@ -172,7 +173,7 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-TOPO_OPTIM_FOLDERS := topo1 topo4 topo6 topo10
+TOPO_OPTIM_FOLDERS := topo8 topo9
 # TOPO_OPTIM_FOLDERS := topo1
 topo-optim:
 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
@@ -224,28 +225,27 @@ topo-graph-table:
 # 	@$(MAKE) eval-paths
 # 	@$(MAKE) plot-paths
 
-run-path-evaluation:
-	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
-		it5_rac=$$(ls $$topo*_rac_it5.yaml); \
-		it5_rnp=$$(ls $$topo*_rnp_it5.yaml); \
-		echo ">>> Testing $$it5_rac and $$it5_rnp"; \
-		$(MAKE) path-test NETWORK_CONFIG=$$it5_rac; \
-		$(MAKE) path-test NETWORK_CONFIG=$$it5_rnp; \
-	done
-	@$(MAKE) eval-paths
-	@$(MAKE) plot-paths
-
 # run-path-evaluation:
-# 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
-# 		it0=$$(echo $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml); \
-# 		$(MAKE) rebuild NETWORK_CONFIG="$$it0"; \
-# 		for file in $(TOPOLOGY_FOLDER)/$$topo/$${topo}_*_it*.yaml; do \
-# 			[ -e "$$file" ] || continue; \
-# 			$(MAKE) path-test NETWORK_CONFIG="$$file"; \
-# 		done; \
+# 	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
+# 		it5_rac=$$(ls $$topo*_rac_it5.yaml); \
+# 		it5_rnp=$$(ls $$topo*_rnp_it5.yaml); \
+# 		$(MAKE) path-test NETWORK_CONFIG=$$it5_rac; \
+# 		$(MAKE) path-test NETWORK_CONFIG=$$it5_rnp; \
 # 	done
-# 	@$(MAKE) eval-paths -f $(SHOWPATHS_DATA) -o $(RESULTS)
+# 	@$(MAKE) eval-paths
 # 	@$(MAKE) plot-paths
+
+run-path-evaluation:
+	@for topo in $(TOPO_OPTIM_FOLDERS); do \
+		it0=$$(echo $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml); \
+		$(MAKE) rebuild NETWORK_CONFIG="$$it0"; \
+		for file in $(TOPOLOGY_FOLDER)/$$topo/$${topo}*_it*.yaml; do \
+			[ -e "$$file" ] || continue; \
+			$(MAKE) path-test NETWORK_CONFIG="$$file"; \
+		done; \
+	done
+	@$(MAKE) eval-paths -f $(SHOWPATHS_DATA) -o $(RESULTS)
+	@$(MAKE) plot-paths
 
 path-test:
 	@echo ">>> Running path evaluation for $(NETWORK_CONFIG)"; \
@@ -278,11 +278,23 @@ plot-paths:
 	-i $(SHOWPATHS_RESULTS) \
 	-g "^([^_]+)" \
 	-sg "_([^_]+)_" \
-	-m "inter_isd_paths_avg+intra_isd_paths_avg" \
+	-m "total_paths_avg" "inter_isd_paths_avg+intra_isd_paths_avg" \
 	-o $(PLOTS_FOLDER) \
 	-t $(TOPOLOGY_FOLDER)
+
+paths-table:
 	python3 -m topology_optimization.scripts.draw_plots.create_paths_table \
 	-i $(SHOWPATHS_RESULTS) \
 	-o $(PLOTS_FOLDER) \
 	-g "^([^_]+)" \
 	-sg "_([^_]+)_" \
+
+eval-correlations:
+	python3 -m topology_optimization.scripts.metric_correlations \
+	-mr $(RESULTS) \
+	-pr $(SHOWPATHS_RESULTS) \
+	-o $(CORRELATION_RESULTS)
+	python3 -m topology_optimization.scripts.draw_plots.create_correlation_table \
+	-i $(CORRELATION_RESULTS) \
+	-o $(PLOTS_FOLDER) \
+	-f "nr_connected_components" "average_clustering" "assortativity" "transitivity"

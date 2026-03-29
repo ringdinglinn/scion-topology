@@ -7,8 +7,8 @@ from itertools import cycle
 apply_styling()
 
 def plot_metrics(metrics, groups, output_dir, title=None):
-    linestyles = ["-", ":", "--", "-:"]
-    markerstyles = [".", "x", "d", "s"]
+    linestyles = ["--", ":", "-:"]
+    markerstyles = ["d", "x", "s"]
     group_names = list(groups.keys())
     n_groups = len(group_names)
     n_cols = min(4, n_groups)
@@ -56,7 +56,7 @@ def plot_metrics(metrics, groups, output_dir, title=None):
                 y_values = [float(r[metric]) for r in valid_rows]
                 if (len(metrics) > 1):
                     linestyle = linestyles[m_idx % len(linestyles)]
-                    markerstyle = markerstyles[m_idx % len(linestyles)]
+                    markerstyle = "."
                     legend_key = f"{sub_name} | {METRIC_NAMES[metric]}"
                 else:
                     linestyle = "-"

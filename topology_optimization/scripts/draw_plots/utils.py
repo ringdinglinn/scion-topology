@@ -30,12 +30,17 @@ METRIC_NAMES = {
     "transitivity": "Transitivity $C\delta$",
     "degree_std" : "Degree Standard Deviation",
     "degree_entropy" : "Degree Entropy",
-    "spectral gap": "Spectral Gap",
+    "spectral_gap": "Spectral Gap",
     "cheeger_constant" : "Cheeger Constant",
     "total_paths_avg" : "Average Total Paths",
     "inter_isd_paths_avg" : "Average Inter ISD Paths",
     "intra_isd_paths_avg" : "Average Intra ISD Paths",
-    "border_breadth_avg" : "Average Border Breadth"
+    "border_breadth_avg" : "Average Border Breadth",
+    "spectral_radius": "Spectral Radius",
+    "average_clustering" : "Average Clustering",
+    "nr_connected_components" : "# Connected Components",
+    "pearson_r": "Pearson r",
+    "spearman_p": "Spearman p"
 }
 
 METRIC_LABELS = {
@@ -47,13 +52,18 @@ METRIC_LABELS = {
     "transitivity": "Transitivity $C\delta$",
     "degree_std" : "Degree Standard Deviation",
     "degree_entropy" : "Degree Entropy",
-    "spectral gap": "Spectral Gap",
+    "spectral_gap": "Spectral Gap",
     "cheeger_constant" : "Cheeger Constant",
     "border_breadth" : "Border Breadth",
     "total_paths_avg" : "Nr Paths (avg)",
     "inter_isd_paths_avg" : "Nr Paths (avg)",
     "intra_isd_paths_avg" : "Nr Paths (avg)",
-    "border_breadth_avg" : "Border Breadth (avg)"
+    "border_breadth_avg" : "Border Breadth (avg)",
+    "spectral_radius": "Spectral Radius",
+    "average_clustering" : "Average Clustering",
+    "nr_connected_components" : "# Connected Components",
+    "pearson_r": "Pearson r",
+    "spearman_p": "Spearman p"
 }
 
 TOPO_NAMES = {

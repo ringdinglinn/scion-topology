@@ -47,6 +47,30 @@ services:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
+  scion1-13:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion1-14:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion1-15:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion1-16:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion1-17:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion1-18:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
   scion2-1:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
@@ -59,26 +83,6 @@ services:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
-  scion2-4:
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /Users/Shared:/shared
-  scion2-5:
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /Users/Shared:/shared
-  scion2-6:
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /Users/Shared:/shared
-  scion2-7:
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /Users/Shared:/shared
-  scion2-8:
-    volumes:
-    - /sys/fs/cgroup:/sys/fs/cgroup
-    - /Users/Shared:/shared
   scion3-1:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
@@ -88,6 +92,50 @@ services:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared
   scion3-3:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion3-4:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion3-5:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion3-6:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion3-7:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion3-8:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion4-1:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion4-2:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion4-3:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion5-1:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion5-2:
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup
+    - /Users/Shared:/shared
+  scion5-3:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup
     - /Users/Shared:/shared

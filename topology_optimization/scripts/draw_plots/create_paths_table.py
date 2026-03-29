@@ -12,7 +12,6 @@ def paths_to_latex_table(groups) -> str:
     algo_order = ["$R_{AC}$", "$R_{NP}$"]
     avg_col = "total_paths_avg"
 
-    # Pre-collect all deltas to normalise colour intensity
     all_deltas = []
     for topo, algos in groups.items():
         for algo in algo_order:
@@ -31,37 +30,48 @@ def paths_to_latex_table(groups) -> str:
     lines.append(r"\begin{table}[h]")
     lines.append(r"    \centering")
     lines.append(r"    \resizebox{\textwidth}{!}{")
-    lines.append(r"    \begin{tabular}{l" + "rrr" * len(algo_order) + "}")
+    lines.append(r"    \begin{tabular}{lrrrrr}")
     lines.append(r"        \toprule")
 
-    lines.append("        & " + " & ".join(
-        f"\\multicolumn{{3}}{{c}}{{{algo}}}" for algo in algo_order
-    ) + r" \\")
-    lines.append("        " + "".join(
-        f"\\cmidrule(lr){{{2 + i*3}-{4 + i*3}}}" for i in range(len(algo_order))
-    ))
-    lines.append("        Topology & " + " & ".join(
-        r"Start & End & $\Delta$" for _ in algo_order
-    ) + r" \\")
+    lines.append(
+        r"        & & \multicolumn{2}{c}{Final Avg. Nr. Paths} & \multicolumn{2}{c}{$\Delta$} \\"
+    )
+    lines.append(r"        \cmidrule(lr){3-4} \cmidrule(lr){5-6}")
+
+    algo_header = " & ".join(algo_order)
+    lines.append(f"        Topology & Initial Avg. Nr. Paths & {algo_header} & {algo_header} \\\\")
     lines.append(r"        \midrule")
 
     for topo, algos in sorted(groups.items(), key=lambda item: int(re.search(r'\d+', item[0]).group())):
         topo_label = TOPO_NAMES.get(topo, topo)
-        row = [topo_label]
+
+
+        start_val = "--"
         for algo in algo_order:
             algo_rows = algos.get(algo, [])
             if algo_rows:
-                s_avg = float(algo_rows[0].get(avg_col, 0))
-                e_avg = float(algo_rows[-1].get(avg_col, 0))
-                d_avg = e_avg - s_avg
-                row += [f"{s_avg:.2f}", f"{e_avg:.2f}", delta_cell(d_avg)]
+                start_val = f"{float(algo_rows[0].get(avg_col, 0)):.2f}"
+                break
+
+        end_cells = []
+        delta_cells = []
+        for algo in algo_order:
+            algo_rows = algos.get(algo, [])
+            if algo_rows:
+                s = float(algo_rows[0].get(avg_col, 0))
+                e = float(algo_rows[-1].get(avg_col, 0))
+                end_cells.append(f"{e:.2f}")
+                delta_cells.append(delta_cell(e - s))
             else:
-                row += ["--", "--", "--"]
+                end_cells.append("--")
+                delta_cells.append("--")
+
+        row = [topo_label, start_val] + end_cells + delta_cells
         lines.append("        " + " & ".join(row) + r" \\")
 
     lines.append(r"        \bottomrule")
     lines.append(r"    \end{tabular}}")
-    lines.append(r"    \caption{Path statistics}")
+    lines.append(r"    \caption{Total Gain in Average Paths Between Node Pairs after Running $R_{AC}$ and $R_{NP}$}")
     lines.append(r"    \label{tab:path_stats}")
     lines.append(r"\end{table}")
 
