@@ -173,7 +173,7 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-TOPO_OPTIM_FOLDERS := topo8 topo9
+TOPO_OPTIM_FOLDERS := topo8
 # TOPO_OPTIM_FOLDERS := topo1
 topo-optim:
 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
@@ -237,14 +237,11 @@ topo-graph-table:
 
 run-path-evaluation:
 	@for topo in $(TOPO_OPTIM_FOLDERS); do \
-		it0=$$(echo $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml); \
-		$(MAKE) rebuild NETWORK_CONFIG="$$it0"; \
-		for file in $(TOPOLOGY_FOLDER)/$$topo/$${topo}*_it*.yaml; do \
-			[ -e "$$file" ] || continue; \
+		for file in $(TOPOLOGY_FOLDER)/$$topo/*.yaml; do \
 			$(MAKE) path-test NETWORK_CONFIG="$$file"; \
 		done; \
 	done
-	@$(MAKE) eval-paths -f $(SHOWPATHS_DATA) -o $(RESULTS)
+	@$(MAKE) eval-paths
 	@$(MAKE) plot-paths
 
 path-test:

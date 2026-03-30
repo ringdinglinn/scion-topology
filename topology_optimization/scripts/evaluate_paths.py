@@ -29,24 +29,28 @@ def count_paths(content: str):
 def parse_folder(folder_path, output_path):
     folder = Path(folder_path)
     rows = []
+
+    nr_pairs = 0
+    nr_of_0_pairs = 0
+
     for filepath in sorted(folder.glob("*.txt")):
         topo_name = filepath.stem
         intra, inter, total = [], [], []
         print(topo_name)
-        zero_paths = False
         for src, dst, conn_type, body in parse_combined_file(filepath):
             src_isd, _ = name_to_isd_as(src)
             dst_isd, _ = name_to_isd_as(dst)
             n_paths = count_paths(body)
+
+            nr_pairs += 1
             if (n_paths == 0):
-                zero_paths = True
+                nr_of_0_pairs += 1
                 continue
             if src_isd == dst_isd:
                 intra.append(n_paths)
             else:
                 inter.append(n_paths)
             total.append(n_paths)
-        if (zero_paths): print(f"encountered 0 paths in {topo_name}")
         rows.append({
             "topology":            topo_name,
             "total_paths":         sum(total),
@@ -58,6 +62,7 @@ def parse_folder(folder_path, output_path):
             "intra_isd_pairs":     len(intra),
         })
     pd.DataFrame(rows).to_csv(output_path, index=False)
+    print(f"Evaluated {nr_pairs} node pairs, encountered {nr_of_0_pairs} 0-paths -> {(nr_of_0_pairs/nr_pairs)*100} percent failed.")
     print(f"Created new CSV at {output_path}")
 
 if __name__ == "__main__":
