@@ -1,12 +1,12 @@
 # ==== CONFIG ====
-NETWORK_CONFIG := topology_optimization/topologies/topo6/topo6_it0.yaml
-TOPOLOGY_FOLDER := topology_optimization/topologies
-RESULTS := topology_optimization/results/results.csv
+NETWORK_CONFIG := topology_optimization/topologies_test/topo6/topo6_it0.yaml
+TOPOLOGY_FOLDER := topology_optimization/topologies_test
+RESULTS := topology_optimization/results/results_test.csv
 CONTAINER_TOPOLOGIES_PATH := tmp/container-topologies/
-PLOTS_FOLDER := topology_optimization/plots/
-SHOWPATHS_DATA := topology_optimization/data/show_paths_total
-SHOWPATHS_RESULTS := topology_optimization/results/results_paths_total.csv
-CORRELATION_RESULTS := topology_optimization/results/results_correlations.csv
+PLOTS_FOLDER := topology_optimization/plots-test/
+SHOWPATHS_DATA := topology_optimization/data/show_paths_test
+SHOWPATHS_RESULTS := topology_optimization/results/results_paths_test.csv
+CORRELATION_RESULTS := topology_optimization/results/results_correlations_test.csv
 
 CONFIG_MK := .isd-vars.mk
 
@@ -21,14 +21,7 @@ DEBIAN_DOCKER_DIR = $(CURDIR)
 
 .PHONY: all build rebuild build-debian-base build-base \
         build-scion rebuild-scion rebuild-base rebuild-monitor \
-        up down purge show-config
-
-show-config:
-	@echo "ISDs: $(ISDS)"
-	@echo "ISD1 AS Range: $(ISD1_AS_RANGE)"
-	@echo "ISD1 AS Count: $(ISD1_AS_COUNT)"
-	@echo "ISD2 AS Range: $(ISD2_AS_RANGE)"
-	@echo "Total ASes: $(TOTAL_AS_COUNT)"
+        up down purge
 
 all: up
 
@@ -128,7 +121,6 @@ generate-web-ui:
 		--template monitor/index-template.html \
 		--output monitor/index.html
 
-#install bats shell testing framework
 install-bats:
 	@if command -v bats >/dev/null 2>&1; then \
 		echo "Bats is already installed at $$(command -v bats)"; \
@@ -148,8 +140,6 @@ install-bats:
 			exit 1; \
 		fi; \
 	fi
-
-#run test scripts
 
 OS := $(shell uname)
 up: build
@@ -173,29 +163,16 @@ test: install-bats
 
 run-topology-optimizer: topo-optim topo-eval topo-plot
 
-TOPO_OPTIM_FOLDERS := topo8
-# TOPO_OPTIM_FOLDERS := topo1
 topo-optim:
-	@for topo in $(TOPO_OPTIM_FOLDERS); do \
-		for file in $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml; do \
-			python3 -m topology_optimization.scripts.rewire_spectral -tc $$file -o $(TOPOLOGY_FOLDER)/$$topo/ -k 5 --add-only; \
-			python3 -m topology_optimization.scripts.rewire_np -tc $$file -o $(TOPOLOGY_FOLDER)/$$topo/ -k 5 --add-only; \
-		done \
-	done
+	for topo in $(TOPOLOGY_FOLDER)/*/*_it0.yaml; do \
+		t=$$(basename $${topo%_it0.yaml}); \
+		$(MAKE) topo-optim-$$t; \
+	done \
 
-# topo-optim:
-# 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
-# 		file=$$(ls $$topo*_it0.yaml) ; \
-# 		python3 -m topology_optimization.scripts.rewire_spectral -tc $$file -o $$topo -k 5 --add-only; \
-# 		python3 -m topology_optimization.scripts.rewire_np -tc $$file -o $$topo -k 5 --add-only; \
-# 	done
-
-# topo-optim:
-# 	@for topo in $(TOPOLOGY_FOLDER)/*/; do \
-# 		file=$$(ls $$topo*_it0.yaml) ; \
-# 		python3 -m topology_optimization.scripts.rewire_spectral -tc $$file -o $$topo -k 5; \
-# 		python3 -m topology_optimization.scripts.rewire_np -tc $$file -o $$topo -k 5; \
-# 	done
+topo-optim-%:
+	@file=$$(ls $(TOPOLOGY_FOLDER)/$*/*_it0.yaml); \
+	python3 -m topology_optimization.scripts.rewire_spectral -tc $$file -o $(TOPOLOGY_FOLDER)/$*/ -k 5; \
+	python3 -m topology_optimization.scripts.rewire_np -tc $$file -o $(TOPOLOGY_FOLDER)/$*/ -k 5; \
 
 topo-eval: 
 	python3 -m topology_optimization.scripts.evaluate_topology -i $(TOPOLOGY_FOLDER) -o $(RESULTS); \
@@ -214,35 +191,22 @@ topo-plot: topo-graph-table
 topo-graph-table:
 	python3 -m topology_optimization.scripts.draw_plots.create_graph_table -i $(TOPOLOGY_FOLDER) -o $(PLOTS_FOLDER)
 
-# run-path-evaluation:
-# 	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
-# 		it0=$$(ls $$topo*_it0.yaml); \
-# 		$(MAKE) rebuild NETWORK_CONFIG=$$it0; \
-# 		for file in $$topo*_it*.yaml; do \
-# 			$(MAKE) path-test NETWORK_CONFIG=$$file; \
-# 		done; \
-# 	done
-# 	@$(MAKE) eval-paths
-# 	@$(MAKE) plot-paths
-
-# run-path-evaluation:
-# 	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
-# 		it5_rac=$$(ls $$topo*_rac_it5.yaml); \
-# 		it5_rnp=$$(ls $$topo*_rnp_it5.yaml); \
-# 		$(MAKE) path-test NETWORK_CONFIG=$$it5_rac; \
-# 		$(MAKE) path-test NETWORK_CONFIG=$$it5_rnp; \
-# 	done
-# 	@$(MAKE) eval-paths
-# 	@$(MAKE) plot-paths
-
 run-path-evaluation:
-	@for topo in $(TOPO_OPTIM_FOLDERS); do \
-		for file in $(TOPOLOGY_FOLDER)/$$topo/*.yaml; do \
-			$(MAKE) path-test NETWORK_CONFIG="$$file"; \
-		done; \
+	@for topo in $(TOPOLOGY_FOLDER)/topo*/; do \
+		topo=$${topo%/}; \
+		topo=$$(basename $$topo); \
+		$(MAKE) run-path-evaluation-$$topo; \
 	done
 	@$(MAKE) eval-paths
 	@$(MAKE) plot-paths
+
+run-path-evaluation-%:
+	@topo="$*"; \
+	it0=$$(ls $(TOPOLOGY_FOLDER)/$$topo/*_it0.yaml); \
+	$(MAKE) rebuild NETWORK_CONFIG=$$it0; \
+	for file in $(TOPOLOGY_FOLDER)/$$topo/*.yaml; do \
+		$(MAKE) path-test NETWORK_CONFIG=$$file; \
+	done; \
 
 path-test:
 	@echo ">>> Running path evaluation for $(NETWORK_CONFIG)"; \
@@ -262,7 +226,6 @@ path-test:
 	$(MAKE) show-paths NETWORK_CONFIG=$(NETWORK_CONFIG) SHOWPATHS_DATA=$(SHOWPATHS_DATA); \
 	sleep 5;
 	$(MAKE) down
-
 
 show-paths:
 	python3 -m topology_optimization.scripts.show_paths --config $(NETWORK_CONFIG) --output-path $(SHOWPATHS_DATA) -X; \
