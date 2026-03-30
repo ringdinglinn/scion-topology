@@ -1,6 +1,6 @@
 import networkx as nx
 import argparse
-from topology_optimization.scripts.helpers.parse_topology import graph_to_yaml
+from scripts.helpers.parse_topology import graph_to_yaml
 import random
 import numpy as np
 from topology_optimization.scripts.draw_plots.plot_graphs import plot_graph

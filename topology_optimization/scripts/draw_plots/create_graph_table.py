@@ -1,7 +1,7 @@
 import argparse
 import os
 from topology_optimization.scripts.draw_plots.utils import TOPO_NAMES
-from topology_optimization.scripts.helpers.parse_topology import yaml_to_graph
+from scripts.helpers.parse_topology import yaml_to_graph
 import re
 
 def graphs_to_latex_table(graphs_dict) -> str:

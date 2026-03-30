@@ -3,7 +3,6 @@
 import yaml
 import argparse
 
-# Hard-coded services that don't change
 STATIC_SERVICES = {
     'monitor': {
         'image': 'monitor:1.0',
@@ -91,20 +90,16 @@ def main():
             scion_services[name] = generate_scion_service(isd, as_num+1, VERSION)
             mac_overrides.update(generate_mac_volume_override(isd, as_num+1))
     
-    # Combine static + dynamic services
     all_services = {**STATIC_SERVICES, **scion_services}
 
-    # Generate as_net networks dynamically
     dynamic_networks = {}
     for isd in isds:
         n = isds[isd]["n"]
         for as_num in range(n):
             dynamic_networks.update(generate_network(isd, as_num+1))
     
-    # Combine static + dynamic networks
     all_networks = {**dynamic_networks, **STATIC_NETWORKS}
 
-    # Create main docker-compose.yml
     compose = {
         'name': 'SCION Testbed',
         'services': all_services,

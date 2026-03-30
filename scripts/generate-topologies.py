@@ -2,15 +2,14 @@
 # scripts/generate-topologies.py
 import json
 import argparse
-from collections import defaultdict
 import yaml
 import os
-from topology_optimization.scripts.helpers.parse_topology import yaml_to_graph
-from scripts.helpers.node_addresses import isd_as_to_label, label_to_idx
+from scripts.helpers.parse_topology import yaml_to_graph, graph_to_isds
+from scripts.helpers.node_addresses import isd_as_to_label, label_to_idx, isd_as_to_address
 from collections import deque
 
 def parse_edge(edge_str):
-    """Parse edge string like '1-1 1-4' into components"""
+    """Parse edge string with format {isd1}-{as1} {isd2}-{as2}, eg: '1-1 1-4'"""
     parts = edge_str.split(' ')
     src_isd, src_as = parts[0].split('-')
     dst_isd, dst_as = parts[1].split('-')
@@ -40,13 +39,9 @@ def get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as, core_dists, G):
     else: return "parent"
 
 def generate_topology_file(isd, as_num, edges, core_ases, core_dists, G, output_dir):
-    """Generate topology JSON for a specific AS"""
+    """Generate topology JSON for a specific AS, used by the individual Docker containers"""
     node = (isd, as_num)
     
-    # Calculate ISD number (16, 17, 18, ...)
-    isd_num = 15 + isd
-
-    # Build interfaces
     interfaces = {}
     interface_id = 1
 
@@ -54,40 +49,38 @@ def generate_topology_file(isd, as_num, edges, core_ases, core_dists, G, output_
     
     for src, dst in edges:
         dst_isd, dst_as = dst
-        dst_isd_num = 15 + dst_isd
         src_isd, src_as = src
-        src_isd_num = 15 + src_isd
 
         if src == node:
             # Outgoing edge
+
             interfaces[str(interface_id)] = {
                 "underlay": {
                     "local": f"{addr(src_isd, src_as)}:{port(dst_isd, dst_as)}",
                     "remote": f"{addr(dst_isd, dst_as)}:{port(src_isd, src_as)}"
                 },
-                "isd_as": f"{dst_isd_num}-ffaa:{dst_isd}:{dst_as}",
+                "isd_as": isd_as_to_address(dst_isd, dst_as),
                 "link_to": get_link_type(core_ases, src_isd, src_as, dst_isd, dst_as, core_dists, G),
                 "mtu": 1472
             }
             interface_id += 1
         elif dst == node:
             # Incoming edge (add reverse)
-            
+
             interfaces[str(interface_id)] = {
                 "underlay": {
                     "local": f"{addr(dst_isd, dst_as)}:{port(src_isd, src_as)}",
                     "remote": f"{addr(src_isd, src_as)}:{port(dst_isd, dst_as)}"
                 },
-                "isd_as": f"{src_isd_num}-ffaa:{src_isd}:{src_as}",
+                "isd_as": isd_as_to_address(src_isd, src_as),
                 "link_to": get_link_type(core_ases, dst_isd, dst_as, src_isd, src_as, core_dists, G),
                 "mtu": 1472
             }
             interface_id += 1
     
-    # Build topology JSON
     topology = {
         "attributes": ["core"] if is_core else [],
-        "isd_as": f"{isd_num}-ffaa:{isd}:{as_num}",
+        "isd_as": isd_as_to_address(isd, as_num),
         "dispatched_ports": "31000-32767",
         "mtu": 1472,
         "control_service": {
@@ -108,7 +101,6 @@ def generate_topology_file(isd, as_num, edges, core_ases, core_dists, G, output_
         }
     }
     
-    # Write to file
     as_dir = os.path.join(output_dir, f"isd{isd}", f"as{as_num}")
     os.makedirs(as_dir, exist_ok=True)
     filename = os.path.join(as_dir, "topology.json")    
@@ -117,6 +109,8 @@ def generate_topology_file(isd, as_num, edges, core_ases, core_dists, G, output_
     
     print(f"✅ Generated {filename}")
 
+
+# Infer node hierachies based on distance to core nodes
 def get_closeness_to_core(G):
     dist = {}
     queue = deque()
@@ -135,7 +129,6 @@ def get_closeness_to_core(G):
                 queue.append(neighbor)
 
     return dist
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -158,11 +151,9 @@ def main():
             src, dst = parse_edge(line)
             edges.append((src, dst))
     
-    # Create output directory
-    import os
     os.makedirs(args.output_dir, exist_ok=True)
     
-    isds = config['ISDs']
+    isds = graph_to_isds(G)
 
     core_ases = {
         int(isd): set(isds[isd].get("core", []))

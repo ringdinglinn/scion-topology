@@ -5,12 +5,10 @@ import os
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from topology_optimization.scripts.draw_plots import plot_grid
-from topology_optimization.scripts.draw_plots.create_graph_table import graphs_to_latex_table
 from topology_optimization.scripts.draw_plots import plot_grid_bars
 from topology_optimization.scripts.draw_plots.plot_graphs import plot_graph_grid
-from topology_optimization.scripts.helpers.parse_topology import yaml_to_graph
+from scripts.helpers.parse_topology import yaml_to_graph
 from pathlib import Path
-import pprint
 
 
 AVAILABLE_METRICS = [
@@ -107,20 +105,18 @@ def main():
     groups = group_rows(rows, args.group_by, args.subgroup_by)
     groups = dict(sorted(groups.items(), key=lambda kv: int(re.search(r'\d+', kv[0]).group())))
 
-    default_topologies = []
-    for topo, algos in groups.items():
-        if "default" in algos:
-            default_topologies.extend([r["topology"] for r in algos["default"]])
-
+    # replacing algorithm labels
     for topo, algos in groups.items():
         for old_key, new_key in SUBGROUP_LABELS.items():
             if old_key in algos:
                 algos[new_key] = algos.pop(old_key)
 
+    # sort iterations according to number
     for topo, algos in groups.items():
         for algo, algo_rows in algos.items():
             algos[algo] = sorted(algo_rows, key=lambda r: int(re.search(r'_it(\d+)', r["topology"]).group(1)))
     
+    # prepend both algorithm subgroups with the baseline topo
     for topo, algos in groups.items():
         baseline_rows = algos.pop("default", [])
         for algo, alg_rows in algos.items():
@@ -131,7 +127,6 @@ def main():
 
     topo_paths = [get_graph_yaml_dir(args.topologies_path, row["topology"]) for row in rows]
     graph_dict = {Path(topo_path).stem: yaml_to_graph(topo_path) for topo_path in topo_paths}
-
 
     metric_groups = [m.split("+") for m in args.metrics]
     for metric_group in metric_groups:

@@ -1,6 +1,6 @@
 import argparse
 import networkx as nx
-from topology_optimization.scripts.helpers.parse_topology import yaml_to_graph
+from scripts.helpers.parse_topology import yaml_to_graph
 from scripts.helpers.node_addresses import node_to_address, node_to_name, name_to_address
 import subprocess
 import os
@@ -53,7 +53,6 @@ def get_show_paths(src_name, dst_address):
     return result.stdout
 
 def save(args, results):
-    """results: list of (src_name, dst_name, conn_type, output_str)"""
     config_name = Path(args.config).stem
     path = os.path.join(args.output_path, f"{config_name}.txt")
     os.makedirs(args.output_path, exist_ok=True)
@@ -84,8 +83,6 @@ def get_max_distance(g):
     dists = [d for u in lengths for d in lengths[u].values()]
     return max(dists)
 
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate the number of paths in this topology and save the output.")
     parser.add_argument("--config", "-i", required=True, help="Path to the isd config")
@@ -98,6 +95,7 @@ if __name__ == "__main__":
     isds = sorted(list(isds))
 
     if (not args.exhaustive):
+        # In this mode, the node pairs (i,j) with distance(i, j) = min(diamter(g) for all g in Graphs) are evaluated
         path = os.path.dirname(args.config)
         graph_paths = search_dir_for_yaml(path)
         topo_name = (Path(args.config).stem).split('_')[0]
@@ -108,7 +106,6 @@ if __name__ == "__main__":
 
         print("min_diameter:", min_diameter)
 
-        
         lengths = dict(nx.all_pairs_shortest_path_length(G))
 
         all_results = []

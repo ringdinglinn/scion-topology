@@ -3,10 +3,8 @@ import networkx as nx
 import scipy.sparse
 import torch
 import numpy as np
-import time
-from topology_optimization.scripts.helpers.parse_topology import yaml_to_graph, graph_to_yaml
+from scripts.helpers.parse_topology import yaml_to_graph, graph_to_yaml
 import argparse
-import matplotlib.pyplot as plt
 
 NR_PASSES = 6
 R_VALUES_DC = [0.4575, 0.3725]
@@ -15,7 +13,6 @@ M_DC = 0.0425
 M = 0.5
 
 def initialize_adj_matrix(adj_sp, mask_nodes, n):
-    """Filter out edges touching masked nodes. Returns scipy COO matrix."""
     node_mask = np.zeros(n, dtype=bool)
     node_mask[mask_nodes] = True
     edge_mask = ~(node_mask[adj_sp.row] | node_mask[adj_sp.col])
@@ -46,26 +43,6 @@ def cheeger(c, a, b):
 
 # --- NETWORK PARTITIONING ---------------------------------------------------------------
 
-# def initial_partition(n, r, mask_nodes, it=0, rng=None):
-#     if rng is None:
-#         rng = np.random.default_rng()
-
-#     keep_mask = np.ones(n, dtype=bool)
-#     keep_mask[mask_nodes] = False
-
-#     perm = rng.permutation(np.arange(n)[keep_mask])
-
-#     r = min(1 - r, r)
-#     k = max(1, round(len(perm) * r))
-
-#     perm = np.roll(perm, it)
-
-#     assignment = np.ones(n, dtype=np.int32)
-#     assignment[perm[:k]] = -1
-#     assignment[mask_nodes] = 0
-
-#     return assignment
-
 def initial_partition(n, r, mask_nodes, it=0):
     keep_mask = np.ones(n, dtype=bool)
     keep_mask[mask_nodes] = False
@@ -77,7 +54,6 @@ def initial_partition(n, r, mask_nodes, it=0):
     assignment[rolled[:k]] = -1
     assignment[mask_nodes] = 0
     return assignment
-
 
 def calculate_prospective_cut_sizes(assignment, mask_bool):
     num_neg_total = (assignment == -1).sum().item()
@@ -127,8 +103,6 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
     opt_cut = (cheeger(cut[0], cut[1], cut[2]), cut[0], np.where(assignment == -1)[0].tolist(), cut[3])
 
     while (moveable & balanced).any().item():
-        # num_neg, num_pos, _ = calculate_prospective_cut_sizes(assignment, mask_bool)
-        # min_size = np.minimum(num_neg, num_pos)
     
         row_sums = row_sums_from_cut(adj_sp, cut_values, n)
         gains[moveable] = (-row_sums)[moveable]
@@ -138,7 +112,6 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
         max_vertex = int(candidates[np.argmax(gains[candidates])].item())
         assignment[max_vertex] *= -1
 
-        # flip sign of all cut_values touching max_vertex
         affected = (adj_sp.row == max_vertex) | (adj_sp.col == max_vertex)
         cut_values[affected] *= -1
 
@@ -147,25 +120,18 @@ def partition_pass(adj_sp, full_adj, r, m, mode="dc", mask_nodes=[], it=0):
 
         cut = create_cut(cut_values, assignment, degree)
         ch = cheeger(cut[0], cut[1], cut[2])
-        if (mode!="dc"):
+        if (mode != "dc"):
             if (ch < opt_cut[0]):
                 opt_cut = (ch, cut[0], np.where(assignment == -1)[0].tolist(), cut[3])
-            # elif (ch == opt_cut[0]):
-            #     if (cut[3] < opt_cut[2]):
-            #         opt_cut = (ch, np.where(assignment == -1)[0].tolist(), cut[3])
 
     return opt_cut
 
-# --- Top-level ---------------------------------------------------------------
-
-def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[], it=0):
-    # results = {}
-    # opt = (lambda x, y: x < y)
+def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[]):
     masked_adj = initialize_adj_matrix(adj_mat, mask_nodes, adj_mat.shape[0])
 
     best_cheeger = math.inf
+    best_cut = math.inf
     best_partition = (math.inf, math.inf, None, math.inf)
-    updates = 0
     for r in r_values:
 
         for i in range(NR_PASSES):
@@ -173,26 +139,18 @@ def run_network_partitioning(adj_mat, r_values, m, mode="dc", mask_nodes=[], it=
 
             ch, cut_edges, part_a, degrees = res
             if (mode=="dc"):
-                if (best_partition[1] > cut_edges or (best_partition[1] == cut_edges and best_partition[3] > degrees)):
+                if (best_cut > cut_edges or (best_cut == cut_edges and best_partition[3] > degrees)):
+                    best_cut = cut_edges
                     best_partition = (ch, cut_edges, part_a, degrees)
             else:
                 if (ch < best_cheeger or (ch == best_cheeger and best_partition[3] > degrees)):
                     best_cheeger = ch
                     best_partition = (ch, cut_edges, part_a, degrees)
-                    updates += 1
 
-        # if best_partition is None:
-        #     results[str(r)] = None
-        # else:
-        #     ch, part_a, degrees = best_partition
-        #     results[str(r)] = {"cheeger": ch, "partition": part_a}
-
-    
-    # results = {k: v for k, v in results.items() if v is not None}
-    # if not results:
-    #     return None
-    # best_r = min(results.keys(), key=lambda k: results[k]["cheeger"])
     return {"cheeger": best_partition[0], "partition": best_partition[2]}
+
+
+# --- DIVIDE AND CONQUER LOGIC -----------------------
 
 def can_connect(G, u, v):
     return G.nodes[u]["isd_n"] == G.nodes[v]["isd_n"] or (G.nodes[u]["is_core"] and G.nodes[v]["is_core"])
@@ -220,7 +178,7 @@ def build_validity_matrix(adj_sp, u_partition, v_partition):
     valid_sp = u_partition_diag @ valid_sp @ v_partition_diag               # enforces that in valid_sp v is in v_partition and u is in u_partition
     return valid_sp
     
-def divide_and_conquer_min(G, adj, min_res, it, mask_nodes, node_scores, counter):
+def divide_and_conquer_min(G, adj, min_res, mask_nodes, node_scores, counter):
     partition_a = min_res["partition"]
     partition_b = list(set(G.nodes()) - set(mask_nodes) - set(partition_a))
 
@@ -233,36 +191,30 @@ def divide_and_conquer_min(G, adj, min_res, it, mask_nodes, node_scores, counter
     elif (len(partition_b) <= 1):
         return node_scores
 
-    min_res_a = run_network_partitioning(adj, R_VALUES_DC, M_DC, it=it, mask_nodes=(partition_b + mask_nodes))
-    min_res_b = run_network_partitioning(adj, R_VALUES_DC, M_DC, it=it, mask_nodes=(partition_a + mask_nodes))
+    min_res_a = run_network_partitioning(adj, R_VALUES_DC, M_DC, mask_nodes=(partition_b + mask_nodes))
+    min_res_b = run_network_partitioning(adj, R_VALUES_DC, M_DC, mask_nodes=(partition_a + mask_nodes))
 
-    if (min_res_a["cheeger"] < min_res_b["cheeger"]):
+    degrees = np.array([G.degree(node) for node in G.nodes()])
+    deg_a = sum(degrees[node] for node in partition_a)
+    deg_b = sum(degrees[node] for node in partition_b)
+
+    if (min_res_a["cheeger"] < min_res_b["cheeger"] or (min_res_a["cheeger"] == min_res_b["cheeger"] and deg_a <= deg_b)):
         mask_nodes = mask_nodes + partition_b
-
-        return divide_and_conquer_min(G, adj, min_res_a, it, mask_nodes, node_scores, counter)
-    elif (min_res_a["cheeger"] > min_res_b["cheeger"]):
-        mask_nodes = mask_nodes + partition_a
-
-        return divide_and_conquer_min(G, adj, min_res_b, it, mask_nodes, node_scores, counter)
+        return divide_and_conquer_min(G, adj, min_res_a, mask_nodes, node_scores, counter)
     else:
-        degrees = np.array([G.degree(node) for node in G.nodes()])
-        deg_a = sum(degrees[node] for node in partition_a)
-        deg_b = sum(degrees[node] for node in partition_b)
-        if deg_a <= deg_b:
-            return divide_and_conquer_max(G, adj, min_res_a, it, partition_a, (partition_b + mask_nodes))
-        else:
-            return divide_and_conquer_max(G, adj, min_res_b, it, partition_b, (partition_a + mask_nodes))
+        mask_nodes = mask_nodes + partition_a
+        return divide_and_conquer_min(G, adj, min_res_b, mask_nodes, node_scores, counter)
 
-def get_new_edge_scores(full_adj, min_res, it):
+def get_new_edge_scores(full_adj, min_res):
     partition_a = min_res["partition"]
     partition_b = list(set(G.nodes()) - set(partition_a))
     node_scores = np.full(len(G.nodes()), 0)
     if (len(partition_a) > 1):
-        min_res_a = run_network_partitioning(full_adj, R_VALUES_DC, M_DC, mask_nodes=partition_b, it=it)
-        divide_and_conquer_min(G, full_adj, min_res_a, it, partition_b, node_scores, 0)
+        min_res_a = run_network_partitioning(full_adj, R_VALUES_DC, M_DC, mask_nodes=partition_b)
+        divide_and_conquer_min(G, full_adj, min_res_a, partition_b, node_scores, 0)
     if (len(partition_b) > 1):
-        min_res_b = run_network_partitioning(full_adj, R_VALUES_DC, M_DC, mask_nodes=partition_a, it=it)
-        divide_and_conquer_min(G, full_adj, min_res_b, it, partition_a, node_scores, 0)
+        min_res_b = run_network_partitioning(full_adj, R_VALUES_DC, M_DC, mask_nodes=partition_a)
+        divide_and_conquer_min(G, full_adj, min_res_b, partition_a, node_scores, 0)
 
     return node_scores
 
@@ -285,7 +237,7 @@ def find_new_edge(min_res, active_nodes, adj_sp, scores):
 
     return (u, v)
 
-def divide_and_conquer_max(G, adj, min_res, it, active_nodes, mask_nodes):
+def divide_and_conquer_max(G, adj, min_res, active_nodes, mask_nodes):
     if (min_res["cheeger"] < 0):
         return None
     
@@ -296,39 +248,35 @@ def divide_and_conquer_max(G, adj, min_res, it, active_nodes, mask_nodes):
     partition_b = list(set(active_nodes) - set(min_res["partition"]))
 
     if (len(partition_a) == 1):
-        min_res_b = run_network_partitioning(adj, R_VALUES_DC, M_DC, it=it, mask_nodes=(partition_a + mask_nodes))
-        return divide_and_conquer_max(G, adj, min_res_b, it, partition_b, (partition_a + mask_nodes))
+        min_res_b = run_network_partitioning(adj, R_VALUES_DC, M_DC, mask_nodes=(partition_a + mask_nodes))
+        return divide_and_conquer_max(G, adj, min_res_b, partition_b, (partition_a + mask_nodes))
     elif (len(partition_b) == 1):
-        min_res_a = run_network_partitioning(adj, R_VALUES_DC, M_DC, it=it, mask_nodes=(partition_b + mask_nodes))
-        return divide_and_conquer_max(G, adj, min_res_a, it, partition_a, (partition_b + mask_nodes))
+        min_res_a = run_network_partitioning(adj, R_VALUES_DC, M_DC, mask_nodes=(partition_b + mask_nodes))
+        return divide_and_conquer_max(G, adj, min_res_a, partition_a, (partition_b + mask_nodes))
     
-    min_res_a = run_network_partitioning(adj, R_VALUES_DC, M_DC, it=it, mask_nodes=(partition_b + mask_nodes))
-    min_res_b = run_network_partitioning(adj, R_VALUES_DC, M_DC, it=it, mask_nodes=(partition_a + mask_nodes))
+    min_res_a = run_network_partitioning(adj, R_VALUES_DC, M_DC, mask_nodes=(partition_b + mask_nodes))
+    min_res_b = run_network_partitioning(adj, R_VALUES_DC, M_DC, mask_nodes=(partition_a + mask_nodes))
 
-    if (min_res_a["cheeger"] > min_res_b["cheeger"]):
-        return divide_and_conquer_max(G, adj, min_res_a, it, partition_a, (partition_b + mask_nodes))
-    elif (min_res_a["cheeger"] < min_res_b["cheeger"]):
-        return divide_and_conquer_max(G, adj, min_res_b, it, partition_b, (partition_a + mask_nodes))
+    degrees = np.array([G.degree(node) for node in G.nodes()])
+    deg_a = sum(degrees[node] for node in partition_a)
+    deg_b = sum(degrees[node] for node in partition_b)
+
+    if (min_res_a["cheeger"] > min_res_b["cheeger"] or (min_res_a["cheeger"] == min_res_b["cheeger"] and deg_a >= deg_b)):
+        return divide_and_conquer_max(G, adj, min_res_a, partition_a, (partition_b + mask_nodes))
     else:
-        degrees = np.array([G.degree(node) for node in G.nodes()])
-        deg_a = sum(degrees[node] for node in partition_a)
-        deg_b = sum(degrees[node] for node in partition_b)
-        if deg_a >= deg_b:
-            return divide_and_conquer_max(G, adj, min_res_a, it, partition_a, (partition_b + mask_nodes))
-        else:
-            return divide_and_conquer_max(G, adj, min_res_b, it, partition_b, (partition_a + mask_nodes))
+        return divide_and_conquer_max(G, adj, min_res_b, partition_b, (partition_a + mask_nodes))
         
+
+
+# --- TOP LEVEL LOGIC ---------------
 
 def iteration(G, it, min_res, non_core_nodes, delete=True, add=True):
     full_adj = nx.to_scipy_sparse_array(G).tocoo()
 
-    del_edge = divide_and_conquer_max(G, full_adj, min_res, it, G.nodes(), [])
+    del_edge = divide_and_conquer_max(G, full_adj, min_res, G.nodes(), [])
 
-    node_scores = get_new_edge_scores(full_adj, min_res, it)
+    node_scores = get_new_edge_scores(full_adj, min_res)
     new_edge = find_new_edge(min_res, G.nodes(), full_adj, node_scores)
-    # degrees = np.array([G.degree(n) for n in G.nodes()])
-    # degree_diff = degrees.max() - degrees
-    # new_edge = find_new_edge(min_res, G.nodes(), full_adj, degree_diff)
 
     if (del_edge != None and new_edge != None):    
         H = G.copy()
@@ -338,7 +286,7 @@ def iteration(G, it, min_res, non_core_nodes, delete=True, add=True):
         if (delete):
             H.remove_edge(del_edge[0], del_edge[1])
 
-        H_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, mode="global", it=it)
+        H_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, mode="global")
         print(f"it: {i}, new cheeger: {H_min_res['cheeger']}, old cheeger: {min_res['cheeger']}")
         core_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, mode="global", mask_nodes=non_core_nodes)
 
@@ -352,7 +300,6 @@ def iteration(G, it, min_res, non_core_nodes, delete=True, add=True):
 
     return G, min_res
 
-MAX_ITERATIONS = 5
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -369,11 +316,6 @@ if __name__ == "__main__":
 
     print(f"optimizing topology {topo_name}")
 
-    # if args.add_only:
-    #     path += "_rnpa"
-    # elif args.delete_only:
-    #     path += "_rnpd"
-    # else:
     path += "_rnp"
 
     min_res = run_network_partitioning(nx.to_scipy_sparse_array(G).tocoo(), R_VALUES, M, mode="global")

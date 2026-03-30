@@ -15,7 +15,6 @@ def main():
     
     isds = config['ISDs']
     
-    # Generate server list
     servers = []
     scion_addresses = []
     
@@ -29,11 +28,9 @@ def main():
             servers.append({"name": name, "ip": ip})
             scion_addresses.append({"name": name, "addr": addr})
     
-    # Read template
     with open(args.template, 'r') as f:
         template = f.read()
     
-    # Replace placeholders
     html = template.replace('{{SERVERS_JSON}}', json.dumps(servers))
     html = html.replace('{{SCION_ADDRESSES_JSON}}', json.dumps(scion_addresses))
     

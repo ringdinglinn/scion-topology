@@ -1,5 +1,5 @@
 # ==== CONFIG ====
-NETWORK_CONFIG := topology_optimization/topologies_test/topo6/topo6_it0.yaml
+NETWORK_CONFIG := topology_optimization/topologies_test/topo0/topo0_it0.yaml
 TOPOLOGY_FOLDER := topology_optimization/topologies_test
 RESULTS := topology_optimization/results/results_test.csv
 CONTAINER_TOPOLOGIES_PATH := tmp/container-topologies/
@@ -12,7 +12,7 @@ CONFIG_MK := .isd-vars.mk
 
 .PHONY: $(CONFIG_MK)
 $(CONFIG_MK):
-	@python3 -m scripts.parse-isd-config $(NETWORK_CONFIG) > $(CONFIG_MK)
+	@python3 -m scripts.parse-isd-config -cp $(NETWORK_CONFIG) > $(CONFIG_MK)
 
 -include $(CONFIG_MK)
 
