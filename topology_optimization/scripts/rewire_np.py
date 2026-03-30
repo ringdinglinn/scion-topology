@@ -270,7 +270,7 @@ def divide_and_conquer_max(G, adj, min_res, active_nodes, mask_nodes):
 
 # --- TOP LEVEL LOGIC ---------------
 
-def iteration(G, it, min_res, non_core_nodes, delete=True, add=True):
+def iteration(G, min_res, non_core_nodes, delete=True, add=True):
     full_adj = nx.to_scipy_sparse_array(G).tocoo()
 
     del_edge = divide_and_conquer_max(G, full_adj, min_res, G.nodes(), [])
@@ -287,7 +287,7 @@ def iteration(G, it, min_res, non_core_nodes, delete=True, add=True):
             H.remove_edge(del_edge[0], del_edge[1])
 
         H_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, mode="global")
-        print(f"it: {i}, new cheeger: {H_min_res['cheeger']}, old cheeger: {min_res['cheeger']}")
+        print(f"new cheeger: {H_min_res['cheeger']}, old cheeger: {min_res['cheeger']}")
         core_min_res = run_network_partitioning(nx.to_scipy_sparse_array(H).tocoo(), R_VALUES, M, mode="global", mask_nodes=non_core_nodes)
 
         if (add and (H_min_res["cheeger"] < min_res["cheeger"] or H_min_res["cheeger"] <= 0)):
@@ -321,5 +321,5 @@ if __name__ == "__main__":
     min_res = run_network_partitioning(nx.to_scipy_sparse_array(G).tocoo(), R_VALUES, M, mode="global")
     for i in range(int(args.iterations)):
         non_core_nodes = [node for node in G.nodes() if not G.nodes[node]["is_core"]]
-        G, min_res = iteration(G, i, min_res, non_core_nodes, delete=(not args.add_only), add=(not args.delete_only))
+        G, min_res = iteration(G, min_res, non_core_nodes, delete=(not args.add_only), add=(not args.delete_only))
         graph_to_yaml(G, path + f"_it{i+1}.yaml")
