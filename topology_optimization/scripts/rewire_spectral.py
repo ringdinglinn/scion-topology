@@ -114,10 +114,10 @@ def optimize(G, path, t=10, k=5, delete=True, add=True):
             new_mus_core, _ = get_bottom_t_eigenpairs(L_core, 2)
 
             if ((add and (new_mus_core[1] <= TOLERANCE or new_mus[1] <= TOLERANCE)) or old_edge not in G.edges()):
-                A, A_core = update_adjacencies(A, A_core, core_indices, new_edge, old_edge, delete=delete, add=add)
+                A, A_core = update_adjacencies(A, A_core, core_indices, new_edge, old_edge, delete=add, add=delete)
                 dR_min[*old_edge] = math.inf
             elif (new_edge in G.edges()):
-                A, A_core = update_adjacencies(A, A_core, core_indices, new_edge, old_edge, delete=delete, add=add)
+                A, A_core = update_adjacencies(A, A_core, core_indices, new_edge, old_edge, delete=add, add=delete)
                 dR_max[*new_edge] = -math.inf
             else:
                 V = new_V
