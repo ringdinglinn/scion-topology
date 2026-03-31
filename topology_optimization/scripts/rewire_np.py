@@ -167,15 +167,6 @@ def partition_pass(G, r, m, masked_nodes, mode="dc"):
 
         order = np.argsort(-gains)
 
-        current_cut_value = n_cut_edges / min(size_a, size_b) # or use your preferred metric
-
-        for u, v in G.edges():
-            i = node_to_idx[u]
-            j = node_to_idx[v]
-
-            if assignment[i] != assignment[j]:  # edge currently cut
-                G[u][v]['best_cut_value'] = min(G[u][v]['best_cut_value'], current_cut_value)
-
         if (mode!="dc" and min_cut_edges > n_cut_edges):
             best_assignment = assignment.copy()
             deg = cur_deg
@@ -344,9 +335,6 @@ def iteration(G, min_res, non_core_nodes, delete=True, add=True):
         if (delete):
             H.remove_edge(del_edge[0], del_edge[1])
 
-        for u, v in H.edges():
-            H[u][v]['best_cut_value'] = np.inf
-
         H_min_res = run_network_partitioning(H, R_VALUES, M, mode="global")
         print(f"new cheeger: {H_min_res['cheeger']}, old cheeger: {min_res['cheeger']}")
         core_min_res = run_network_partitioning(H, R_VALUES, M, mode="global", mask_nodes=non_core_nodes)
@@ -381,8 +369,6 @@ if __name__ == "__main__":
 
     path += "_rnp"
 
-    for u, v in G.edges():
-        G[u][v]['best_cut_value'] = np.inf
     min_res = run_network_partitioning(G, R_VALUES, M, mode="global")
 
     for i in range(int(args.iterations)):
