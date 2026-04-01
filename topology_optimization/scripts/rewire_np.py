@@ -167,7 +167,7 @@ def partition_pass(G, r, m, masked_nodes, mode="dc"):
 
         order = np.argsort(-gains)
 
-        if (mode!="dc" and min_cut_edges > n_cut_edges):
+        if (min_cut_edges > n_cut_edges):
             best_assignment = assignment.copy()
             deg = cur_deg
             min_cut_edges = n_cut_edges
@@ -188,8 +188,8 @@ def run_network_partitioning(G, r_values, m, mode="dc", mask_nodes=[]):
             res = partition_pass(G,r, m, mask_nodes, mode=mode)
 
             ch, cut_edges, part_a, degrees = res
-            if ((mode=="dc" and best_cut > cut_edges or (best_cut == cut_edges and best_partition[3] > degrees))
-                or (ch < best_cheeger or (ch == best_cheeger and best_partition[3] > degrees))):
+            if ((mode=="dc" and (best_cut > cut_edges or (best_cut == cut_edges and best_partition[3] > degrees)))
+                or (mode!="dc" and (ch < best_cheeger or (ch == best_cheeger and best_partition[3] > degrees)))):
                 best_cut = cut_edges
                 best_cheeger = ch
                 best_partition = (ch, cut_edges, part_a, degrees)
@@ -343,11 +343,10 @@ def iteration(G, min_res, non_core_nodes, delete=True, add=True):
             return G, min_res
 
         if (add and core_min_res["cheeger"] <= 0.0):
+            print("disconnected core")
             return G, min_res
         
-
         return H, H_min_res
-
 
     return G, min_res
 

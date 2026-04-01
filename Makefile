@@ -1,12 +1,12 @@
 # ==== CONFIG ====
-NETWORK_CONFIG := topology_optimization/topologies_test/topo0/topo0_it0.yaml
-TOPOLOGY_FOLDER := topology_optimization/topologies_test
-RESULTS := topology_optimization/results/results_test.csv
+NETWORK_CONFIG := topology_optimization/topologies/topo0/topo0_it0.yaml
+TOPOLOGY_FOLDER := topology_optimization/topologies
+RESULTS := topology_optimization/results/results.csv
 CONTAINER_TOPOLOGIES_PATH := tmp/container-topologies/
-PLOTS_FOLDER := topology_optimization/plots-test/
-SHOWPATHS_DATA := topology_optimization/data/show_paths_test
-SHOWPATHS_RESULTS := topology_optimization/results/results_paths_test.csv
-CORRELATION_RESULTS := topology_optimization/results/results_correlations_test.csv
+PLOTS_FOLDER := topology_optimization/plots/
+SHOWPATHS_DATA := topology_optimization/data/show_paths_total
+SHOWPATHS_RESULTS := topology_optimization/results/results_paths_total_np.csv
+CORRELATION_RESULTS := topology_optimization/results/results_correlations.csv
 
 CONFIG_MK := .isd-vars.mk
 
@@ -171,7 +171,6 @@ topo-optim:
 
 topo-optim-%:
 	@file=$$(ls $(TOPOLOGY_FOLDER)/$*/*_it0.yaml); \
-	python3 -m topology_optimization.scripts.rewire_spectral -tc $$file -o $(TOPOLOGY_FOLDER)/$*/ -k 5; \
 	python3 -m topology_optimization.scripts.rewire_np -tc $$file -o $(TOPOLOGY_FOLDER)/$*/ -k 5; \
 
 topo-eval: 
