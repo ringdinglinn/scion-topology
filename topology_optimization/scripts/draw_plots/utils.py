@@ -97,7 +97,7 @@ METRIC_LABELS = {
 }
 
 TOPO_NAMES = {
-    "topo0" : "Initial Testbed Topology",
+    "topo0" : "Testbed Topology",
     "topo1" : "SCIERA Topology",
     "topo2" : "Synthetic Topology 1",
     "topo3" : "Synthetic Topology 2",
