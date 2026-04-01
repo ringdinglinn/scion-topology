@@ -40,7 +40,24 @@ METRIC_NAMES = {
     "average_clustering" : "Average Clustering",
     "nr_connected_components" : "# Connected Components",
     "pearson_r": "Pearson r",
-    "spearman_p": "Spearman p"
+    "spearman_p": "Spearman p",
+    "avg_degree_core" : r"Average Degree, $\langle k \rangle$, Core",
+    "algebraic_connectivity_core" : "Algebraic Connectivity, Core",
+    "|V|_core" : "Number of Nodes, Core",
+    "|E|_core" : "Number of Edges, Core",
+    "assortativity_core": "Assortativity Coefficient, Core",
+    "transitivity_core": "Transitivity $C\delta$, Core",
+    "degree_std_core" : "Degree Standard Deviation, Core",
+    "degree_entropy_core" : "Degree Entropy, Core",
+    "spectral_gap_core" : "Spectral Gap, Core",
+    "cheeger_constant_core" : "Cheeger Constant, Core",
+    "total_paths_avg_core" : "Average Total Paths, Core",
+    "inter_isd_paths_avg_core" : "Average Inter ISD Paths, Core",
+    "intra_isd_paths_avg_core" : "Average Intra ISD Paths, Core",
+    "border_breadth_avg_core" : "Average Border Breadth, Core",
+    "spectral_radius_core": "Spectral Radius, Core",
+    "average_clustering_core" : "Average Clustering, Core",
+    "nr_connected_components_core" : "# Connected Components, Core",
 }
 
 METRIC_LABELS = {
@@ -63,7 +80,20 @@ METRIC_LABELS = {
     "average_clustering" : "Average Clustering",
     "nr_connected_components" : "# Connected Components",
     "pearson_r": "Pearson r",
-    "spearman_p": "Spearman p"
+    "spearman_p": "Spearman p",
+    "avg_degree_core" : r"Average Degree, $\langle k \rangle$, Core",
+    "algebraic_connectivity_core" : "$a(G)$, Core",
+    "|V|_core" : "$|N|$, Core",
+    "|E|_core" : "$|E|$, Core",
+    "assortativity_core" : "Assortativity Coefficient, Core",
+    "transitivity_core": "Transitivity $C\delta$, Core",
+    "degree_std_core" : "Degree Standard Deviation, Core",
+    "degree_entropy_core" : "Degree Entropy, Core",
+    "spectral_gap_core": "Spectral Gap, Core",
+    "cheeger_constant_core" : "Cheeger Constant, Core",
+    "border_breadth_avg_core" : "Border Breadth (avg), Core",
+    "spectral_radius_core": "Spectral Radius, Core",
+    "average_clustering_core" : "Average Clustering, Core",
 }
 
 TOPO_NAMES = {
