@@ -5,7 +5,7 @@ RESULTS := topology_optimization/results/results.csv
 CONTAINER_TOPOLOGIES_PATH := tmp/container-topologies/
 PLOTS_FOLDER := topology_optimization/plots/
 SHOWPATHS_DATA := topology_optimization/data/show_paths_total
-SHOWPATHS_RESULTS := topology_optimization/results/results_paths_total_np.csv
+SHOWPATHS_RESULTS := topology_optimization/results/results_path.csv
 CORRELATION_RESULTS := topology_optimization/results/results_correlations.csv
 
 CONFIG_MK := .isd-vars.mk
