@@ -171,7 +171,6 @@ topo-optim:
 
 topo-optim-%:
 	@file=$$(ls $(TOPOLOGY_FOLDER)/$*/*_it0.yaml); \
-	python3 -m topology_optimization.scripts.rewire_spectral -tc $$file -o $(TOPOLOGY_FOLDER)/$*/ -k 5; \
 	python3 -m topology_optimization.scripts.rewire_np -tc $$file -o $(TOPOLOGY_FOLDER)/$*/ -k 5; \
 
 topo-eval: 

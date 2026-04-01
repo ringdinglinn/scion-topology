@@ -188,8 +188,8 @@ def run_network_partitioning(G, r_values, m, mode="dc", mask_nodes=[]):
             res = partition_pass(G,r, m, mask_nodes, mode=mode)
 
             ch, cut_edges, part_a, degrees = res
-            if ((mode=="dc" and (best_cut > cut_edges or (best_cut == cut_edges and best_partition[3] > degrees)))
-                or (mode!="dc" and (ch < best_cheeger or (ch == best_cheeger and best_partition[3] > degrees)))):
+            if ((mode=="dc" and (best_cut > cut_edges or (best_cut == cut_edges and best_partition[3] <= degrees)))
+                or (mode!="dc" and (ch < best_cheeger or (ch == best_cheeger and best_partition[3] <= degrees)))):
                 best_cut = cut_edges
                 best_cheeger = ch
                 best_partition = (ch, cut_edges, part_a, degrees)
@@ -308,7 +308,7 @@ def divide_and_conquer_max(G, min_res, active_nodes, mask_nodes):
     deg_a = sum(degrees[node] for node in partition_a)
     deg_b = sum(degrees[node] for node in partition_b)
 
-    if (min_res_a["cheeger"] > min_res_b["cheeger"] or (min_res_a["cheeger"] == min_res_b["cheeger"] and deg_a >= deg_b)):
+    if (min_res_a["cheeger"] > min_res_b["cheeger"] or (min_res_a["cheeger"] == min_res_b["cheeger"] and deg_a <= deg_b)):
         return divide_and_conquer_max(G, min_res_a, partition_a, (partition_b + mask_nodes))
     else:
         return divide_and_conquer_max(G, min_res_b, partition_b, (partition_a + mask_nodes))
