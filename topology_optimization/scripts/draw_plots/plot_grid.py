@@ -88,7 +88,7 @@ def plot_metrics(metrics, groups, output_dir, title=None):
     plt.tight_layout(rect=[0, 0.03, 1, 1])
     os.makedirs(output_dir, exist_ok=True)
     safe_name = "_vs_".join(m.replace(" ", "_").replace("|", "").replace("/", "_") for m in metrics)
-    out_path = os.path.join(output_dir, f"{safe_name}.png")
+    out_path = os.path.join(output_dir, f"{safe_name}.pdf")
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
     plt.close()
     print(f"Saved: {out_path}")

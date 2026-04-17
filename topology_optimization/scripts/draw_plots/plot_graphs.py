@@ -72,7 +72,7 @@ def plot_graph_grid(groups, graphs, output_dir=None, sort_by=None, save=True, sh
                 ax.axis("off")
         plt.tight_layout()
         if save and output_dir is not None:
-            out_path = os.path.join(output_dir, f"{group_name}.png")
+            out_path = os.path.join(output_dir, f"{group_name}.pdf")
             plt.savefig(out_path, dpi=300)
             print(f"Saved: {out_path}")
         if show:

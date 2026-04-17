@@ -71,7 +71,7 @@ def paths_to_latex_table(groups) -> str:
 
     lines.append(r"        \bottomrule")
     lines.append(r"    \end{tabular}}")
-    lines.append(r"    \caption{Total Gain in Average Paths Between Node Pairs after Running $R_{AC}$ and $R_{NP}$}")
+    lines.append(r"    \caption{Total gain in average paths between node pairs after running $R_{AC}$ and $R_{NP}$.}")
     lines.append(r"    \label{tab:path_stats}")
     lines.append(r"\end{table}")
 

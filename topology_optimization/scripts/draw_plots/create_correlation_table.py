@@ -65,7 +65,7 @@ def plot_correlation_matrix(csv_path, output_dir, metric="pearson_r", pvalue_col
 
     plt.tight_layout()
     os.makedirs(output_dir, exist_ok=True)
-    out_path = os.path.join(output_dir, f"correlation_matrix_{metric}.png")
+    out_path = os.path.join(output_dir, f"correlation_matrix_{metric}.pdf")
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
     plt.close()
     print(f"Saved: {out_path}")

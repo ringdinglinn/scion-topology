@@ -26,7 +26,7 @@ def graphs_to_latex_table(graphs_dict) -> str:
         lines.append(f"        {name} & {n_nodes} & {n_edges} & {n_avg_degree} & {n_isds} & {n_cores} \\\\")
     lines.append(r"        \bottomrule")
     lines.append(r"    \end{tabular}")
-    lines.append(r"    \caption{Topology statistics}")
+    lines.append(r"    \caption{Topology statistics.}")
     lines.append(r"    \label{tab:topology_stats}")
     lines.append(r"\end{table}")
 

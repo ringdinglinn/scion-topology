@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import ast
 import numpy as np
 from topology_optimization.scripts.draw_plots.utils import apply_styling, METRIC_LABELS, TOPO_NAMES
-import matplotlib as mpl
-from itertools import cycle
 
 apply_styling()
 
@@ -83,7 +81,7 @@ def plot_metric_grid(metric, groups, output_dir, title=None):
     plt.tight_layout(rect=[0, 0, 1, 0.995])
     os.makedirs(output_dir, exist_ok=True)
     safe_name = metric.replace(" ", "_").replace("|", "").replace("/", "_")
-    out_path = os.path.join(output_dir, f"{safe_name}.png")
+    out_path = os.path.join(output_dir, f"{safe_name}.pdf")
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
     plt.close()
     print(f"Saved: {out_path}")
