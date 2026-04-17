@@ -1,36 +1,45 @@
-# SCION Testbed
+# Configurable SCION Testbed and Experimental Environment
 
 ## Project Overview
 
-This project provides a Docker-based SCION (Secure Internet Architecture) testbed for experimenting with inter-domain routing and network topology. It includes multiple Internet Service Domains (ISDs) with preconfigured SCION nodes, a monitoring interface for network control and packet capture, and APIs for managing routing policies and conducting network measurements. The testbed supports packet capture, ping diagnostics, SCION-specific ping operations, and dynamic path policy configuration.
+This project provides a configurable SCION testbed and experimental environment based on Docker. This implementation is based on a prexisting testbed, available at https://github.com/guilloboi1917/scion-testbed, which provides the functionality to deploy 20 SCION ASes simulated through Docker containers, into a functional network. The original testbed included 4 ISDs. 
+
+This project extends the original work with the following capabilities:
+- Dynamic configurability, allowing users to define the number of ISDs, the number of nodes for each ISD, the core nodes for each ISD, and the topological connections between nodes in a single file. The testbed can deploy the configured network into a functioning SCION architecture.
+- Automated optimization procedures that rewire topologies to achieve maximal resilience.
+- Experimental tools that run robustness metrics on topology files and allow for the evaluation of deployed systems, by recording SCION paths between nodes.
+
 
 ## Directory Structure
 
-**base/** - Contains base Docker configuration and supporting tools:
-- `Dockerfile` - Base image for all SCION nodes
-- `br.toml`, `cs.toml` - SCION configuration templates
-- `pki/` - PKI generation scripts for each ISD
-- `scion-node-manager/` - REST API for node management (capture, ping, diagnostics)
-- `shttp/` - SCION HTTP webserver implementation
-- `systemd/` - Systemd service files for SCION daemons
+## Directory Structure
 
-**ISD[1-4]/** - Four Internet Service Domains with 5 SCION nodes each:
-- `scion1[1-5]`, `scion2[1-5]`, etc. - Individual SCION nodes with topology definitions
+- `base/` – Base Docker configuration and supporting tooling.
+- `monitor/` – Monitoring node implementation for Docker-based infrastructure.
+- `robustness-metrics/` – Git submodule referencing: https://github.com/ringdinglinn/robustness-metrics
+- `scripts/` – Python scripts for automated topology deployment.
+- `template/` – Parameterized Dockerfile template used during node generation.
+- `test/` – Test scripts for validating deployed topologies.
+- `topology_optimization/` – Topology optimization framework, including:
+  - Optimization algorithms: `rewire_spectral.py`, `rewire_np.py`
+  - Automated evaluation pipelines
+  - Figure generation scripts
+  - `topology_optimization/topologies/` - initial and generated topologies in 
+- `Makefile` – Primary entry point for orchestrating the testbed.
 
-**monitor/** - Network monitoring and control interface:
-- `web-ui/` - Web dashboard for network visualization
-- `scionctl/` - CLI tool for controlling SCION nodes and performing diagnostics
+**Makefile** - The Makefile is the user's entrypoint to the testbed and configures file paths.
 
-**captures/** - Packet capture files from network diagnostics
-
-## Setup
-
-### Prerequisites
+## Prerequisites
 - Docker Engine and Docker Compose
-- Linux or MacOS environment (WSL 2 on Windows 11 is supported)
+- MacOS environment
 - `make` utility
+- Python 3.11
+- Installing python dependencies:
+```
+ pip install -r requirements.txt
+```
 
-### Running the Testbed
+## Basic Usage
 
 To start all containers:
 ```bash
@@ -42,29 +51,24 @@ To stop all containers:
 make down
 ```
 
-The Makefile defines all commands for building and managing Docker images and containers. Docker Compose orchestrates the services and networking.
+Running the automated topology optimization pipeline will load the all initial topologies present in `topology_optimization/topologies/` and, by default, outputs five optimization iterations for each optimization algorithm. Subsequently, the testbed will automatically run robustness metrics on the topologies and produce figures. To run the optimization pipeline, use:
+```bash
+make run-topology-optimizer
+```
+
+To empirically evaluate a large set of different topologies, an automated pipeline sequentially instantiates all topologies on the testbed and captures the number of SCION paths established between each node. After this procedure has concluded, the pipeline evaluates the results and produces figures. This procedure can take a long time, if many topologies are present in `topology_optimization/topologies/`. To run the procedure, use:
+
+```bash
+make run-path-evaluation
+```
 
 ### Running Tests
 
-The integration tests do not run automatically. To run the tests use:
+When a topology is running, run tests using:
 ```bash
 make test
 ```
-If not already installed on the host machine, **bats** (bash automated testing system) will be installed and you will be prompted for permission to do so. Without bats, the tests can't run.
-For more details on bats visit the following:
+As stated in https://github.com/guilloboi1917/scion-testbed, **bats** will be installed if not already present. The user will be promoted to give permission. More about **bats**:
 - https://bats-core.readthedocs.io/en/stable/
 - https://github.com/bats-core/bats-core
 
-## Building Go Files
-
-To build Go binaries for Linux containers, use:
-```bash
-env GOOS=linux GOARCH=amd64 go build -o <outputFileName> <goFile>
-```
-
-Example:
-```bash
-env GOOS=linux GOARCH=amd64 go build -o scion-node-manager ./base/scion-node-manager/main.go
-```
-
-This ensures binaries are compatible with the Linux-based Docker containers regardless of your host OS. If the scion-services are not running for correctly for some reason, rebuilding the binaries can help in some cases.
