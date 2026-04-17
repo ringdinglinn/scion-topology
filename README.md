@@ -9,8 +9,7 @@ This project extends the original work with the following capabilities:
 - Automated optimization procedures that rewire topologies to achieve maximal resilience.
 - Experimental tools that run robustness metrics on topology files and allow for the evaluation of deployed systems, by recording SCION paths between nodes.
 
-
-## Directory Structure
+This project is compatible with [SCION version 0.14.0](https://github.com/scionproto/scion/releases/tag/v0.14.0) and the experimental results were produced using this version.
 
 ## Directory Structure
 
