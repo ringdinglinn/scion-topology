@@ -45,6 +45,11 @@ To start all containers:
 make up
 ```
 
+If something isn't working, try rebuilding without cache:
+```bash
+make rebuild
+```
+
 To stop all containers:
 ```bash
 make down
