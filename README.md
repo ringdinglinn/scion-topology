@@ -13,26 +13,24 @@ This project is compatible with [SCION version 0.14.0](https://github.com/scionp
 
 ## Directory Structure
 
-- `base/` – Base Docker configuration and supporting tooling.
-- `monitor/` – Monitoring node implementation for Docker-based infrastructure.
+- `base/` – Base Docker configuration that nodes inherit from, key generation.
+- `monitor/` – Monitoring node implementation.
 - `robustness-metrics/` – Git submodule referencing: https://github.com/ringdinglinn/robustness-metrics
-- `scripts/` – Python scripts for automated topology deployment.
+- `scripts/` – Python scripts for automated topology configuration and deployment.
 - `template/` – Parameterized Dockerfile template used during node generation.
 - `test/` – Test scripts for validating deployed topologies.
 - `topology_optimization/` – Topology optimization framework, including:
   - Optimization algorithms: `rewire_spectral.py`, `rewire_np.py`
   - Automated evaluation pipelines
   - Figure generation scripts
-  - `topology_optimization/topologies/` - initial and generated topologies in 
+  - `topology_optimization/topologies/` - initial and generated topologies 
 - `Makefile` – Primary entry point for orchestrating the testbed.
 
-**Makefile** - The Makefile is the user's entrypoint to the testbed and configures file paths.
-
 ## Prerequisites
-- Docker Engine and Docker Compose
+- Docker Desktop
 - MacOS environment
 - `make` utility
-- Python 3.11
+- Python >= 3.11
 - Installing python dependencies:
 ```
  pip install -r requirements.txt
@@ -72,6 +70,8 @@ When a topology is running, run tests using:
 ```bash
 make test
 ```
+SCION requires some time to establish paths. If tests fail shortly after nodes were deployed, try again after a few seconds.
+
 As stated in https://github.com/guilloboi1917/scion-testbed, **bats** will be installed if not already present. The user will be promoted to give permission. More about **bats**:
 - https://bats-core.readthedocs.io/en/stable/
 - https://github.com/bats-core/bats-core
