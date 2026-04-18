@@ -63,6 +63,7 @@ To empirically evaluate a large set of different topologies, an automated pipeli
 ```bash
 make run-path-evaluation
 ```
+Furthermore, the Makefile exposes many more fine-grained commands that can be used instead of running the entire topology optimization or path evaluation pipeline.
 
 ### Running Tests
 
